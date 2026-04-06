@@ -1,0 +1,36 @@
+FROM tensorflow/tensorflow:2.12.0
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git wget unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone basenji (contains Saluki model code, inference scripts, and dependencies)
+RUN git clone --depth 1 https://github.com/calico/basenji.git /opt/basenji
+
+WORKDIR /opt/basenji
+
+# Install basenji deps, then add the source to PYTHONPATH directly.
+# `pip install .` (non-editable) doesn't copy source for this package, and
+# `-e .` creates .egg-link that Docker layers don't preserve reliably.
+RUN pip install --no-cache-dir -r requirements.txt
+ENV PYTHONPATH="/opt/basenji:$PYTHONPATH"
+
+# Download Saluki datasets.zip from Zenodo (~18.8 GB). Extract ONLY the model
+# checkpoints + params.json (~250 MB across 100 .h5 files for 10 folds x
+# 5 crosses x 2 heads). Discard training data and the zip.
+# Model structure: f{0..9}_c{0..4}/train/model{0,1}_best.h5
+#   head 0 = human, head 1 = mouse
+RUN wget -q --show-progress -O /tmp/datasets.zip \
+        "https://zenodo.org/records/6326409/files/datasets.zip?download=1" && \
+    mkdir -p /opt/saluki_models && \
+    cd /tmp && unzip -o datasets.zip \
+        "datasets/deeplearning/train_gru/params.json" \
+        "datasets/deeplearning/train_gru/f*_c*/train/model*_best.h5" \
+    && mv /tmp/datasets/deeplearning/train_gru/* /opt/saluki_models/ \
+    && rm -rf /tmp/datasets /tmp/datasets.zip
+
+# Make models + output dirs writable for non-root Nextflow users
+RUN chmod -R 755 /opt/saluki_models
+
+ENV PATH="/opt/basenji/bin/archive:/opt/basenji/bin:$PATH"
+WORKDIR /opt/basenji

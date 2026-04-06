@@ -1,0 +1,47 @@
+FROM condaforge/miniforge3:latest
+
+# gcc + build-essential are needed to compile `sorted_nearest` (Cython ext)
+# from pyranges during pip install.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Python 3.10 + CPU PyTorch. TRISTAN v1.1.1 doesn't pin torch, but it uses
+# `torch.serialization.add_safe_globals` (added in torch 2.4), so we need
+# torch>=2.4. For a GPU variant, swap in the CUDA pytorch packages and
+# remove `cpuonly`.
+RUN mamba create -n tristan -c pytorch -c conda-forge -y \
+        python=3.10 \
+        "pytorch>=2.4" \
+        "numpy<2" \
+        cpuonly \
+        pip \
+    && mamba clean -afy
+
+# transcript_transformer ships its pretrained weights inside the wheel
+# (transcript_transformer/pretrained/{rt,tt}_models/*.ckpt, ~110 MB total),
+# so `pip install` alone bakes them into the image — no runtime download.
+# We install from the v1.1.1 git tag for reproducibility.
+RUN /opt/conda/envs/tristan/bin/pip install --no-cache-dir \
+        "git+https://github.com/TRISTAN-ORF/TRISTAN.git@v1.1.1"
+
+# Patch upstream bug in transcript_transformer/data.py:
+#   `(max_char_len is not None) & (max_char_len > 0)`
+# uses bitwise `&` which does not short-circuit, so when `max_char_len` is None
+# the second term raises TypeError. Replace with logical `and`.
+# Reported as of 2026-04-05; unfixed in main and v1.1.1 tag.
+RUN sed -i \
+    's/(max_char_len is not None) & (max_char_len > 0)/(max_char_len is not None) and (max_char_len > 0)/' \
+    /opt/conda/envs/tristan/lib/python3.10/site-packages/transcript_transformer/data.py
+
+# Clone the repo too so we have access to the bundled test data
+# (tests/data/GRCh38v110_snippet.{fa,gtf}, SRR00000*.bam) for documentation and
+# smoke-testing. The working code is installed via pip above.
+RUN git clone --branch v1.1.1 --depth 1 https://github.com/TRISTAN-ORF/TRISTAN.git /opt/TRISTAN && \
+    chmod -R 777 /opt/TRISTAN/tests
+
+# Activate the env
+ENV PATH="/opt/conda/envs/tristan/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=tristan
+
+WORKDIR /opt/TRISTAN

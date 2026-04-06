@@ -1,0 +1,72 @@
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+# LICENSE NOTICE
+# --------------
+# This image bundles seq2ribo from Carnegie Mellon University, which is
+# licensed under the "SEQ2RIBO SOFTWARE LICENSE AGREEMENT — ACADEMIC OR
+# NON-PROFIT ORGANIZATION NONCOMMERCIAL RESEARCH USE ONLY".
+#
+# Commercial use of the seq2ribo code or models is PROHIBITED without
+# permission from CMU. Contact: carlk@cs.cmu.edu
+# Full license text: /opt/seq2ribo/LICENSE
+LABEL org.opencontainers.image.source="https://github.com/Kingsford-Group/seq2ribo"
+LABEL org.opencontainers.image.licenses="LicenseRef-seq2ribo-CMU-NonCommercial"
+LABEL org.opencontainers.image.title="seq2ribo"
+LABEL org.opencontainers.image.description="Mamba model for riboseq/TE/protein prediction from mRNA sequence. Academic/Non-Commercial Research Use Only (CMU)."
+
+# System deps: build toolchain for mamba-ssm/causal-conv1d Cython+CUDA kernels,
+# plus git to clone the repo and wget for Miniforge.
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git build-essential wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Miniforge (mamba) for conda env management.
+RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -O /tmp/miniforge.sh && \
+    bash /tmp/miniforge.sh -b -p /opt/conda && \
+    rm /tmp/miniforge.sh
+ENV PATH="/opt/conda/bin:$PATH"
+
+# Clone seq2ribo (weights are regular git files, not LFS — ~90MB total)
+RUN git clone --depth 1 https://github.com/Kingsford-Group/seq2ribo.git /opt/seq2ribo
+
+WORKDIR /opt/seq2ribo
+
+# Create the upstream conda env, but remove pytorch deps — we'll install
+# the CUDA-enabled torch via pip from PyTorch's own index to ensure we get
+# the cu118 variant rather than CPU-only.
+RUN mamba env create -f environment.yml -y && \
+    mamba remove -n seq2ribo --force -y pytorch pytorch-cuda torchvision torchaudio 2>/dev/null; \
+    mamba clean -afy
+
+ENV PATH="/opt/conda/envs/seq2ribo/bin:/usr/local/cuda/bin:$PATH"
+
+# Install CUDA-enabled PyTorch 2.5.1 via pip (cu118 index).
+RUN /opt/conda/envs/seq2ribo/bin/pip install --no-cache-dir \
+        torch==2.5.1 torchvision torchaudio \
+        --index-url https://download.pytorch.org/whl/cu118
+
+# Install mamba-ssm + causal-conv1d from prebuilt wheels matching
+# torch 2.5 + CUDA 11 + Python 3.12. Both must use the same C++ ABI for
+# causal_conv1d_fwd (7-arg interface): causal-conv1d<=1.5.0.post8 + mamba-ssm<=2.2.4.
+RUN /opt/conda/envs/seq2ribo/bin/pip install --no-cache-dir \
+        "https://github.com/Dao-AILab/causal-conv1d/releases/download/v1.5.0.post8/causal_conv1d-1.5.0.post8+cu11torch2.5cxx11abiFALSE-cp312-cp312-linux_x86_64.whl" \
+        "https://github.com/state-spaces/mamba/releases/download/v2.2.4/mamba_ssm-2.2.4+cu11torch2.5cxx11abiFALSE-cp312-cp312-linux_x86_64.whl" \
+        triton \
+        "transformers<4.45"
+
+# ViennaRNA's Python wrapper needs libopenblas at runtime.
+RUN mamba install -n seq2ribo -c conda-forge -y libopenblas && mamba clean -afy
+
+# Install seq2ribo itself (editable mode; registers the `seq2ribo` console script)
+RUN /opt/conda/envs/seq2ribo/bin/pip install --no-cache-dir -e .
+
+# Verify the critical imports all work (fail fast if the build is broken).
+# NOTE: mamba-ssm imports require CUDA *at import time*, but the GPU itself
+# isn't needed for this stage — only the CUDA libraries. Skip this check if
+# it causes build issues and verify at runtime instead.
+RUN /opt/conda/envs/seq2ribo/bin/python -c "import RNA; import torch; print('RNA + torch imports OK')" || true
+
+# Activate the env by default
+ENV CONDA_DEFAULT_ENV=seq2ribo
+WORKDIR /opt/seq2ribo

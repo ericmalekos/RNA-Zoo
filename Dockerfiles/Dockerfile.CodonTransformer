@@ -1,0 +1,32 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n codontransformer -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/codontransformer/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=codontransformer
+
+# Install CodonTransformer from PyPI
+RUN /opt/conda/envs/codontransformer/bin/pip install --no-cache-dir CodonTransformer
+
+# Pre-download HuggingFace model weights (~358 MB) so they're baked into
+# the image. No runtime download needed.
+RUN /opt/conda/envs/codontransformer/bin/python -c "\
+from transformers import AutoTokenizer, BigBirdForMaskedLM; \
+AutoTokenizer.from_pretrained('adibvafa/CodonTransformer'); \
+BigBirdForMaskedLM.from_pretrained('adibvafa/CodonTransformer'); \
+print('Model cached successfully')"
+
+# Copy our CLI wrapper script
+COPY bin/codon_transformer_predict.py /opt/bin/codon_transformer_predict.py
+RUN chmod +x /opt/bin/codon_transformer_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

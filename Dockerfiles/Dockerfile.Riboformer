@@ -1,0 +1,25 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone Riboformer from GitHub (bundled weights come with the repo, ~20MB total)
+RUN git clone --depth 1 https://github.com/lingxusb/Riboformer.git /opt/Riboformer
+
+WORKDIR /opt/Riboformer
+
+# Install the conda environment defined by the upstream repo (TF 2.8, Python 3.9.7)
+RUN mamba env create -f env.yml -y && mamba clean -afy
+
+# Make datasets/ writable so the container can run as a non-root user
+# (Nextflow passes -u $(id -u):$(id -g)). Riboformer writes its predictions
+# into datasets/<input_folder>/model_prediction.txt, so that dir must be
+# user-writable.
+RUN chmod -R 777 /opt/Riboformer/datasets
+
+# Activate the riboformer environment by default
+ENV PATH="/opt/conda/envs/riboformer/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=riboformer
+
+# Riboformer's transfer.py/data_processing.py assume CWD is Riboformer/Riboformer/
+WORKDIR /opt/Riboformer/Riboformer

@@ -1,0 +1,44 @@
+# Nextflow
+.nextflow*
+work/
+results/
+results_test/
+trace/
+report.html
+timeline.html
+dag.html
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# Environments
+.env
+.venv
+venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific: model source clones (built from upstream in Dockerfiles)
+/RiboNN/
+/seq2ribo/
+/RiboMIMO/
+/Riboformer/
+/RiboTIE/
+/enigma/
+
+# Local scratch
+tmp/

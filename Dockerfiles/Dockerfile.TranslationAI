@@ -1,0 +1,29 @@
+FROM tensorflow/tensorflow:1.15.5-py3
+
+# LICENSE NOTICE
+# Source code: AGPL-3.0
+# Pretrained model weights: CC BY-NC 4.0 (non-commercial only)
+# See: https://github.com/rnasys/TranslationAI/blob/main/LICENSE
+LABEL org.opencontainers.image.source="https://github.com/rnasys/TranslationAI"
+LABEL org.opencontainers.image.licenses="AGPL-3.0-only AND LicenseRef-CC-BY-NC-4.0"
+LABEL org.opencontainers.image.title="TranslationAI"
+LABEL org.opencontainers.image.description="Predict TIS/TTS/ORFs from mRNA sequence. Model weights are CC BY-NC 4.0 (non-commercial only)."
+
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone TranslationAI (weights are bundled in the repo, ~15 MB)
+RUN git clone --depth 1 https://github.com/rnasys/TranslationAI.git /opt/TranslationAI
+
+WORKDIR /opt/TranslationAI
+
+# Install TranslationAI + undeclared runtime dependencies.
+# Pin keras<2.4 to stay compatible with TF 1.15 (setup.py says >=2.0.5 but
+# keras 2.4+ requires TF 2.x).
+RUN pip install --no-cache-dir "keras>=2.0.5,<2.4" h5py scikit-learn regex .
+
+# Make output dirs writable for non-root Nextflow users
+RUN chmod -R 777 /opt/TranslationAI
+
+ENV PATH="/opt/TranslationAI:$PATH"
+WORKDIR /opt/TranslationAI

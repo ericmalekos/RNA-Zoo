@@ -1,0 +1,33 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git wget unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone RiboNN from GitHub
+RUN git clone --branch main --depth 1 https://github.com/Sanofi-Public/RiboNN.git /app
+
+WORKDIR /app
+
+# Install the conda environment
+RUN mamba env create -f environment.yml -y && \
+    mamba clean -afy
+
+# Downgrade setuptools for pkg_resources compatibility with lightning_utilities
+RUN /opt/conda/envs/RiboNN/bin/pip install --no-cache-dir 'setuptools<71'
+
+# Bake pretrained model weights into the image (~217MB extracted)
+RUN wget -q -O /tmp/weights.zip "https://zenodo.org/records/17258709/files/weights.zip?download=1" && \
+    unzip -q /tmp/weights.zip -d /app/models/ && \
+    rm /tmp/weights.zip
+
+# Make data/ and results/ writable by any user so the container can run as non-root
+# (e.g. under Nextflow, which passes `-u $(id -u):$(id -g)`)
+RUN mkdir -p /app/data /app/results && chmod -R 777 /app/data /app/results
+
+# Activate the RiboNN environment by default
+ENV PATH="/opt/conda/envs/RiboNN/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=RiboNN
+
+# No ENTRYPOINT: Nextflow needs to pass /bin/bash commands, and ENTRYPOINT would
+# prepend to those. Run RiboNN with: python3 -m src.main --predict human
+WORKDIR /app
