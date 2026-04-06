@@ -43,15 +43,15 @@ jobs:
       - name: Build RiboNN CPU image
         run: |
           docker build \
-            -t ghcr.io/ericmalekos/ribozoo-ribonn-cpu:latest \
+            -t ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
             -f Dockerfiles/Dockerfile.RiboNN.cpu .
       - name: Smoke test RiboNN image
         run: |
-          docker run --rm ghcr.io/ericmalekos/ribozoo-ribonn-cpu:latest \
+          docker run --rm ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
             bash -c "cd /app && python3 -m src.main --predict human" \
             | grep -q "Predictions written"
       - name: Save image for pipeline test
-        run: docker save ghcr.io/ericmalekos/ribozoo-ribonn-cpu:latest | gzip > ribonn-cpu.tar.gz
+        run: docker save ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest | gzip > ribonn-cpu.tar.gz
       - uses: actions/upload-artifact@v4
         with:
           name: ribonn-cpu-image

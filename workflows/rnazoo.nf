@@ -1,6 +1,6 @@
 /*
 ========================================================================================
-    RIBOZOO workflow: dispatch input to each enabled model module
+    RNAZOO workflow: dispatch input to each enabled model module
 ========================================================================================
 */
 
@@ -12,7 +12,7 @@ include { SALUKI            } from '../modules/local/saluki'
 include { TRANSLATIONAI    } from '../modules/local/translationai'
 include { CODONTRANSFORMER } from '../modules/local/codontransformer'
 
-workflow RIBOZOO {
+workflow RNAZOO {
     main:
 
     // ----- sequence → prediction track -----

@@ -4,12 +4,12 @@ nextflow.enable.dsl = 2
 
 /*
 ========================================================================================
-    RiboZoo: a model zoo for riboseq / translation-efficiency prediction
+    RNAZoo: a model zoo for riboseq / translation-efficiency prediction
 ========================================================================================
 */
 
-include { RIBOZOO } from './workflows/ribozoo'
+include { RNAZOO } from './workflows/rnazoo'
 
 workflow {
-    RIBOZOO()
+    RNAZOO()
 }

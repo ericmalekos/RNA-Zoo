@@ -19,21 +19,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: ribozoo-ribonn
+          - name: rnazoo-ribonn
             dockerfile: Dockerfiles/Dockerfile.RiboNN
-          - name: ribozoo-ribonn-cpu
+          - name: rnazoo-ribonn-cpu
             dockerfile: Dockerfiles/Dockerfile.RiboNN.cpu
-          - name: ribozoo-riboformer
+          - name: rnazoo-riboformer
             dockerfile: Dockerfiles/Dockerfile.Riboformer
-          - name: ribozoo-tristan
+          - name: rnazoo-tristan
             dockerfile: Dockerfiles/Dockerfile.TRISTAN
-          - name: ribozoo-seq2ribo
+          - name: rnazoo-seq2ribo
             dockerfile: Dockerfiles/Dockerfile.seq2ribo
-          - name: ribozoo-saluki
+          - name: rnazoo-saluki
             dockerfile: Dockerfiles/Dockerfile.Saluki
-          - name: ribozoo-translationai
+          - name: rnazoo-translationai
             dockerfile: Dockerfiles/Dockerfile.TranslationAI
-          - name: ribozoo-codontransformer
+          - name: rnazoo-codontransformer
             dockerfile: Dockerfiles/Dockerfile.CodonTransformer
 
     steps:
