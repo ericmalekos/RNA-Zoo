@@ -142,6 +142,11 @@ def main():
         action="store_true",
         help="Also save base-pair probability matrices as .npy files",
     )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Generate contact map heatmap PNGs for each sequence",
+    )
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -223,9 +228,19 @@ def main():
             # Write FASTA-like output
             out_f.write(f">{header}\n{seq}\n{db}\n")
 
+            safe_name = header.replace("/", "_").replace(" ", "_")
+
             if args.save_matrix:
-                safe_name = header.replace("/", "_").replace(" ", "_")
                 np.save(os.path.join(args.output, f"{safe_name}_bpmat.npy"), prob_matrix)
+
+            if args.plot:
+                from rnazoo_plots import plot_contact_map
+
+                plot_contact_map(
+                    prob_matrix, seq, header,
+                    os.path.join(args.output, f"{safe_name}_contact.png"),
+                    title_prefix="RNAformer: ",
+                )
 
             print(
                 f"  [{idx + 1}/{len(sequences)}] {header} ({len(seq)} nt, {len(pairs)} pairs)",

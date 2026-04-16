@@ -99,6 +99,37 @@ multirm_input: data/rna_sequences.fa
 multirm_alpha: 0.01
 ```
 
+## Fine-tuning
+
+Some models support fine-tuning on your own data. The workflow is: fine-tune to produce a checkpoint, then use that checkpoint for prediction.
+
+### RiboNN — transfer learning for a new cell type
+
+```bash
+# Fine-tune on your TE data
+nextflow run . -profile docker,cpu \
+  --ribonn_finetune_input my_te_data.tsv \
+  --ribonn_finetune_target TE_MyCondition
+```
+
+### UTR-LM — fine-tune on custom expression data
+
+```bash
+# Step 1: Fine-tune
+nextflow run . -profile docker,cpu \
+  --utrlm_finetune_input my_utr_data.csv \
+  --utrlm_finetune_label my_mrl \
+  --utrlm_finetune_task mrl
+
+# Step 2: Predict with fine-tuned model
+nextflow run . -profile docker,cpu \
+  --utrlm_input new_sequences.fa \
+  --utrlm_checkpoint results/utrlm_finetune/best_model.pt \
+  --utrlm_task mrl
+```
+
+See [RiboNN](../models/RiboNN.md#fine-tuning-on-your-own-data) and [UTR-LM](../models/UTRLM.md#fine-tuning-on-your-own-data) model pages for full details.
+
 ## Run with Docker directly (no Nextflow)
 
 Every model can also be run standalone with Docker:

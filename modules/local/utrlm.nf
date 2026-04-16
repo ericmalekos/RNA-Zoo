@@ -20,12 +20,14 @@ process UTRLM {
 
     script:
     def cell_line_flag = params.utrlm_task != 'mrl' ? "--cell-line ${params.utrlm_cell_line}" : ''
+    def ckpt_flag = params.utrlm_checkpoint ? "--checkpoint ${params.utrlm_checkpoint}" : ''
     """
     utrlm_predict.py \
         -i ${input_fasta} \
         -o utrlm_out \
         --task ${params.utrlm_task} \
         ${cell_line_flag} \
+        ${ckpt_flag} \
         --model-dir /opt/utrlm/Model
     """
 }

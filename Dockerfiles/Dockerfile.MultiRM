@@ -9,6 +9,7 @@ RUN mamba create -n multirm -c pytorch -c conda-forge -y \
         cpuonly \
         "numpy<2" \
         pandas \
+        matplotlib \
         pip \
     && mamba clean -afy
 
@@ -20,6 +21,7 @@ RUN git clone --depth 1 https://github.com/Tsedao/MultiRM.git /opt/multirm
 
 # Copy CLI wrapper script (contains self-contained model implementation)
 COPY bin/multirm_predict.py /opt/bin/multirm_predict.py
+COPY bin/rnazoo_plots.py /opt/bin/rnazoo_plots.py
 RUN chmod +x /opt/bin/multirm_predict.py
 ENV PATH="/opt/bin:$PATH"
 

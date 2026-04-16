@@ -9,7 +9,8 @@ RUN pip install --no-cache-dir \
         "numpy<2" \
         pandas \
         tqdm \
-        six
+        six \
+        matplotlib
 
 # Clone SPOT-RNA
 RUN git clone --depth 1 https://github.com/jaswindersingh2/SPOT-RNA.git /opt/SPOT-RNA
@@ -25,6 +26,7 @@ RUN mkdir -p /opt/SPOT-RNA/input_tfr_files && chmod 777 /opt/SPOT-RNA/input_tfr_
 
 # Copy CLI wrapper script
 COPY bin/spotrna_predict.py /opt/bin/spotrna_predict.py
+COPY bin/rnazoo_plots.py /opt/bin/rnazoo_plots.py
 RUN chmod +x /opt/bin/spotrna_predict.py
 ENV PATH="/opt/bin:$PATH"
 

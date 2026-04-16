@@ -60,6 +60,16 @@ Secondary and 3D structure prediction from sequence.
 
 - **[UTR-LM](UTRLM.md)** — Predicts mean ribosome loading, translation efficiency, or expression level from 5'UTR sequences
 
+## Fine-tuning support
+
+Some models can be fine-tuned on your own data. Fine-tuned checkpoints are saved to disk and can be reused for subsequent predictions.
+
+| Model | Fine-tuning | Details |
+|-------|-------------|---------|
+| [RiboNN](RiboNN.md#fine-tuning-on-your-own-data) | Transfer learning | Freeze pretrained conv layers, train head on user TE data for a new cell type |
+| [UTR-LM](UTRLM.md#fine-tuning-on-your-own-data) | Full fine-tuning | Train ESM2 backbone + head on user MRL/TE/EL data; use saved checkpoint for prediction |
+| [RiboTIE](RiboTIE.md) | Built-in | Automatically fine-tunes on user ribo-seq BAMs before ORF prediction |
+
 ## Licenses
 
 | Model | License | GitHub | Paper |

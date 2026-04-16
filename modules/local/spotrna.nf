@@ -20,11 +20,14 @@ process SPOTRNA {
     path "spotrna_out/*.bpseq",        emit: bpseq,  optional: true
     path "spotrna_out/*.ct",           emit: ct,     optional: true
     path "spotrna_out/*.prob",         emit: prob,   optional: true
+    path "spotrna_out/*_contact.png",  emit: plots,  optional: true
 
     script:
+    def plot_flag = params.spotrna_plot ? '--plot' : ''
     """
     spotrna_predict.py \
         -i ${input_fasta} \
-        -o spotrna_out
+        -o spotrna_out \
+        ${plot_flag}
     """
 }

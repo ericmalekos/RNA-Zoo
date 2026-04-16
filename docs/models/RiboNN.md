@@ -75,3 +75,34 @@ tx_id	predicted_TE_HEK293	predicted_TE_HeLa	...	mean_predicted_TE
 ENST00000215375.7	1.0705105	1.0321615	...	1.0564895
 ENST00000231004.5	0.47455412	0.41119576	...	0.54676294
 ```
+
+## Fine-tuning on your own data
+
+RiboNN supports transfer learning from the pretrained 78-cell-type human model to a new cell type or condition. The pretrained convolutional layers are frozen initially, then the full model is fine-tuned with a lower learning rate.
+
+### Input format
+
+Tab-separated file with columns: `tx_id`, `utr5_sequence`, `cds_sequence`, `utr3_sequence`, and your target TE column (numeric values). The target column name is specified via `--ribonn_finetune_target`.
+
+### Run fine-tuning
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --ribonn_finetune_input my_training_data.tsv \
+  --ribonn_finetune_target TE_MyCondition
+```
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--ribonn_finetune_target` | (required) | Column name containing TE values |
+| `--ribonn_finetune_phase1_epochs` | `50` | Epochs for head-only training (conv layers frozen) |
+| `--ribonn_finetune_phase2_epochs` | `150` | Epochs for full model training (all layers) |
+| `--ribonn_finetune_patience` | `50` | Early stopping patience |
+| `--ribonn_finetune_folds` | `5` | Cross-validation folds |
+
+### Output
+
+- `ribonn_finetune/predictions.tsv` — cross-validated predictions on held-out test folds
+- `ribonn_finetune/fold*/` — saved model checkpoints per fold

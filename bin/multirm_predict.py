@@ -159,6 +159,10 @@ def main():
         default="/opt/multirm/Scripts/neg_prob.csv",
         help="Path to null distribution CSV",
     )
+    parser.add_argument(
+        "--plot", action="store_true",
+        help="Generate modification heatmap PNGs for each sequence",
+    )
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -237,6 +241,25 @@ def main():
                             f"{header}\t{RMS[k]}\t{center + 1}\t{seq[center]}\t"
                             f"{probs[k, pos]:.6f}\t{p_val:.6f}\n"
                         )
+
+            # Plot modification heatmap
+            if args.plot:
+                from rnazoo_plots import plot_modification_heatmap
+
+                scores_rows = []
+                for pos in range(check_pos):
+                    center = pos + 25
+                    row = {"position": center + 1, "base": seq[center]}
+                    for k in range(NUM_TASK):
+                        row[RMS[k]] = probs[k, pos]
+                    scores_rows.append(row)
+                scores_df = pd.DataFrame(scores_rows)
+                safe_name = header.replace("/", "_").replace(" ", "_")
+                plot_modification_heatmap(
+                    scores_df, header,
+                    os.path.join(args.output, f"{safe_name}_modifications.png"),
+                    mod_names=RMS,
+                )
 
             print(
                 f"  [{idx + 1}/{len(sequences)}] {header} ({len(seq)} nt)",

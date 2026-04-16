@@ -74,6 +74,10 @@ def main():
         "-i", "--input", required=True, help="FASTA file of RNA sequences"
     )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
+    parser.add_argument(
+        "--plot", action="store_true",
+        help="Generate contact map heatmap PNGs for each sequence",
+    )
     args = parser.parse_args()
 
     os.makedirs(args.output, exist_ok=True)
@@ -135,6 +139,18 @@ def main():
                 for src in [bpseq_path, ct_path, prob_path]:
                     if os.path.exists(src):
                         shutil.copy2(src, args.output)
+
+                # Plot contact map from probability matrix
+                if args.plot and os.path.exists(prob_path):
+                    import numpy as np
+                    from rnazoo_plots import plot_contact_map
+
+                    prob_mat = np.loadtxt(prob_path)
+                    plot_contact_map(
+                        prob_mat, seq, header,
+                        os.path.join(args.output, f"{safe_name}_contact.png"),
+                        title_prefix="SPOT-RNA: ",
+                    )
 
                 print(
                     f"  [{idx + 1}/{len(sequences)}] {header} ({len(seq)} nt)",

@@ -40,7 +40,8 @@ riboformer_target_wig: null    # required: base name of target WIG pair
 riboformer_model: yeast_disome # pretrained model name
 riboformer_psite: 14           # P-site offset
 riboformer_wsize: 40           # window size
-riboformer_threshold: 25       # minimum read threshold
+riboformer_threshold: 25
+riboformer_plot: false         # generate ribosome density plot       # minimum read threshold
 
 # RiboTIE — ORF detection from ribo-seq + genomic sequence
 # Input: directory with genome FASTA, GTF, BAM files
@@ -120,6 +121,7 @@ rnaformer_input: null
 rnaformer_outdir: null         # default: <outdir>/rnaformer
 rnaformer_cycling: 6           # recycling steps (6=best, 0=disable)
 rnaformer_save_matrix: false   # save L x L base-pair probability .npy
+rnaformer_plot: false          # generate contact map heatmap PNGs
 
 # RhoFold — RNA 3D structure prediction (single-sequence mode)
 # Input: FASTA of RNA sequences (max ~1022 nt)
@@ -132,6 +134,7 @@ rhofold_outdir: null           # default: <outdir>/rhofold
 # Output: structures.txt (dot-bracket), bpseq, ct, prob matrices
 spotrna_input: null
 spotrna_outdir: null           # default: <outdir>/spotrna
+spotrna_plot: false            # generate contact map heatmap PNGs
 
 # ============================================================================
 # RNA MODIFICATION
@@ -143,6 +146,7 @@ spotrna_outdir: null           # default: <outdir>/spotrna
 multirm_input: null
 multirm_outdir: null           # default: <outdir>/multirm
 multirm_alpha: 0.05            # significance threshold
+multirm_plot: false            # generate modification heatmap PNGs
 
 # ============================================================================
 # mRNA DESIGN

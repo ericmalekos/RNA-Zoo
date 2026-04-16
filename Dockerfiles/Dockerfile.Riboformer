@@ -21,5 +21,9 @@ RUN chmod -R 777 /opt/Riboformer/datasets
 ENV PATH="/opt/conda/envs/riboformer/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=riboformer
 
+# Copy shared plotting utility
+COPY bin/rnazoo_plots.py /opt/bin/rnazoo_plots.py
+ENV PATH="/opt/bin:$PATH"
+
 # Riboformer's transfer.py/data_processing.py assume CWD is Riboformer/Riboformer/
 WORKDIR /opt/Riboformer/Riboformer

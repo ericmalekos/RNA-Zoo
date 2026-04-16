@@ -19,8 +19,9 @@ process RIBOFORMER {
     val target_wig
 
     output:
-    path "model_prediction.txt", emit: predictions
-    path "pause_indices.txt",    emit: pause_indices, optional: true
+    path "model_prediction.txt",        emit: predictions
+    path "pause_indices.txt",           emit: pause_indices, optional: true
+    path "ribosome_density_plot.png",   emit: plot, optional: true
 
     script:
     """
@@ -51,6 +52,18 @@ process RIBOFORMER {
     cp "\$DATASET_DIR/model_prediction.txt" model_prediction.txt
     if [ -f "\$DATASET_DIR/pause_indices.txt" ]; then
         cp "\$DATASET_DIR/pause_indices.txt" pause_indices.txt
+    fi
+
+    # Generate density plot if requested
+    if [ "${params.riboformer_plot}" = "true" ]; then
+        python -c "
+import sys
+sys.path.insert(0, '/opt/bin')
+from rnazoo_plots import plot_ribosome_density
+import numpy as np
+d = np.loadtxt('model_prediction.txt')
+plot_ribosome_density(d, '${model_name}', 'ribosome_density_plot.png')
+" || true
     fi
     """
 }

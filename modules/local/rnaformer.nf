@@ -18,14 +18,16 @@ process RNAFORMER {
     output:
     path "rnaformer_out/structures.txt", emit: structures
     path "rnaformer_out/*_bpmat.npy",    emit: matrices, optional: true
+    path "rnaformer_out/*_contact.png",  emit: plots,    optional: true
 
     script:
     def matrix_flag = params.rnaformer_save_matrix ? '--save-matrix' : ''
+    def plot_flag   = params.rnaformer_plot         ? '--plot'        : ''
     """
     rnaformer_predict.py \
         -i ${input_fasta} \
         -o rnaformer_out \
         --cycling ${params.rnaformer_cycling} \
-        ${matrix_flag}
+        ${matrix_flag} ${plot_flag}
     """
 }

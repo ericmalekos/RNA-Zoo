@@ -128,6 +128,11 @@ def main():
         default="0",
         help="Comma-separated fold indices to ensemble (default: 0). Use 'all' for 0-9.",
     )
+    parser.add_argument(
+        "--checkpoint",
+        default=None,
+        help="Path to a fine-tuned checkpoint (.pt) to use instead of bundled weights",
+    )
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -181,13 +186,20 @@ def main():
         shuffle=False,
     )
 
-    # Predict across folds
+    # Predict — use custom checkpoint if provided, else bundled fold ensemble
     all_fold_preds = []
-    for fold_idx in fold_indices:
-        ckpt_path = find_checkpoint(
-            args.model_dir, args.task, args.cell_line, fold_idx
-        )
-        print(f"  Loading fold {fold_idx}: {os.path.basename(ckpt_path)}", file=sys.stderr)
+    if args.checkpoint:
+        checkpoint_list = [(0, args.checkpoint)]
+        print(f"  Using custom checkpoint: {args.checkpoint}", file=sys.stderr)
+    else:
+        checkpoint_list = [
+            (fold_idx, find_checkpoint(args.model_dir, args.task, args.cell_line, fold_idx))
+            for fold_idx in fold_indices
+        ]
+
+    for fold_idx, ckpt_path in checkpoint_list:
+        if not args.checkpoint:
+            print(f"  Loading fold {fold_idx}: {os.path.basename(ckpt_path)}", file=sys.stderr)
 
         model = CNNLinear(
             esm2_cls, alphabet, nodes=40, dropout3=dropout3, inp_len=inp_len

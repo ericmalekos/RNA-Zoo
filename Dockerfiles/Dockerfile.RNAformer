@@ -31,6 +31,7 @@ RUN mkdir -p /opt/rnaformer_models && \
 
 # Copy CLI wrapper script
 COPY bin/rnaformer_predict.py /opt/bin/rnaformer_predict.py
+COPY bin/rnazoo_plots.py /opt/bin/rnazoo_plots.py
 RUN chmod +x /opt/bin/rnaformer_predict.py
 ENV PATH="/opt/bin:$PATH"
 

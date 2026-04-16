@@ -87,6 +87,53 @@ Results appear in `results/utrlm/utrlm_out/`.
 | `te` | Translation Efficiency (log) | 100 nt | HEK, pc3, Muscle | Cell-line specific |
 | `el` | Expression Level (log) | 100 nt | HEK, pc3, Muscle | RNA-seq based |
 
+## Fine-tuning on your own data
+
+UTR-LM can be fine-tuned on your own expression data (MRL, TE, or EL measurements for 5'UTR sequences).
+
+### Input format
+
+CSV or TSV file with columns: `name`, `utr` (5'UTR sequence), and a numeric label column. Example:
+
+```
+name,utr,my_mrl
+seq1,AATTCCGGAATTCCGG...,5.2
+seq2,GCGCGCGCGCGCGCGC...,3.8
+```
+
+### Step 1: Fine-tune
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --utrlm_finetune_input my_training_data.csv \
+  --utrlm_finetune_label my_mrl \
+  --utrlm_finetune_task mrl
+```
+
+Output: `utrlm_finetune/best_model.pt` (fine-tuned checkpoint) + `utrlm_finetune/predictions.tsv`.
+
+### Step 2: Predict with fine-tuned model
+
+Use the saved checkpoint for subsequent predictions on new sequences:
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --utrlm_input new_sequences.fa \
+  --utrlm_checkpoint utrlm_finetune/best_model.pt \
+  --utrlm_task mrl
+```
+
+### Fine-tuning parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--utrlm_finetune_label` | (required) | Column name with target values |
+| `--utrlm_finetune_task` | `mrl` | Task type: `mrl`, `te`, or `el` (determines backbone + input length) |
+| `--utrlm_finetune_epochs` | `100` | Training epochs |
+| `--utrlm_finetune_patience` | `20` | Early stopping patience |
+| `--utrlm_finetune_lr` | `0.01` | Learning rate |
+| `--utrlm_finetune_pretrained` | (none) | Optional: initialize from an existing checkpoint |
+
 ## Technical notes
 
 - Uses a custom fork of Facebook's ESM library with RNA-specific alphabet and secondary structure heads.

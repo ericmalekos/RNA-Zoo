@@ -16,14 +16,17 @@ process MULTIRM {
     path input_fasta
 
     output:
-    path "multirm_out/modification_scores.tsv", emit: scores
-    path "multirm_out/predicted_sites.tsv",     emit: sites
+    path "multirm_out/modification_scores.tsv",   emit: scores
+    path "multirm_out/predicted_sites.tsv",        emit: sites
+    path "multirm_out/*_modifications.png",        emit: plots, optional: true
 
     script:
+    def plot_flag = params.multirm_plot ? '--plot' : ''
     """
     multirm_predict.py \
         -i ${input_fasta} \
         -o multirm_out \
-        --alpha ${params.multirm_alpha}
+        --alpha ${params.multirm_alpha} \
+        ${plot_flag}
     """
 }
