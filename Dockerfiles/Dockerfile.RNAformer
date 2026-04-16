@@ -1,0 +1,37 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n rnaformer -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/rnaformer/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=rnaformer
+
+# Clone RNAformer and install inference-only dependencies
+# (skip heavy training deps: deepspeed, pytorch-lightning, transformers, datasets)
+RUN git clone --depth 1 https://github.com/automl/RNAformer.git /opt/RNAformer && \
+    cd /opt/RNAformer && \
+    /opt/conda/envs/rnaformer/bin/pip install --no-cache-dir \
+        "numpy<2" pyyaml pyaml einops scipy \
+        "loralib==0.1.2" "rotary-embedding-torch==0.5.3" && \
+    /opt/conda/envs/rnaformer/bin/pip install --no-cache-dir -e .
+
+# Download the best checkpoint (intra-family finetuned, ~70 MB)
+RUN mkdir -p /opt/rnaformer_models && \
+    wget -q -O /opt/rnaformer_models/RNAformer_32M_state_dict_intra_family_finetuned.pth \
+    "https://ml.informatik.uni-freiburg.de/research-artifacts/RNAformer/models/RNAformer_32M_state_dict_intra_family_finetuned.pth" && \
+    wget -q -O /opt/rnaformer_models/RNAformer_32M_config_intra_family_finetuned.yml \
+    "https://ml.informatik.uni-freiburg.de/research-artifacts/RNAformer/models/RNAformer_32M_config_intra_family_finetuned.yml"
+
+# Copy CLI wrapper script
+COPY bin/rnaformer_predict.py /opt/bin/rnaformer_predict.py
+RUN chmod +x /opt/bin/rnaformer_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

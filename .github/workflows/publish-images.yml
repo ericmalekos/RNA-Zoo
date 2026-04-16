@@ -19,6 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Translation
           - name: rnazoo-ribonn
             dockerfile: Dockerfiles/Dockerfile.RiboNN
           - name: rnazoo-ribonn-cpu
@@ -35,6 +36,26 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.TranslationAI
           - name: rnazoo-codontransformer
             dockerfile: Dockerfiles/Dockerfile.CodonTransformer
+          # Foundation models
+          - name: rnazoo-rnafm
+            dockerfile: Dockerfiles/Dockerfile.RNAFM
+          - name: rnazoo-rinalmo
+            dockerfile: Dockerfiles/Dockerfile.RiNALMo
+          - name: rnazoo-ernierna
+            dockerfile: Dockerfiles/Dockerfile.ERNIERNA
+          # Structure
+          - name: rnazoo-rnaformer
+            dockerfile: Dockerfiles/Dockerfile.RNAformer
+          - name: rnazoo-rhofold
+            dockerfile: Dockerfiles/Dockerfile.RhoFold
+          - name: rnazoo-spotrna
+            dockerfile: Dockerfiles/Dockerfile.SPOTRNA
+          # Modification
+          - name: rnazoo-multirm
+            dockerfile: Dockerfiles/Dockerfile.MultiRM
+          # mRNA design
+          - name: rnazoo-utrlm
+            dockerfile: Dockerfiles/Dockerfile.UTRLM
 
     steps:
       - uses: actions/checkout@v4

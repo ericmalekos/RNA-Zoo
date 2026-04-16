@@ -1,0 +1,36 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n utrlm -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        "numpy<2" \
+        pandas \
+        scipy \
+        tqdm \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/utrlm/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=utrlm
+
+# Install fair-esm as base, then overwrite with UTR-LM's custom fork
+RUN /opt/conda/envs/utrlm/bin/pip install --no-cache-dir fair-esm
+
+# Clone UTR-LM for the custom ESM fork and model weights
+RUN git clone --depth 1 https://github.com/a96123155/UTR-LM.git /opt/utrlm
+
+# Overwrite installed esm package with UTR-LM's custom fork
+RUN ESM_PATH=$(/opt/conda/envs/utrlm/bin/python -c "import esm; import os; print(os.path.dirname(esm.__file__))") && \
+    rm -rf "$ESM_PATH" && \
+    cp -r /opt/utrlm/Scripts/esm "$ESM_PATH"
+
+# Copy CLI wrapper script
+COPY bin/utrlm_predict.py /opt/bin/utrlm_predict.py
+RUN chmod +x /opt/bin/utrlm_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

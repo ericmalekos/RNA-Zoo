@@ -1,0 +1,26 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n multirm -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        "numpy<2" \
+        pandas \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/multirm/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=multirm
+
+# Clone MultiRM for weights, embeddings, and neg_prob.csv only
+RUN git clone --depth 1 https://github.com/Tsedao/MultiRM.git /opt/multirm
+
+# Copy CLI wrapper script (contains self-contained model implementation)
+COPY bin/multirm_predict.py /opt/bin/multirm_predict.py
+RUN chmod +x /opt/bin/multirm_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

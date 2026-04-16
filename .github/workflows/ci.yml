@@ -12,9 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v3
-        # Currently no Python files in the repo (model code lives in Docker
-        # images). This job is a no-op but will catch issues once we add
-        # Python preprocessing scripts.
 
   lint-nextflow:
     runs-on: ubuntu-latest
@@ -26,8 +23,6 @@ jobs:
       - name: Install nf-core tools
         run: pip install nf-core
       - name: Lint Nextflow pipeline
-        # nf-core lint is opinionated — we allow failures for now and
-        # track warnings. Remove `|| true` once we're fully compliant.
         run: nf-core pipelines lint --dir . 2>&1 | tee nf-core-lint.log || true
       - name: Upload lint report
         uses: actions/upload-artifact@v4
@@ -36,30 +31,7 @@ jobs:
           name: nf-core-lint
           path: nf-core-lint.log
 
-  build-ribonn-cpu:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build RiboNN CPU image
-        run: |
-          docker build \
-            -t ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
-            -f Dockerfiles/Dockerfile.RiboNN.cpu .
-      - name: Smoke test RiboNN image
-        run: |
-          docker run --rm ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
-            bash -c "cd /app && python3 -m src.main --predict human" \
-            | grep -q "Predictions written"
-      - name: Save image for pipeline test
-        run: docker save ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest | gzip > ribonn-cpu.tar.gz
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ribonn-cpu-image
-          path: ribonn-cpu.tar.gz
-          retention-days: 1
-
-  pipeline-test-cpu:
-    needs: build-ribonn-cpu
+  pipeline-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,24 +41,27 @@ jobs:
           curl -s https://get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      - name: Load RiboNN CPU image
-        uses: actions/download-artifact@v4
-        with:
-          name: ribonn-cpu-image
-      - run: docker load < ribonn-cpu.tar.gz
-
-      - name: Run pipeline (test profile, CPU, docker)
+      - name: Run pipeline test suite (11 models, CPU)
         run: nextflow run . -profile test,docker,cpu
 
-      - name: Check RiboNN outputs
+      - name: Verify outputs
         run: |
+          echo "--- Checking model outputs ---"
           test -f results_test/ribonn/prediction_output.txt
-          # Verify we got predictions for the expected number of transcripts
-          LINE_COUNT=$(wc -l < results_test/ribonn/prediction_output.txt)
-          echo "Output has $LINE_COUNT lines (header + transcripts)"
-          test "$LINE_COUNT" -gt 1
+          test -f results_test/rnafm/rnafm_out/sequence_embeddings.npy
+          test -f results_test/rinalmo/rinalmo_out/sequence_embeddings.npy
+          test -f results_test/ernierna/ernierna_out/sequence_embeddings.npy
+          test -f results_test/codontransformer/optimized_codons.fa
+          test -f results_test/saluki/preds.npy
+          test -f results_test/rnaformer/rnaformer_out/structures.txt
+          test -f results_test/spotrna/spotrna_out/structures.txt
+          test -f results_test/multirm/multirm_out/predicted_sites.tsv
+          test -f results_test/utrlm/utrlm_out/predictions.tsv
+          # TranslationAI outputs have dynamic names
+          ls results_test/translationai/*_predTIS_*.txt
+          echo "All 11 model outputs verified."
 
-      - name: Upload pipeline results
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:

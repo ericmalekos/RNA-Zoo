@@ -1,0 +1,36 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n rinalmo -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        numpy \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/rinalmo/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=rinalmo
+
+# Install RiNALMo from non_flash branch (CPU + GPU compatible, no flash-attn needed)
+RUN git clone --branch non_flash --depth 1 https://github.com/lbcb-sci/RiNALMo /opt/rinalmo_src && \
+    cd /opt/rinalmo_src && \
+    /opt/conda/envs/rinalmo/bin/pip install --no-cache-dir . && \
+    /opt/conda/envs/rinalmo/bin/pip install --no-cache-dir einops "numpy<2" && \
+    rm -rf /opt/rinalmo_src
+
+# Pre-download giga weights (~2.6 GB) from Zenodo
+RUN mkdir -p /opt/rinalmo_weights && \
+    wget -q -O /opt/rinalmo_weights/giga-v1.pt \
+    "https://zenodo.org/records/15043668/files/rinalmo_giga_pretrained.pt"
+
+ENV RINALMO_WEIGHTS_DIR=/opt/rinalmo_weights
+
+# Copy CLI wrapper script
+COPY bin/rinalmo_predict.py /opt/bin/rinalmo_predict.py
+RUN chmod +x /opt/bin/rinalmo_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

@@ -1,0 +1,75 @@
+site_name: RNAZoo
+site_description: A Nextflow pipeline model zoo for RNA deep learning
+site_url: https://ericmalekos.github.io/RNAZoo
+repo_url: https://github.com/ericmalekos/RNAZoo
+repo_name: ericmalekos/RNAZoo
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - Models:
+    - Overview: models/overview.md
+    - Translation:
+      - RiboNN: models/RiboNN.md
+      - Riboformer: models/Riboformer.md
+      - RiboTIE: models/RiboTIE.md
+      - seq2ribo: models/seq2ribo.md
+      - TranslationAI: models/TranslationAI.md
+      - Saluki: models/Saluki.md
+      - CodonTransformer: models/CodonTransformer.md
+    - RNA Foundation Models:
+      - RNA-FM: models/RNAFM.md
+      - RiNALMo: models/RiNALMo.md
+      - ERNIE-RNA: models/ERNIERNA.md
+    - RNA Structure:
+      - RNAformer: models/RNAformer.md
+      - RhoFold: models/RhoFold.md
+      - SPOT-RNA: models/SPOTRNA.md
+    - RNA Modification:
+      - MultiRM: models/MultiRM.md
+    - mRNA Design:
+      - UTR-LM: models/UTRLM.md

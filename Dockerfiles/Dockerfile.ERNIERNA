@@ -1,0 +1,47 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n ernierna -c pytorch -c conda-forge -y \
+        python=3.9 \
+        "pytorch=1.13" \
+        cpuonly \
+        "numpy<1.24" \
+        scipy \
+        scikit-learn \
+        pandas \
+        joblib \
+        tqdm \
+        lxml \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/ernierna/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=ernierna
+
+# Install fairseq and hydra (pinned versions for compatibility)
+# fairseq 0.12.2 pulls hydra-core and omegaconf as deps.
+# Pin pip<24.1 temporarily to handle omegaconf 2.0.6's invalid metadata.
+RUN /opt/conda/envs/ernierna/bin/pip install --no-cache-dir "pip<24.1" && \
+    /opt/conda/envs/ernierna/bin/pip install --no-cache-dir \
+        "fairseq==0.12.2" \
+        "hydra-core==1.0.7" \
+        "omegaconf==2.0.6" \
+        "antlr4-python3-runtime==4.8"
+
+# Clone ERNIE-RNA repo
+RUN git clone --depth 1 https://github.com/Bruce-ywj/ERNIE-RNA.git /opt/ernie-rna
+
+# Download pretrained weights from Google Drive
+RUN /opt/conda/envs/ernierna/bin/pip install --no-cache-dir gdown && \
+    mkdir -p /opt/ernie-rna/checkpoint/ERNIE-RNA_checkpoint && \
+    gdown 1CmNxJxgjDhRoBdlDODFFjDNNzJMHVzmO \
+        -O /opt/ernie-rna/checkpoint/ERNIE-RNA_checkpoint/ERNIE-RNA_pretrain.pt
+
+# Copy CLI wrapper script
+COPY bin/ernierna_predict.py /opt/ernie-rna/ernierna_predict.py
+RUN chmod +x /opt/ernie-rna/ernierna_predict.py
+ENV PATH="/opt/ernie-rna:$PATH"
+
+WORKDIR /opt/ernie-rna

@@ -1,0 +1,44 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n rhofold -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        "numpy<2" \
+        scipy \
+        biopython \
+        matplotlib \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/rhofold/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=rhofold
+
+# Clone RhoFold and install
+RUN git clone --depth 1 https://github.com/ml4bio/RhoFold.git /opt/rhofold && \
+    cd /opt/rhofold && \
+    /opt/conda/envs/rhofold/bin/pip install --no-cache-dir \
+        python-box dm-tree ml-collections einops huggingface_hub && \
+    /opt/conda/envs/rhofold/bin/pip install --no-cache-dir -e .
+
+# Download pretrained weights (~508 MB)
+RUN mkdir -p /opt/rhofold/pretrained && \
+    wget -q -O /opt/rhofold/pretrained/rhofold_pretrained_params.pt \
+    "https://huggingface.co/cuhkaih/rhofold/resolve/main/rhofold_pretrained_params.pt"
+
+# Patch inference.py: make OpenMM/relax import optional (not needed with --relax_steps 0)
+RUN sed -i 's/^from rhofold.relax.relax import AmberRelaxation$/try:\n    from rhofold.relax.relax import AmberRelaxation\nexcept ImportError:\n    AmberRelaxation = None/' /opt/rhofold/inference.py
+
+# Copy CLI wrapper script
+COPY bin/rhofold_predict.py /opt/bin/rhofold_predict.py
+RUN chmod +x /opt/bin/rhofold_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+# Make pretrained dir writable (inference.py calls snapshot_download which creates .cache)
+RUN chmod -R 777 /opt/rhofold/pretrained
+ENV HF_HOME=/tmp/hf_cache
+
+WORKDIR /opt/rhofold

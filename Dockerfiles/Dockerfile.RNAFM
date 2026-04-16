@@ -1,0 +1,31 @@
+FROM condaforge/miniforge3:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n rnafm -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        numpy \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/rnafm/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=rnafm
+
+# Install RNA-FM from PyPI
+RUN /opt/conda/envs/rnafm/bin/pip install --no-cache-dir rna-fm==0.2.2 "numpy<2"
+
+# Pre-download weights (~1.2 GB) to a fixed path accessible by any user.
+# RNA-FM's fm.pretrained.rna_fm_t12() can accept a direct path argument.
+RUN mkdir -p /opt/rnafm_weights && \
+    wget -q -O /opt/rnafm_weights/RNA-FM_pretrained.pth \
+    "https://huggingface.co/cuhkaih/rnafm/resolve/main/RNA-FM_pretrained.pth"
+
+# Copy CLI wrapper script
+COPY bin/rnafm_predict.py /opt/bin/rnafm_predict.py
+RUN chmod +x /opt/bin/rnafm_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

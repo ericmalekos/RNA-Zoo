@@ -1,0 +1,31 @@
+FROM python:3.10-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install TensorFlow CPU + deps
+RUN pip install --no-cache-dir \
+        "tensorflow-cpu==2.15.1" \
+        "numpy<2" \
+        pandas \
+        tqdm \
+        six
+
+# Clone SPOT-RNA
+RUN git clone --depth 1 https://github.com/jaswindersingh2/SPOT-RNA.git /opt/SPOT-RNA
+
+# Download pretrained weights (~127 MB compressed, 155 MB extracted)
+RUN wget -q -O /tmp/models.tar.gz \
+        'https://www.dropbox.com/s/dsrcf460nbjqpxa/SPOT-RNA-models.tar.gz?dl=1' && \
+    tar -xzf /tmp/models.tar.gz -C /opt/SPOT-RNA/ && \
+    rm /tmp/models.tar.gz
+
+# Ensure TFRecord temp dir is writable by any user
+RUN mkdir -p /opt/SPOT-RNA/input_tfr_files && chmod 777 /opt/SPOT-RNA/input_tfr_files
+
+# Copy CLI wrapper script
+COPY bin/spotrna_predict.py /opt/bin/spotrna_predict.py
+RUN chmod +x /opt/bin/spotrna_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt
