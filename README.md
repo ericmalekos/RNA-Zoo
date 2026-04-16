@@ -1,5 +1,7 @@
 # RNAZoo
 
+[![Documentation](https://img.shields.io/badge/docs-ericmalekos.github.io%2FRNAZoo-blue)](https://ericmalekos.github.io/RNAZoo)
+
 A Nextflow pipeline model zoo for RNA deep learning — 15 models across translation, structure, modification, and more.
 
 | Model | Track | Task | Paper | License |
