@@ -1,6 +1,8 @@
 # RNAZoo
 
-[![Documentation](https://img.shields.io/badge/docs-ericmalekos.github.io%2FRNAZoo-blue)](https://ericmalekos.github.io/RNAZoo)
+[![CI](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml/badge.svg)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml)
+[![Lint](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Documentation](https://img.shields.io/badge/docs-ericmalekos.github.io%2FRNA--Zoo-blue)](https://ericmalekos.github.io/RNA-Zoo)
 
 A Nextflow pipeline model zoo for RNA deep learning — 15 models across translation, structure, modification, and more.
 

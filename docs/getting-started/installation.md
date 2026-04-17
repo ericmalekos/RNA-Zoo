@@ -22,8 +22,8 @@ conda install -c bioconda nextflow
 ## Clone the pipeline
 
 ```bash
-git clone https://github.com/ericmalekos/RNAZoo.git
-cd RNAZoo
+git clone https://github.com/ericmalekos/RNA-Zoo.git
+cd RNA-Zoo
 ```
 
 ## Docker images

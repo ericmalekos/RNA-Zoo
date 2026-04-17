@@ -1,8 +1,8 @@
 site_name: RNAZoo
 site_description: A Nextflow pipeline model zoo for RNA deep learning
-site_url: https://ericmalekos.github.io/RNAZoo
-repo_url: https://github.com/ericmalekos/RNAZoo
-repo_name: ericmalekos/RNAZoo
+site_url: https://ericmalekos.github.io/RNA-Zoo
+repo_url: https://github.com/ericmalekos/RNA-Zoo
+repo_name: ericmalekos/RNA-Zoo
 
 theme:
   name: material
