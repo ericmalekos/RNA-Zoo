@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   lint-python:
@@ -47,7 +48,7 @@ jobs:
       - name: Verify outputs
         run: |
           echo "--- Checking model outputs ---"
-          test -f results_test/ribonn/prediction_output.txt
+          test -f results_test/ribonn/ribonn_out/prediction_output.txt
           test -f results_test/rnafm/rnafm_out/sequence_embeddings.npy
           test -f results_test/rinalmo/rinalmo_out/sequence_embeddings.npy
           test -f results_test/ernierna/ernierna_out/sequence_embeddings.npy

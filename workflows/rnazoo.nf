@@ -29,7 +29,13 @@ workflow RNAZOO {
     // ----- Translation -----
 
     if (params.ribonn_input) {
-        RIBONN(Channel.fromPath(params.ribonn_input, checkIfExists: true))
+        def ribonn_ckpt = params.ribonn_checkpoint
+            ? Channel.fromPath(params.ribonn_checkpoint, checkIfExists: true)
+            : Channel.value(file('NO_CHECKPOINT'))
+        RIBONN(
+            Channel.fromPath(params.ribonn_input, checkIfExists: true),
+            ribonn_ckpt
+        )
     }
 
     if (params.ribonn_finetune_input) {

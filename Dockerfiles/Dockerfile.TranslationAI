@@ -9,7 +9,10 @@ LABEL org.opencontainers.image.licenses="AGPL-3.0-only AND LicenseRef-CC-BY-NC-4
 LABEL org.opencontainers.image.title="TranslationAI"
 LABEL org.opencontainers.image.description="Predict TIS/TTS/ORFs from mRNA sequence. Model weights are CC BY-NC 4.0 (non-commercial only)."
 
-RUN apt-get update && apt-get install -y --no-install-recommends git && \
+# Ubuntu 18.04 (bionic) is EOL — switch to archived mirrors for reliability
+RUN sed -i 's|http://archive.ubuntu.com|http://old-releases.ubuntu.com|g' /etc/apt/sources.list && \
+    sed -i 's|http://security.ubuntu.com|http://old-releases.ubuntu.com|g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends git && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone TranslationAI (weights are bundled in the repo, ~15 MB)

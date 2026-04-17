@@ -32,6 +32,10 @@ RUN mkdir -p /app/data /app/results && chmod -R 777 /app/data /app/results
 ENV PATH="/opt/conda/envs/RiboNN/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=RiboNN
 
-# No ENTRYPOINT: Nextflow needs to pass /bin/bash commands, and ENTRYPOINT would
-# prepend to those. Run RiboNN with: python3 -m src.main --predict human
+# Install prediction and fine-tuning wrapper scripts
+COPY bin/ribonn_predict.py /opt/bin/ribonn_predict.py
+COPY bin/ribonn_finetune.py /opt/bin/ribonn_finetune.py
+RUN chmod +x /opt/bin/ribonn_predict.py /opt/bin/ribonn_finetune.py
+ENV PATH="/opt/bin:$PATH"
+
 WORKDIR /app

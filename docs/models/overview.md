@@ -66,7 +66,7 @@ Some models can be fine-tuned on your own data. Fine-tuned checkpoints are saved
 
 | Model | Fine-tuning | Details |
 |-------|-------------|---------|
-| [RiboNN](RiboNN.md#fine-tuning-on-your-own-data) | Transfer learning | Freeze pretrained conv layers, train head on user TE data for a new cell type |
+| [RiboNN](RiboNN.md#fine-tuning-on-your-own-data) | Transfer learning | Freeze pretrained conv layers, train head on user TE data; use saved checkpoint via `--ribonn_checkpoint` |
 | [UTR-LM](UTRLM.md#fine-tuning-on-your-own-data) | Full fine-tuning | Train ESM2 backbone + head on user MRL/TE/EL data; use saved checkpoint for prediction |
 | [RiboTIE](RiboTIE.md) | Built-in | Automatically fine-tunes on user ribo-seq BAMs before ORF prediction |
 

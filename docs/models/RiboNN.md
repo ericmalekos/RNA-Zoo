@@ -41,21 +41,23 @@ Each `predicted_TE_*` column is the predicted log2 translation efficiency for th
 ```bash
 docker run --rm \
   -v /path/to/input.txt:/app/data/prediction_input1.txt \
+  -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
-  bash -c "cd /app && python3 -m src.main --predict human"
+  bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /app/data/prediction_input1.txt -o /out --species human"
 ```
 
-Output will be at `/app/results/human/prediction_output.txt` inside the container. To extract it:
+For mouse: replace `--species human` with `--species mouse`.
+
+To predict using a fine-tuned checkpoint:
 
 ```bash
 docker run --rm \
   -v /path/to/input.txt:/app/data/prediction_input1.txt \
+  -v /path/to/checkpoint.ckpt:/app/checkpoint.ckpt \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
-  bash -c "cd /app && python3 -m src.main --predict human && cp /app/results/human/prediction_output.txt /out/"
+  bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /app/data/prediction_input1.txt -o /out --checkpoint /app/checkpoint.ckpt --target TE_MyCondition"
 ```
-
-For mouse: replace `--predict human` with `--predict mouse`.
 
 ## Run with Nextflow
 
@@ -66,7 +68,26 @@ nextflow run main.nf -profile docker,cpu \
 
 Only models with input provided will run — no ignore flags needed.
 
-Results appear in `results/ribonn/prediction_output.txt`.
+Results appear in `results/ribonn/ribonn_out/prediction_output.txt`.
+
+### Predict with a fine-tuned checkpoint
+
+After fine-tuning (see below), use the saved checkpoint for prediction on new data:
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --ribonn_input /path/to/input.txt \
+  --ribonn_checkpoint results/ribonn_finetune/fold0/*.ckpt \
+  --ribonn_finetune_target TE_MyCondition
+```
+
+## Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--ribonn_input` | `null` | Tab-separated input file |
+| `--ribonn_species` | `human` | Species for pretrained models (`human` or `mouse`) |
+| `--ribonn_checkpoint` | `null` | Path to a fine-tuned `.ckpt` checkpoint for prediction |
 
 ## Example output (truncated)
 
