@@ -213,7 +213,7 @@ def main():
 
                 logits, pair_mask = model(seq_tensor, src_len, pdb_sample)
 
-                prob_matrix = torch.sigmoid(logits[0, :, :, -1]).cpu().numpy()
+                prob_matrix = torch.sigmoid(logits[0, :, :, -1]).float().cpu().numpy()
                 pred_mat = prob_matrix > 0.5
 
             # Extract pairs
