@@ -4,8 +4,9 @@ site/
 # Nextflow
 .nextflow*
 work/
+work_*/
 results/
-results_test/
+results_*/
 trace/
 report.html
 timeline.html
