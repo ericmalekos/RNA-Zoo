@@ -30,6 +30,8 @@ cd RNA-Zoo
 
 All model containers are hosted on GitHub Container Registry (`ghcr.io/ericmalekos/rnazoo-*`). Nextflow pulls them automatically on first run — no manual `docker pull` needed. The per-model image sizes are listed on the [home page](../index.md#whats-included) so you can pick a subset rather than pulling everything.
 
+If you'd rather skip Nextflow entirely and drive the containers yourself, see the [Direct Docker guide](../direct-docker.md) for per-model `docker run` recipes.
+
 If you want to warm the cache up front, pick the loop that matches your hardware. Most users want the **CPU loop** unless they have a CUDA-capable GPU.
 
 ```bash

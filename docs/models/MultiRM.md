@@ -60,6 +60,8 @@ test_rna_modification	m6A	29	T	0.968842	0.000000
 
 ## Run with Docker
 
+> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+
 ```bash
 # CPU
 docker run --rm \

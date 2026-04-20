@@ -34,6 +34,8 @@ The bundled datasets are in `/opt/Riboformer/datasets/` inside the Docker image 
 
 ## Run with Docker
 
+> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+
 Using the bundled yeast disome dataset (CPU shown; for GPU swap `rnazoo-riboformer-cpu` → `rnazoo-riboformer` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`):
 
 ```bash

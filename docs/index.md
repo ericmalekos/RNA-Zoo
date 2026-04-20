@@ -30,8 +30,10 @@ RNAZoo packages 15 state-of-the-art RNA ML models into a single, portable Nextfl
 
 ## Quick start
 
+### With Nextflow (recommended for pipelines)
+
 ```bash
-# Run the test suite (12 models on CPU, ~3 min)
+# Run the test suite (13 models on CPU, ~5 min)
 nextflow run . -profile test,docker,cpu
 
 # Run a single model — only models you provide input for will run
@@ -46,6 +48,19 @@ nextflow run . -profile docker,cpu \
 # Use a YAML params file for complex runs
 nextflow run . -profile docker,cpu -params-file my_params.yml
 ```
+
+### With plain Docker (no Nextflow required)
+
+```bash
+# Run one model against a FASTA (CPU)
+docker run --rm \
+    -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+    -v $PWD/seqs.fa:/data/input.fa -v $PWD/out:/out \
+    ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest \
+    rnafm_predict.py -i /data/input.fa -o /out
+```
+
+See the [Direct Docker guide](direct-docker.md) for invocations of every model.
 
 ## Design principles
 

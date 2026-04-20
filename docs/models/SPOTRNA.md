@@ -48,6 +48,8 @@ Per-sequence files:
 
 ## Run with Docker
 
+> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+
 ```bash
 # CPU
 docker run --rm \

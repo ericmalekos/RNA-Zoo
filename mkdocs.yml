@@ -51,6 +51,7 @@ nav:
   - Getting Started:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
+    - Direct Docker usage: direct-docker.md
   - Models:
     - Overview: models/overview.md
     - Translation:

@@ -47,6 +47,8 @@ For the `riboseq` task, `prediction` is an array of per-position values instead 
 
 ## Run with Docker
 
+> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+
 ```bash
 docker run --rm \
   --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \

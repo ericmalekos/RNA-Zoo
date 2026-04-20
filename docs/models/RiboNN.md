@@ -38,6 +38,8 @@ Each `predicted_TE_*` column is the predicted log2 translation efficiency for th
 
 ## Run with Docker
 
+> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+
 ```bash
 docker run --rm \
   -v /path/to/input.txt:/app/data/prediction_input1.txt \
