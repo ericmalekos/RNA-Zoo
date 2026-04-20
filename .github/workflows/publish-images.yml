@@ -27,6 +27,8 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.RiboNN.cpu
           - name: rnazoo-riboformer
             dockerfile: Dockerfiles/Dockerfile.Riboformer
+          - name: rnazoo-riboformer-cpu
+            dockerfile: Dockerfiles/Dockerfile.Riboformer.cpu
           - name: rnazoo-tristan
             dockerfile: Dockerfiles/Dockerfile.TRISTAN
           - name: rnazoo-tristan-cpu
@@ -35,15 +37,23 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.seq2ribo
           - name: rnazoo-saluki
             dockerfile: Dockerfiles/Dockerfile.Saluki
+          - name: rnazoo-saluki-cpu
+            dockerfile: Dockerfiles/Dockerfile.Saluki.cpu
           - name: rnazoo-translationai
             dockerfile: Dockerfiles/Dockerfile.TranslationAI
           - name: rnazoo-codontransformer
             dockerfile: Dockerfiles/Dockerfile.CodonTransformer
+          - name: rnazoo-codontransformer-cpu
+            dockerfile: Dockerfiles/Dockerfile.CodonTransformer.cpu
           # Foundation models
           - name: rnazoo-rnafm
             dockerfile: Dockerfiles/Dockerfile.RNAFM
+          - name: rnazoo-rnafm-cpu
+            dockerfile: Dockerfiles/Dockerfile.RNAFM.cpu
           - name: rnazoo-rinalmo
             dockerfile: Dockerfiles/Dockerfile.RiNALMo
+          - name: rnazoo-rinalmo-cpu
+            dockerfile: Dockerfiles/Dockerfile.RiNALMo.cpu
           - name: rnazoo-ernierna
             dockerfile: Dockerfiles/Dockerfile.ERNIERNA
           # Structure
@@ -55,12 +65,18 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.RhoFold.cpu
           - name: rnazoo-spotrna
             dockerfile: Dockerfiles/Dockerfile.SPOTRNA
+          - name: rnazoo-spotrna-cpu
+            dockerfile: Dockerfiles/Dockerfile.SPOTRNA.cpu
           # Modification
           - name: rnazoo-multirm
             dockerfile: Dockerfiles/Dockerfile.MultiRM
+          - name: rnazoo-multirm-cpu
+            dockerfile: Dockerfiles/Dockerfile.MultiRM.cpu
           # mRNA design
           - name: rnazoo-utrlm
             dockerfile: Dockerfiles/Dockerfile.UTRLM
+          - name: rnazoo-utrlm-cpu
+            dockerfile: Dockerfiles/Dockerfile.UTRLM.cpu
 
     steps:
       - uses: actions/checkout@v4

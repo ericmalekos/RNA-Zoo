@@ -3,19 +3,16 @@ FROM condaforge/miniforge3:latest
 RUN apt-get update && apt-get install -y --no-install-recommends wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Conda env without PyTorch — install CUDA-enabled torch from pip below
-RUN mamba create -n rnafm -c conda-forge -y \
+RUN mamba create -n rnafm -c pytorch -c conda-forge -y \
         python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
         numpy \
         pip \
     && mamba clean -afy
 
 ENV PATH="/opt/conda/envs/rnafm/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=rnafm
-
-# Install CUDA-enabled PyTorch 2.2 (cu118 wheel includes runtime libs)
-RUN /opt/conda/envs/rnafm/bin/pip install --no-cache-dir \
-        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 
 # Install RNA-FM from PyPI
 RUN /opt/conda/envs/rnafm/bin/pip install --no-cache-dir rna-fm==0.2.2 "numpy<2"

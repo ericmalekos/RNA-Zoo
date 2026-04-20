@@ -11,13 +11,6 @@ WORKDIR /opt/Riboformer
 # Install the conda environment defined by the upstream repo (TF 2.8, Python 3.9.7)
 RUN mamba env create -f env.yml -y && mamba clean -afy
 
-# Layer in CUDA toolkit + cuDNN that match TF 2.8's requirements
-# (CUDA 11.2 + cuDNN 8.1) so TensorFlow can use the GPU.
-RUN mamba install -n riboformer -c conda-forge -y \
-        cudatoolkit=11.2 \
-        cudnn=8.1.0 \
-    && mamba clean -afy
-
 # Make datasets/ writable so the container can run as a non-root user
 # (Nextflow passes -u $(id -u):$(id -g)). Riboformer writes its predictions
 # into datasets/<input_folder>/model_prediction.txt, so that dir must be
@@ -27,9 +20,6 @@ RUN chmod -R 777 /opt/Riboformer/datasets
 # Activate the riboformer environment by default
 ENV PATH="/opt/conda/envs/riboformer/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=riboformer
-
-# Make the conda CUDA libs visible to TF at runtime
-ENV LD_LIBRARY_PATH="/opt/conda/envs/riboformer/lib:${LD_LIBRARY_PATH}"
 
 # Copy shared plotting utility
 COPY bin/rnazoo_plots.py /opt/bin/rnazoo_plots.py

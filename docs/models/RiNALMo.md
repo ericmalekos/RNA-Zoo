@@ -5,7 +5,9 @@ Extract RNA embeddings from a 650M-parameter RNA language model.
 - **Paper:** [NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/RiNALMo)
 - **Upstream:** https://github.com/lbcb-sci/RiNALMo
 - **License:** Apache 2.0 (code), CC BY 4.0 (weights)
-- **Device:** CPU or GPU (650M params — GPU recommended for large inputs)
+- **Device:** CPU or GPU (650M params — GPU strongly recommended). Two image variants:
+    - `rnazoo-rinalmo:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-rinalmo-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -41,28 +43,31 @@ With `--per-token`:
 ## Run with Docker
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-rinalmo-cpu:latest \
+  rinalmo_predict.py -i /data/input.fa -o /out
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-rinalmo:latest \
   rinalmo_predict.py -i /data/input.fa -o /out
 ```
 
-With per-token embeddings:
-
-```bash
-docker run --rm \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-rinalmo:latest \
-  rinalmo_predict.py -i /data/input.fa -o /out --per-token
-```
+Add `--per-token` to either invocation for per-token embeddings.
 
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --rinalmo_input /path/to/input.fa
+# CPU
+nextflow run main.nf -profile docker,cpu --rinalmo_input /path/to/input.fa
+
+# GPU (recommended for production)
+nextflow run main.nf -profile docker,gpu --rinalmo_input /path/to/input.fa
 ```
 
 Only models with input provided will run — no ignore flags needed.

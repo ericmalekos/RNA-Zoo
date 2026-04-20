@@ -5,7 +5,9 @@ Predict 5'UTR expression metrics: mean ribosome loading, translation efficiency,
 - **Paper:** [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00823-9)
 - **Upstream:** https://github.com/a96123155/UTR-LM
 - **License:** GPL-3.0
-- **Device:** CPU or GPU (very lightweight ~5M parameter model)
+- **Device:** CPU or GPU (lightweight ~5M parameter model). Two image variants:
+    - `rnazoo-utrlm:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-utrlm-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -45,27 +47,31 @@ synthetic_utr_3	TGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATGATG	6.575327
 ## Run with Docker
 
 ```bash
-# MRL prediction (default)
+# CPU — MRL prediction
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-utrlm-cpu:latest \
+  utrlm_predict.py -i /data/input.fa -o /out --task mrl --model-dir /opt/utrlm/Model
+
+# GPU — same command, swap image and add nvidia runtime
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-utrlm:latest \
   utrlm_predict.py -i /data/input.fa -o /out --task mrl --model-dir /opt/utrlm/Model
-
-# TE prediction for HEK cells
-docker run --rm \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-utrlm:latest \
-  utrlm_predict.py -i /data/input.fa -o /out --task te --cell-line HEK --model-dir /opt/utrlm/Model
 ```
+
+For TE/EL prediction add `--task te|el --cell-line HEK|pc3|Muscle`.
 
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --utrlm_input /path/to/input.fa \
-  --utrlm_task mrl
+# CPU
+nextflow run main.nf -profile docker,cpu --utrlm_input /path/to/input.fa --utrlm_task mrl
+
+# GPU
+nextflow run main.nf -profile docker,gpu --utrlm_input /path/to/input.fa --utrlm_task mrl
 ```
 
 Only models with input provided will run — no ignore flags needed.

@@ -5,7 +5,9 @@ Predict 12 RNA modification types from sequence.
 - **Paper:** [NAR 2021](https://doi.org/10.1093/nar/gkab507)
 - **Upstream:** https://github.com/Tsedao/MultiRM
 - **License:** MIT
-- **Device:** CPU or GPU (lightweight LSTM model, ~8MB weights)
+- **Device:** CPU or GPU (lightweight LSTM, ~8MB weights). Two image variants:
+    - `rnazoo-multirm:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-multirm-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -59,7 +61,15 @@ test_rna_modification	m6A	29	T	0.968842	0.000000
 ## Run with Docker
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-multirm-cpu:latest \
+  multirm_predict.py -i /data/input.fa -o /out
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-multirm:latest \
@@ -69,8 +79,11 @@ docker run --rm \
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --multirm_input /path/to/input.fa
+# CPU
+nextflow run main.nf -profile docker,cpu --multirm_input /path/to/input.fa
+
+# GPU
+nextflow run main.nf -profile docker,gpu --multirm_input /path/to/input.fa
 ```
 
 Only models with input provided will run — no ignore flags needed.

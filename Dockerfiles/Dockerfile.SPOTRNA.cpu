@@ -3,11 +3,9 @@ FROM python:3.10-slim
 RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Install TensorFlow GPU + deps. The `[and-cuda]` extra (TF >=2.13) bundles
-# the CUDA + cuDNN libs as pip wheels so the image works on a GPU host
-# without a separate nvidia/cuda base.
+# Install TensorFlow CPU + deps
 RUN pip install --no-cache-dir \
-        "tensorflow[and-cuda]==2.15.1" \
+        "tensorflow-cpu==2.15.1" \
         "numpy<2" \
         pandas \
         tqdm \

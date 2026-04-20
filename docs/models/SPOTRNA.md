@@ -5,7 +5,9 @@ Predict RNA secondary structure including pseudoknots and non-canonical base pai
 - **Paper:** [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9)
 - **Upstream:** https://github.com/jaswindersingh2/SPOT-RNA
 - **License:** MPL-2.0
-- **Device:** CPU or GPU (5-model TensorFlow ensemble)
+- **Device:** CPU or GPU (5-model TensorFlow ensemble). Two image variants:
+    - `rnazoo-spotrna:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-spotrna-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -47,7 +49,15 @@ Per-sequence files:
 ## Run with Docker
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-spotrna-cpu:latest \
+  spotrna_predict.py -i /data/input.fa -o /out
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-spotrna:latest \
@@ -57,8 +67,11 @@ docker run --rm \
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --spotrna_input /path/to/input.fa
+# CPU
+nextflow run main.nf -profile docker,cpu --spotrna_input /path/to/input.fa
+
+# GPU
+nextflow run main.nf -profile docker,gpu --spotrna_input /path/to/input.fa
 ```
 
 Only models with input provided will run — no ignore flags needed.

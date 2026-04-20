@@ -3,9 +3,10 @@ FROM condaforge/miniforge3:latest
 RUN apt-get update && apt-get install -y --no-install-recommends git && \
     rm -rf /var/lib/apt/lists/*
 
-# Conda env without PyTorch — install CUDA-enabled torch from pip below
-RUN mamba create -n multirm -c conda-forge -y \
+RUN mamba create -n multirm -c pytorch -c conda-forge -y \
         python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
         "numpy<2" \
         pandas \
         matplotlib \
@@ -14,10 +15,6 @@ RUN mamba create -n multirm -c conda-forge -y \
 
 ENV PATH="/opt/conda/envs/multirm/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=multirm
-
-# Install CUDA-enabled PyTorch 2.2
-RUN /opt/conda/envs/multirm/bin/pip install --no-cache-dir \
-        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 
 # Clone MultiRM for weights, embeddings, and neg_prob.csv only
 RUN git clone --depth 1 https://github.com/Tsedao/MultiRM.git /opt/multirm

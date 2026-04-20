@@ -3,19 +3,16 @@ FROM condaforge/miniforge3:latest
 RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Conda env without PyTorch — install CUDA-enabled torch from pip below
-RUN mamba create -n rinalmo -c conda-forge -y \
+RUN mamba create -n rinalmo -c pytorch -c conda-forge -y \
         python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
         numpy \
         pip \
     && mamba clean -afy
 
 ENV PATH="/opt/conda/envs/rinalmo/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=rinalmo
-
-# Install CUDA-enabled PyTorch 2.2
-RUN /opt/conda/envs/rinalmo/bin/pip install --no-cache-dir \
-        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 
 # Install RiNALMo from non_flash branch (CPU + GPU compatible, no flash-attn needed)
 RUN git clone --branch non_flash --depth 1 https://github.com/lbcb-sci/RiNALMo /opt/rinalmo_src && \

@@ -5,7 +5,9 @@ Predict and refine codon-level ribosome densities from ribo-seq data.
 - **Paper:** [Nature Communications 2024](https://www.nature.com/articles/s41467-024-46241-8)
 - **Upstream:** https://github.com/lingxusb/Riboformer
 - **License:** Upstream repository license
-- **Device:** CPU or GPU
+- **Device:** CPU or GPU. Two image variants:
+    - `rnazoo-riboformer:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-riboformer-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -32,12 +34,12 @@ The bundled datasets are in `/opt/Riboformer/datasets/` inside the Docker image 
 
 ## Run with Docker
 
-Using the bundled yeast disome dataset:
+Using the bundled yeast disome dataset (CPU shown; for GPU swap `rnazoo-riboformer-cpu` → `rnazoo-riboformer` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`):
 
 ```bash
 docker run --rm \
   -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-riboformer:latest \
+  ghcr.io/ericmalekos/rnazoo-riboformer-cpu:latest \
   bash -c "cd /opt/Riboformer/Riboformer && \
     python transfer.py -i GSE152850_yeast -m yeast_disome && \
     cp /opt/Riboformer/datasets/GSE152850_yeast/model_prediction.txt /out/"
@@ -59,7 +61,15 @@ docker run --rm \
 ## Run with Nextflow
 
 ```bash
+# CPU
 nextflow run main.nf -profile docker,cpu \
+  --riboformer_input /path/to/data_dir \
+  --riboformer_reference_wig reference_name \
+  --riboformer_target_wig target_name \
+  --riboformer_model yeast_disome
+
+# GPU
+nextflow run main.nf -profile docker,gpu \
   --riboformer_input /path/to/data_dir \
   --riboformer_reference_wig reference_name \
   --riboformer_target_wig target_name \

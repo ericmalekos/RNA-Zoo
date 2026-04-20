@@ -5,7 +5,9 @@ Extract general-purpose RNA embeddings from sequence using a pretrained foundati
 - **Paper:** [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00836-4)
 - **Upstream:** https://github.com/ml4bio/RNA-FM
 - **License:** MIT
-- **Device:** CPU or GPU (99M params, runs well on CPU)
+- **Device:** CPU or GPU. Two image variants:
+    - `rnazoo-rnafm:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-rnafm-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -39,28 +41,31 @@ With `--per-token`:
 ## Run with Docker
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest \
+  rnafm_predict.py -i /data/input.fa -o /out
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-rnafm:latest \
   rnafm_predict.py -i /data/input.fa -o /out
 ```
 
-With per-token embeddings:
-
-```bash
-docker run --rm \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-rnafm:latest \
-  rnafm_predict.py -i /data/input.fa -o /out --per-token
-```
+Add `--per-token` to either invocation for per-token embeddings.
 
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --rnafm_input /path/to/input.fa
+# CPU
+nextflow run main.nf -profile docker,cpu --rnafm_input /path/to/input.fa
+
+# GPU
+nextflow run main.nf -profile docker,gpu --rnafm_input /path/to/input.fa
 ```
 
 Only models with input provided will run — no ignore flags needed.

@@ -3,18 +3,15 @@ FROM condaforge/miniforge3:latest
 RUN apt-get update && apt-get install -y --no-install-recommends git && \
     rm -rf /var/lib/apt/lists/*
 
-# Conda env without PyTorch — install CUDA-enabled torch from pip below
-RUN mamba create -n codontransformer -c conda-forge -y \
+RUN mamba create -n codontransformer -c pytorch -c conda-forge -y \
         python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
         pip \
     && mamba clean -afy
 
 ENV PATH="/opt/conda/envs/codontransformer/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=codontransformer
-
-# Install CUDA-enabled PyTorch 2.2
-RUN /opt/conda/envs/codontransformer/bin/pip install --no-cache-dir \
-        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 
 # Install CodonTransformer from PyPI
 RUN /opt/conda/envs/codontransformer/bin/pip install --no-cache-dir CodonTransformer

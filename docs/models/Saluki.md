@@ -5,7 +5,9 @@ Predict mRNA half-life from sequence.
 - **Paper:** [Genome Biology 2022](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02811-x)
 - **Upstream:** https://github.com/calico/basenji (Saluki model)
 - **License:** Apache 2.0 (weights from Zenodo)
-- **Device:** CPU or GPU (CPU works but slower)
+- **Device:** CPU or GPU (50-member ensemble — GPU helps for large inputs). Two image variants:
+    - `rnazoo-saluki:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-saluki-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -45,7 +47,15 @@ print(f"Predicted log2(half-life): {mean_pred}")
 ## Run with Docker
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-saluki-cpu:latest \
+  bash -c "saluki_predict_fasta.py -d 0 -o /out /opt/saluki_models /data/input.fa"
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-saluki:latest \
@@ -57,9 +67,13 @@ docker run --rm \
 ## Run with Nextflow
 
 ```bash
+# CPU
 nextflow run main.nf -profile docker,cpu \
-  --saluki_input /path/to/input.fa \
-  --saluki_species human
+  --saluki_input /path/to/input.fa --saluki_species human
+
+# GPU
+nextflow run main.nf -profile docker,gpu \
+  --saluki_input /path/to/input.fa --saluki_species human
 ```
 
 Only models with input provided will run — no ignore flags needed.
