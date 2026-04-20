@@ -72,9 +72,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Compute image tags
+        id: tags
+        run: |
+          # Tag pushes use the tag name (v*); workflow_dispatch / branch pushes
+          # use a short SHA so the tag is always a valid docker reference.
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="sha-${GITHUB_SHA::7}"
+          fi
+          {
+            echo "tags<<EOF"
+            echo "${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:${VERSION}"
+            echo "${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -82,6 +95,4 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: |
-            ${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:${{ steps.version.outputs.version }}
-            ${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:latest
+          tags: ${{ steps.tags.outputs.tags }}
