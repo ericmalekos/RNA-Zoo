@@ -5,7 +5,9 @@ Predict translation initiation sites (TIS), translation termination sites (TTS),
 - **Paper:** [NAR 2025](https://academic.oup.com/nar/article/53/7/gkaf277/8112693)
 - **Upstream:** https://github.com/rnasys/TranslationAI
 - **License:** AGPL-3.0 (source code) + CC BY-NC 4.0 (model weights, non-commercial only)
-- **Device:** CPU only. GPU support is intentionally deferred — TranslationAI is locked to TensorFlow 1.15, which only works with CUDA 10.0 + cuDNN 7.4 and a long-EOL Ubuntu 18.04 base. The maintenance cost outweighs the speedup; revisit if upstream ports to a newer TF/PyTorch.
+- **Device:** CPU or GPU. Two image variants:
+    - `rnazoo-translationai:latest` — CUDA-enabled (TF 1.15 GPU build, default with `-profile gpu`). Works on any GPU; older binary kernels PTX-JIT for compute capabilities >7.0 (Turing/Ampere/Ada/Hopper) on first kernel launch.
+    - `rnazoo-translationai-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 

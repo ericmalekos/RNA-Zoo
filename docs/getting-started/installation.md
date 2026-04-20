@@ -128,6 +128,6 @@ Most models ship two image variants on GHCR:
 - `ghcr.io/ericmalekos/rnazoo-<tool>:latest` — CUDA-enabled GPU build (default)
 - `ghcr.io/ericmalekos/rnazoo-<tool>-cpu:latest` — CPU-only build (smaller)
 
-`-profile cpu` selects the `-cpu` image; `-profile gpu` selects the unsuffixed (GPU) image. Nextflow handles the pull automatically — you do not invoke Docker directly. Exceptions: TranslationAI ships only as a single CPU image (TF 1.15 / CUDA 10.0 maintenance constraint); seq2ribo ships only as a single GPU image (mamba-ssm requires CUDA at import time and auto-skips under `-profile cpu`).
+`-profile cpu` selects the `-cpu` image; `-profile gpu` selects the unsuffixed (GPU) image. Nextflow handles the pull automatically — you do not invoke Docker directly. Exception: seq2ribo ships only as a single GPU image (mamba-ssm requires CUDA at import time and auto-skips under `-profile cpu`).
 
 **VRAM caveat:** running 14 models in parallel on a single GPU needs more memory than a typical consumer card (a 4 GB device will OOM partway through). If you have a small GPU, run models one-at-a-time with explicit `--<model>_input` flags instead of using the test profile.

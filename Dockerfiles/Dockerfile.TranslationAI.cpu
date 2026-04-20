@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.15.5-gpu-py3
+FROM tensorflow/tensorflow:1.15.5-py3
 
 # LICENSE NOTICE
 # Source code: AGPL-3.0
@@ -29,11 +29,6 @@ RUN pip install --no-cache-dir "keras>=2.0.5,<2.4" h5py scikit-learn regex .
 
 # Make output dirs writable for non-root Nextflow users
 RUN chmod -R 777 /opt/TranslationAI
-
-# TF 1.15's binary kernels were compiled up to compute capability 7.0
-# (Volta). On newer GPUs (Turing 7.5, Ampere 8.x, Ada 8.9, Hopper 9.0)
-# the runtime PTX-JITs the missing kernels, which works but takes a few
-# extra seconds on first kernel launch.
 
 ENV PATH="/opt/TranslationAI:$PATH"
 WORKDIR /opt/TranslationAI

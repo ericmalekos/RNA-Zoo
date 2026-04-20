@@ -41,6 +41,8 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.Saluki.cpu
           - name: rnazoo-translationai
             dockerfile: Dockerfiles/Dockerfile.TranslationAI
+          - name: rnazoo-translationai-cpu
+            dockerfile: Dockerfiles/Dockerfile.TranslationAI.cpu
           - name: rnazoo-codontransformer
             dockerfile: Dockerfiles/Dockerfile.CodonTransformer
           - name: rnazoo-codontransformer-cpu
