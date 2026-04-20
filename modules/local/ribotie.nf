@@ -41,13 +41,13 @@ process RIBOTIE {
     # RiboTIE expects paths in the YAML to be relative to the CWD it's run
     # from. Stage the user's input dir and config into this task's workdir
     # and run from here.
-    mkdir -p ribotie_out/dbs ribotie_out/out
+    mkdir -p ribotie_out/dbs ribotie_out/out data
 
-    # Copy config and rewrite paths to point into our staged input dir.
-    # The YAML has paths like `data/SRR000001.bam` — we symlink the user's
-    # input dir at `data/` and `gtf`/`fa` will resolve there. We also
-    # override h5_path and out_prefix to point into ribotie_out/.
-    ln -s "\$PWD/${input_dir}" data
+    # The YAML has paths like `data/SRR000001.bam` — we COPY (not symlink)
+    # the user's input dir to `data/` so upstream's in-place writes
+    # (*.fai, *.h5 backup, *.sorted.bam + .bai) stay inside the task
+    # workdir rather than leaking back into the user's directory.
+    cp -rL "${input_dir}"/. data/
 
     cp ${config_yml} config.yml
     # Remove `data : true` if present (that makes it skip inference).
