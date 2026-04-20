@@ -28,12 +28,27 @@ cd RNA-Zoo
 
 ## Docker images
 
-All model containers are hosted on GitHub Container Registry (`ghcr.io/ericmalekos/rnazoo-*`). Nextflow pulls them automatically on first run — no manual `docker pull` needed.
+All model containers are hosted on GitHub Container Registry (`ghcr.io/ericmalekos/rnazoo-*`). Nextflow pulls them automatically on first run — no manual `docker pull` needed. The per-model image sizes are listed on the [home page](../index.md#whats-included) so you can pick a subset rather than pulling everything.
 
-To pre-pull all images:
+If you want to warm the cache up front, pick the loop that matches your hardware. Most users want the **CPU loop** unless they have a CUDA-capable GPU.
 
 ```bash
-for img in ribonn-cpu riboformer tristan seq2ribo saluki translationai \
+# --- CPU-only setup (~28 GB total compressed download)
+# Selects the smaller -cpu variants where they exist. ernierna, rnaformer,
+# and seq2ribo only ship a single image (built with CUDA-enabled framework
+# but runs on CPU too) — included here for completeness.
+for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu translationai-cpu \
+           codontransformer-cpu rnafm-cpu rinalmo-cpu ernierna rnaformer \
+           rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+  docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
+done
+```
+
+```bash
+# --- GPU setup (~65 GB total compressed download)
+# Pulls the CUDA-enabled variants for every tool. seq2ribo is GPU-only by
+# design (mamba-ssm requires CUDA at import time).
+for img in ribonn riboformer tristan seq2ribo saluki translationai \
            codontransformer rnafm rinalmo ernierna rnaformer rhofold \
            spotrna multirm utrlm; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
