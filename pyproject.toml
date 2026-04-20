@@ -1,3 +1,5 @@
+# Ruff configuration for the RNA-Zoo repository.
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
