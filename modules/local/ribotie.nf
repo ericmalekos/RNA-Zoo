@@ -24,15 +24,19 @@ process RIBOTIE {
     path config_yml
 
     output:
-    path "ribotie_out/**.gtf", emit: gtfs,      optional: true
-    path "ribotie_out/**.csv", emit: csvs,      optional: true
-    path "ribotie_out/**.npy", emit: npys,      optional: true
-    path "ribotie_out",        emit: out_dir
+    path "ribotie_out/**.gtf",  emit: gtfs,        optional: true
+    path "ribotie_out/**.csv",  emit: csvs,        optional: true
+    path "ribotie_out/**.npy",  emit: npys,        optional: true
+    path "ribotie_out/**.ckpt", emit: checkpoints, optional: true
+    path "ribotie_out",         emit: out_dir
 
     script:
     def accelerator = params.device == 'cpu' ? 'cpu' : 'gpu'
     def max_epochs_flag = params.ribotie_max_epochs  != null ? "--max_epochs ${params.ribotie_max_epochs}" : ''
     def patience_flag   = params.ribotie_patience    != null ? "--patience ${params.ribotie_patience}"     : ''
+    def checkpoint_override = params.ribotie_checkpoint
+        ? "sed -i 's|^\\( *transfer_checkpoint *:.*\\)|  transfer_checkpoint : ${params.ribotie_checkpoint}|' config.yml"
+        : "true  # no checkpoint override"
     """
     # RiboTIE expects paths in the YAML to be relative to the CWD it's run
     # from. Stage the user's input dir and config into this task's workdir
@@ -51,6 +55,9 @@ process RIBOTIE {
     # Override h5_path + out_prefix so outputs land in ribotie_out/
     sed -i 's|^h5_path *:.*|h5_path : ribotie_out/dbs/ribotie.h5|'  config.yml
     sed -i 's|^out_prefix *:.*|out_prefix : ribotie_out/out/ribotie|' config.yml
+    # Optionally rewrite every transfer_checkpoint line to reuse a saved
+    # fine-tuned checkpoint (from a previous ribotie run).
+    ${checkpoint_override}
 
     ribotie config.yml \\
         --accelerator ${accelerator} \\

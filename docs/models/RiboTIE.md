@@ -102,6 +102,18 @@ Only models with input provided will run — no ignore flags needed.
 |-----------|---------|-------------|
 | `--ribotie_max_epochs` | (upstream default) | Maximum training epochs |
 | `--ribotie_patience` | (upstream default) | Early stopping patience |
+| `--ribotie_checkpoint` | `null` | Path to a `*.rt.ckpt` saved from a previous run. When set, each fold's `transfer_checkpoint` in the YAML is rewritten to this file so the model skips re-fine-tuning. |
+
+## Reusing a fine-tuned checkpoint
+
+Every `ribotie config.yml` run writes per-sample, per-fold fine-tuned checkpoints at `<out_prefix>_<sample>_f{0,1}.rt.ckpt`. These are captured by the module's `checkpoints` output emit (matched by `**.ckpt`). To skip re-fine-tuning on a later run over new data, pass one of them as `--ribotie_checkpoint`:
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --ribotie_input /path/to/new_data_dir \
+  --ribotie_config /path/to/new_config.yml \
+  --ribotie_checkpoint results/ribotie/ribotie_out/out/ribotie_SRR000001_f0.rt.ckpt
+```
 
 ## Bundled pretrained checkpoints
 
