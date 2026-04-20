@@ -17,7 +17,7 @@ RNAZoo packages 15 state-of-the-art RNA ML models into a single, portable Nextfl
 ## Quick start
 
 ```bash
-# Run the test suite (11 models on CPU, ~2 min)
+# Run the test suite (12 models on CPU, ~3 min)
 nextflow run . -profile test,docker,cpu
 
 # Run a single model — only models you provide input for will run

@@ -59,14 +59,15 @@ nextflow run . -profile docker,cpu,test
 ## Verify installation
 
 ```bash
-# Run the test suite (11 models on CPU, ~2 minutes)
+# Run the test suite (12 models on CPU, ~3 minutes)
 nextflow run . -profile test,docker,cpu
 ```
 
-Expected output — all 11 models should pass:
+Expected output — all 12 models should pass:
 
 ```
 RNAZOO:RIBONN (ribonn)                         | 1 of 1 ✔
+RNAZOO:RIBOTIE (ribotie)                       | 1 of 1 ✔
 RNAZOO:TRANSLATIONAI (translationai)            | 1 of 1 ✔
 RNAZOO:SALUKI (saluki:human)                    | 1 of 1 ✔
 RNAZOO:CODONTRANSFORMER (codontransformer:...)  | 1 of 1 ✔
@@ -77,14 +78,13 @@ RNAZOO:RNAFORMER (rnaformer)                   | 1 of 1 ✔
 RNAZOO:SPOTRNA (spotrna)                       | 1 of 1 ✔
 RNAZOO:MULTIRM (multirm)                       | 1 of 1 ✔
 RNAZOO:UTRLM (utrlm:mrl)                       | 1 of 1 ✔
-Succeeded   : 11
+Succeeded   : 12
 ```
 
-The test profile runs 11 of 15 models with bundled minimal inputs. Four models are excluded from the default test:
+The test profile runs 12 of 15 models with bundled minimal inputs. Three models are excluded from the default test:
 
 | Model | Reason |
 |-------|--------|
 | Riboformer | Test dataset too large to bundle (240 MB) |
-| RiboTIE | Upstream checkpoint compatibility issue |
 | seq2ribo | Requires GPU |
 | RhoFold | Too slow on CPU (~5 min, 10 recycling iterations) |
