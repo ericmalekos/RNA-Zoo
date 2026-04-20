@@ -204,20 +204,27 @@ def main():
         trainer.fit(model, datamodule=dm)
 
         # Reload best and test
-        best_ckpt = torch.load(checkpoint.best_model_path, map_location="cpu")
-        model.load_state_dict(best_ckpt["state_dict"])
+        if checkpoint.best_model_path:
+            best_ckpt = torch.load(checkpoint.best_model_path, map_location="cpu")
+            model.load_state_dict(best_ckpt["state_dict"])
         model.eval()
 
         test_results = trainer.test(model, datamodule=dm)
         print(f"  Test results: {test_results}", file=sys.stderr)
 
-        # Save predictions for test fold
-        preds = trainer.predict(model, datamodule=dm)
-        if preds:
+        # Save predictions for test fold. Manual inference avoids a Lightning
+        # dataloader re-instantiation bug that fires against RiboNN's custom
+        # DataLoader subclass.
+        preds_list = []
+        with torch.no_grad():
+            for batch in dm.predict_dataloader():
+                out = model(batch)
+                preds_list.append(out.cpu())
+        if preds_list:
             fold_preds = data_test[["tx_id"]].copy()
             fold_preds["fold"] = test_fold
             fold_preds[f"predicted_{args.target}"] = (
-                torch.cat([p.squeeze() for p in preds]).numpy()[: len(data_test)]
+                torch.cat([p.squeeze() for p in preds_list]).numpy()[: len(data_test)]
             )
             all_predictions.append(fold_preds)
 
