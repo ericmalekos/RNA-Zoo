@@ -1,0 +1,62 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 06:00 UTC every Monday
+    - cron: '0 6 * * 1'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run test suite with -with-trace
+        run: |
+          nextflow run . -profile test,docker,cpu \
+            -with-trace trace.txt \
+            -with-report report.html
+
+      - name: Convert trace.txt to Markdown benchmark table
+        run: |
+          python3 - <<'EOF'
+          import datetime
+          from pathlib import Path
+
+          # trace.txt columns: task_id, hash, native_id, name, status, exit, submit, duration, realtime, %cpu, peak_rss, peak_vmem, rchar, wchar
+          lines = Path("trace.txt").read_text().splitlines()
+          header = lines[0].split("\t")
+          rows   = [dict(zip(header, L.split("\t"))) for L in lines[1:] if L.strip()]
+
+          out = []
+          out.append(f"# RNA-Zoo benchmark — `-profile test,docker,cpu`")
+          out.append("")
+          out.append(f"Run: {datetime.datetime.utcnow().isoformat()}Z  ·  Host: GitHub Actions `ubuntu-latest` (CPU only)")
+          out.append("")
+          out.append("| Process | Status | Wall-clock | Peak RSS | Peak VMem |")
+          out.append("|---------|--------|-----------:|---------:|----------:|")
+          for r in sorted(rows, key=lambda r: r.get("name", "")):
+              out.append(
+                  f"| `{r.get('name','')}` "
+                  f"| {r.get('status','')} "
+                  f"| {r.get('realtime','')} "
+                  f"| {r.get('peak_rss','')} "
+                  f"| {r.get('peak_vmem','')} |"
+              )
+          Path("docs/benchmarks.md").write_text("\n".join(out) + "\n")
+          EOF
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark
+          path: |
+            docs/benchmarks.md
+            trace.txt
+            report.html

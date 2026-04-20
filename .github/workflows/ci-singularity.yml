@@ -1,0 +1,59 @@
+name: CI (Singularity)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 04:00 UTC nightly
+    - cron: '0 4 * * *'
+
+jobs:
+  pipeline-test-singularity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Apptainer (Singularity-compatible)
+        # Apptainer is the open-source fork of Singularity. Nextflow's
+        # `singularity` profile talks to whichever of the two is in PATH.
+        run: |
+          wget -q https://github.com/apptainer/apptainer/releases/download/v1.4.1/apptainer_1.4.1_amd64.deb
+          sudo apt-get install -y ./apptainer_1.4.1_amd64.deb
+          apptainer --version
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run test suite under singularity profile
+        # Singularity/Apptainer needs a working cache dir for image conversions
+        run: |
+          mkdir -p ~/.singularity/cache
+          nextflow run . -profile test,singularity,cpu
+
+      - name: Verify outputs
+        run: |
+          echo "--- Checking model outputs under singularity ---"
+          test -f results_test/ribonn/ribonn_out/prediction_output.txt
+          test -f results_test/rnafm/rnafm_out/sequence_embeddings.npy
+          test -f results_test/rinalmo/rinalmo_out/sequence_embeddings.npy
+          test -f results_test/ernierna/ernierna_out/sequence_embeddings.npy
+          test -f results_test/codontransformer/optimized_codons.fa
+          test -f results_test/saluki/preds.npy
+          test -f results_test/rnaformer/rnaformer_out/structures.txt
+          test -f results_test/spotrna/spotrna_out/structures.txt
+          test -f results_test/multirm/multirm_out/predicted_sites.tsv
+          test -f results_test/utrlm/utrlm_out/predictions.tsv
+          test -f results_test/riboformer/model_prediction.txt
+          ls results_test/translationai/*_predTIS_*.txt
+          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000001.gtf
+          echo "Singularity run OK."
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-test-singularity
+          path: |
+            results_test/
+            .nextflow.log
