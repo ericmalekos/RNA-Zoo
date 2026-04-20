@@ -114,12 +114,6 @@ Located inside the Docker image at:
   rt_models/50perc_06_23_f{0,1}.rt.ckpt                # Pretrained RiboTIE
 ```
 
-## Known issues
-
-The README-documented invocations (`tis_transformer config.yml --model human` and `ribotie config.yml`) work correctly with the bundled pretrained checkpoints — the standard pipeline used by this module is unaffected.
-
-A latent upstream bug exists in `transcript_transformer.predict()` (v1.1.1) that surfaces only in non-default configurations: when a user provides a hand-written `trained_model:` block in the YAML pointing at a bundled `tt`/`rt` checkpoint, `predict()` reloads the checkpoint without passing `use_seq`/`use_ribo`, triggering an `AttributeError` (`tt`) or `TypeError` (`rt`). The default `ribotie config.yml` flow avoids this because it goes through `train()` first, which loads the checkpoint correctly. See `docs/tristan_issue/GITHUB_ISSUE.md` for full details.
-
 ## Pipeline steps
 
 1. **Build HDF5 database** from FASTA + GTF + BAM (automatic)
