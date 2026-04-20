@@ -42,7 +42,7 @@ jobs:
           curl -s https://get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      - name: Run pipeline test suite (11 models, CPU)
+      - name: Run pipeline test suite (12 models, CPU)
         run: nextflow run . -profile test,docker,cpu
 
       - name: Verify outputs
@@ -60,7 +60,11 @@ jobs:
           test -f results_test/utrlm/utrlm_out/predictions.tsv
           # TranslationAI outputs have dynamic names
           ls results_test/translationai/*_predTIS_*.txt
-          echo "All 11 model outputs verified."
+          # RiboTIE produces per-sample outputs under ribotie_out/out/
+          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000001.gtf
+          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000002.gtf
+          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000003.gtf
+          echo "All 12 model outputs verified."
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

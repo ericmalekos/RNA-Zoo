@@ -1,0 +1,15 @@
+# Minimal RiboTIE config used by the test profile.
+# The RIBOTIE Nextflow module symlinks the staged input directory as `data/`,
+# so all paths here are relative to that.
+# h5_path and out_prefix are overridden by the module (sed) before invocation.
+
+gtf_path : data/GRCh38v110_snippet.gtf
+fa_path  : data/GRCh38v110_snippet.fa
+
+h5_path  : ribotie_out/dbs/ribotie.h5
+out_prefix : ribotie_out/out/ribotie
+
+ribo_paths :
+  SRR000001 : data/SRR000001.bam
+  SRR000002 : data/SRR000002.bam
+  SRR000003 : data/SRR000003.bam
