@@ -21,7 +21,7 @@ import torch
 sys.path.insert(0, "/app")
 from src.data import RiboNNDataModule
 from src.model import RiboNN
-from src.utils.helpers import extract_config, load_config
+from src.utils.helpers import load_config
 
 
 def predict_with_finetuned(input_path, checkpoint_path, output_path, target_name):
