@@ -97,7 +97,9 @@ Located inside the Docker image at:
 
 ## Known issues
 
-The bundled pretrained checkpoints (both `tt` and `rt` variants) have compatibility issues with TRISTAN v1.1.1 during the prediction step (`scalar_emb` / `use_seq`/`use_ribo` argument mismatch). Data processing (FASTA+GTF+BAM to HDF5) works correctly. This is an upstream issue; check the TRISTAN GitHub for updates.
+The README-documented invocations (`tis_transformer config.yml --model human` and `ribotie config.yml`) work correctly with the bundled pretrained checkpoints — the standard pipeline used by this module is unaffected.
+
+A latent upstream bug exists in `transcript_transformer.predict()` (v1.1.1) that surfaces only in non-default configurations: when a user provides a hand-written `trained_model:` block in the YAML pointing at a bundled `tt`/`rt` checkpoint, `predict()` reloads the checkpoint without passing `use_seq`/`use_ribo`, triggering an `AttributeError` (`tt`) or `TypeError` (`rt`). The default `ribotie config.yml` flow avoids this because it goes through `train()` first, which loads the checkpoint correctly. See `docs/tristan_issue/GITHUB_ISSUE.md` for full details.
 
 ## Pipeline steps
 

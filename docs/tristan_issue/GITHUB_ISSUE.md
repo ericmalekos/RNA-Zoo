@@ -6,6 +6,14 @@
 
 The `train()` function correctly passes these arguments (line ~37), but `predict()` (line ~163) omits them.
 
+## Scope — what is and isn't affected
+
+The README-documented invocations work correctly:
+- `tis_transformer config.yml --model human` (and `--fasta` variant) — verified working
+- `ribotie config.yml` — verified working (Lightning auto-migrates the rt checkpoint hparams during the fine-tuning step)
+
+The bug only manifests when the user supplies a **hand-written `trained_model:` block** in the YAML pointing at a bundled `tt`/`rt` checkpoint, which causes `predict()` to reload from checkpoint without first going through `train()`. This is an uncommon path but valid (e.g., a user who wants to skip fine-tuning and run inference directly from the bundled checkpoints).
+
 ## Versions
 
 - `transcript_transformer`: 1.1.1 (pip install)
