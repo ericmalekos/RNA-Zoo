@@ -5,7 +5,9 @@ Detect translated ORFs from ribo-seq + genomic sequence using a transformer mode
 - **Paper:** [Nature Communications 2025](https://www.nature.com/articles/s41467-025-56543-0)
 - **Upstream:** https://github.com/TRISTAN-ORF/TRISTAN (v1.1.1)
 - **License:** Upstream repository license
-- **Device:** CPU (slow) or GPU (recommended for real datasets)
+- **Device:** CPU or GPU. Two image variants:
+    - `rnazoo-tristan:latest` — CUDA-enabled (default, used with `-profile gpu`, recommended for real datasets)
+    - `rnazoo-tristan-cpu:latest` — CPU-only (smaller, used with `-profile cpu`, viable for small datasets)
 
 ## What it does
 
@@ -59,18 +61,33 @@ Note: sample IDs in `ribo_paths` must be strings (use quotes around numeric IDs)
 ## Run with Docker
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/data:/work \
+  -w /work \
+  ghcr.io/ericmalekos/rnazoo-tristan-cpu:latest \
+  bash -c "mkdir -p ribotie_out/dbs ribotie_out/out && \
+    ribotie config.yml --accelerator cpu --overwrite_data --max_epochs 10 --patience 3"
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/data:/work \
   -w /work \
   ghcr.io/ericmalekos/rnazoo-tristan:latest \
   bash -c "mkdir -p ribotie_out/dbs ribotie_out/out && \
-    ribotie config.yml --accelerator cpu --overwrite_data --max_epochs 10 --patience 3"
+    ribotie config.yml --accelerator gpu --overwrite_data --max_epochs 10 --patience 3"
 ```
 
 ## Run with Nextflow
 
 ```bash
+# CPU (slow but works for the bundled test data and small inputs)
 nextflow run main.nf -profile docker,cpu \
+  --ribotie_input /path/to/data_dir \
+  --ribotie_config /path/to/config.yml
+
+# GPU (recommended for real ribo-seq datasets)
+nextflow run main.nf -profile docker,gpu \
   --ribotie_input /path/to/data_dir \
   --ribotie_config /path/to/config.yml
 ```

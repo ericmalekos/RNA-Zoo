@@ -5,7 +5,9 @@ Predict RNA 3D structure from sequence (single-sequence mode).
 - **Paper:** [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0)
 - **Upstream:** https://github.com/ml4bio/RhoFold
 - **License:** Apache 2.0
-- **Device:** CPU or GPU (CPU is slow — 10 recycling iterations per prediction)
+- **Device:** CPU or GPU. Two image variants:
+    - `rnazoo-rhofold:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-rhofold-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does
 
@@ -36,7 +38,15 @@ Per-sequence output directory containing:
 ## Run with Docker
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-rhofold-cpu:latest \
+  rhofold_predict.py -i /data/input.fa -o /out
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-rhofold:latest \
@@ -46,8 +56,11 @@ docker run --rm \
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --rhofold_input /path/to/input.fa
+# CPU
+nextflow run main.nf -profile docker,cpu --rhofold_input /path/to/input.fa
+
+# GPU (recommended for production)
+nextflow run main.nf -profile docker,gpu --rhofold_input /path/to/input.fa
 ```
 
 Only models with input provided will run — no ignore flags needed.

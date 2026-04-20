@@ -6,23 +6,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-# Python 3.10 base env (no PyTorch — CUDA-enabled torch is installed via pip
-# below so we can pin the cu121 wheel that ships its own CUDA runtime libs).
-RUN mamba create -n tristan -c conda-forge -y \
+# Python 3.10 + CPU PyTorch. TRISTAN v1.1.1 doesn't pin torch, but it uses
+# `torch.serialization.add_safe_globals` (added in torch 2.4), so we need
+# torch>=2.4. For a GPU variant, swap in the CUDA pytorch packages and
+# remove `cpuonly`.
+RUN mamba create -n tristan -c pytorch -c conda-forge -y \
         python=3.10 \
+        "pytorch>=2.4" \
         "numpy<2" \
+        cpuonly \
         pip \
     && mamba clean -afy
-
-# Install CUDA-enabled PyTorch (>=2.4 required for
-# torch.serialization.add_safe_globals used by transcript_transformer v1.1.1).
-RUN /opt/conda/envs/tristan/bin/pip install --no-cache-dir \
-        "torch>=2.4" --index-url https://download.pytorch.org/whl/cu121
 
 # transcript_transformer ships its pretrained weights inside the wheel
 # (transcript_transformer/pretrained/{rt,tt}_models/*.ckpt, ~110 MB total),
 # so `pip install` alone bakes them into the image — no runtime download.
-# Installed from the v1.1.1 git tag for reproducibility.
+# We install from the v1.1.1 git tag for reproducibility.
 RUN /opt/conda/envs/tristan/bin/pip install --no-cache-dir \
         "git+https://github.com/TRISTAN-ORF/TRISTAN.git@v1.1.1"
 

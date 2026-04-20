@@ -3,10 +3,10 @@ FROM condaforge/miniforge3:latest
 RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Create env without PyTorch — install CUDA-enabled torch from pip below
-# so we can pin the cu118 wheel directly (matches what RhoFold was trained on).
-RUN mamba create -n rhofold -c conda-forge -y \
+RUN mamba create -n rhofold -c pytorch -c conda-forge -y \
         python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
         "numpy<2" \
         scipy \
         biopython \
@@ -16,10 +16,6 @@ RUN mamba create -n rhofold -c conda-forge -y \
 
 ENV PATH="/opt/conda/envs/rhofold/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=rhofold
-
-# Install CUDA-enabled PyTorch 2.2 (cu118 wheel includes the CUDA runtime libs)
-RUN /opt/conda/envs/rhofold/bin/pip install --no-cache-dir \
-        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 
 # Clone RhoFold and install
 RUN git clone --depth 1 https://github.com/ml4bio/RhoFold.git /opt/rhofold && \

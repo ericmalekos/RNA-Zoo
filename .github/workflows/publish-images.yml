@@ -29,6 +29,8 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.Riboformer
           - name: rnazoo-tristan
             dockerfile: Dockerfiles/Dockerfile.TRISTAN
+          - name: rnazoo-tristan-cpu
+            dockerfile: Dockerfiles/Dockerfile.TRISTAN.cpu
           - name: rnazoo-seq2ribo
             dockerfile: Dockerfiles/Dockerfile.seq2ribo
           - name: rnazoo-saluki
@@ -49,6 +51,8 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.RNAformer
           - name: rnazoo-rhofold
             dockerfile: Dockerfiles/Dockerfile.RhoFold
+          - name: rnazoo-rhofold-cpu
+            dockerfile: Dockerfiles/Dockerfile.RhoFold.cpu
           - name: rnazoo-spotrna
             dockerfile: Dockerfiles/Dockerfile.SPOTRNA
           # Modification
