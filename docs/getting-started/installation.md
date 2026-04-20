@@ -74,67 +74,70 @@ nextflow run . -profile docker,cpu,test
 ## Verify installation
 
 ```bash
-# Run the test suite (12 models on CPU, ~3 minutes)
+# Run the test suite (13 models on CPU, ~5 minutes)
 nextflow run . -profile test,docker,cpu
 ```
 
-Expected output — all 12 models should pass:
+Expected output — all 13 models should pass:
 
 ```
-RNAZOO:RIBONN (ribonn)                         | 1 of 1 ✔
-RNAZOO:RIBOTIE (ribotie)                       | 1 of 1 ✔
-RNAZOO:TRANSLATIONAI (translationai)            | 1 of 1 ✔
-RNAZOO:SALUKI (saluki:human)                    | 1 of 1 ✔
-RNAZOO:CODONTRANSFORMER (codontransformer:...)  | 1 of 1 ✔
-RNAZOO:RNAFM (rnafm)                           | 1 of 1 ✔
-RNAZOO:RINALMO (rinalmo)                       | 1 of 1 ✔
-RNAZOO:ERNIERNA (ernierna)                     | 1 of 1 ✔
-RNAZOO:RNAFORMER (rnaformer)                   | 1 of 1 ✔
-RNAZOO:SPOTRNA (spotrna)                       | 1 of 1 ✔
-RNAZOO:MULTIRM (multirm)                       | 1 of 1 ✔
-RNAZOO:UTRLM (utrlm:mrl)                       | 1 of 1 ✔
-Succeeded   : 12
+RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
+RNAZOO:RIBOFORMER (riboformer:bacteria_cm_mg)         | 1 of 1 ✔
+RNAZOO:RIBOTIE (ribotie)                              | 1 of 1 ✔
+RNAZOO:TRANSLATIONAI (translationai)                  | 1 of 1 ✔
+RNAZOO:SALUKI (saluki:human)                          | 1 of 1 ✔
+RNAZOO:CODONTRANSFORMER (codontransformer:...)        | 1 of 1 ✔
+RNAZOO:RNAFM (rnafm)                                  | 1 of 1 ✔
+RNAZOO:RINALMO (rinalmo)                              | 1 of 1 ✔
+RNAZOO:ERNIERNA (ernierna)                            | 1 of 1 ✔
+RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
+RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
+RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
+RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
+Succeeded   : 13
 ```
 
-The test profile runs 12 of 15 models with bundled minimal inputs. Three models are excluded from the default CPU test:
+The test profile runs 13 of 15 models with bundled minimal inputs. Two models are excluded from the default CPU test:
 
 | Model | Reason | Covered by `test_gpu`? |
 |-------|--------|------------------------|
-| Riboformer | Test dataset too large to bundle (240 MB) | No |
 | seq2ribo | Requires GPU | Yes |
 | RhoFold | Too slow on CPU (~5 min, 10 recycling iterations) | Yes |
+
+> Riboformer uses the in-image E. coli dataset (`GSE119104_Mg_buffer`) via `--riboformer_bundled_dataset` — no external test data needed. See [the Riboformer page](../models/Riboformer.md) for how to point it at a bundled dataset.
 
 ### Run the GPU test suite
 
 If you have an NVIDIA GPU available, run the extended test profile to also exercise seq2ribo and RhoFold:
 
 ```bash
-# Run the GPU test suite (14 models, requires NVIDIA Container Toolkit)
+# Run the GPU test suite (15 models, requires NVIDIA Container Toolkit)
 nextflow run . -profile test_gpu,docker,gpu
 ```
 
-Expected output — all 14 models should pass:
+Expected output — all 15 models should pass:
 
 ```
-RNAZOO:RIBONN (ribonn)                         | 1 of 1 ✔
-RNAZOO:RIBOTIE (ribotie)                       | 1 of 1 ✔
-RNAZOO:TRANSLATIONAI (translationai)            | 1 of 1 ✔
-RNAZOO:SALUKI (saluki:human)                    | 1 of 1 ✔
-RNAZOO:CODONTRANSFORMER (codontransformer:...)  | 1 of 1 ✔
-RNAZOO:RNAFM (rnafm)                           | 1 of 1 ✔
-RNAZOO:RINALMO (rinalmo)                       | 1 of 1 ✔
-RNAZOO:ERNIERNA (ernierna)                     | 1 of 1 ✔
-RNAZOO:RNAFORMER (rnaformer)                   | 1 of 1 ✔
-RNAZOO:SPOTRNA (spotrna)                       | 1 of 1 ✔
-RNAZOO:MULTIRM (multirm)                       | 1 of 1 ✔
-RNAZOO:UTRLM (utrlm:mrl)                       | 1 of 1 ✔
-RNAZOO:SEQ2RIBO (seq2ribo:te:hek293)           | 1 of 1 ✔
-RNAZOO:RHOFOLD (rhofold)                       | 1 of 1 ✔
-Succeeded   : 14
+RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
+RNAZOO:RIBOFORMER (riboformer:bacteria_cm_mg)         | 1 of 1 ✔
+RNAZOO:RIBOTIE (ribotie)                              | 1 of 1 ✔
+RNAZOO:TRANSLATIONAI (translationai)                  | 1 of 1 ✔
+RNAZOO:SALUKI (saluki:human)                          | 1 of 1 ✔
+RNAZOO:CODONTRANSFORMER (codontransformer:...)        | 1 of 1 ✔
+RNAZOO:RNAFM (rnafm)                                  | 1 of 1 ✔
+RNAZOO:RINALMO (rinalmo)                              | 1 of 1 ✔
+RNAZOO:ERNIERNA (ernierna)                            | 1 of 1 ✔
+RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
+RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
+RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
+RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
+RNAZOO:SEQ2RIBO (seq2ribo:te:hek293)                  | 1 of 1 ✔
+RNAZOO:RHOFOLD (rhofold)                              | 1 of 1 ✔
+Succeeded   : 15
 ```
 
 This is identical to the CPU test profile but additionally provides
-`--seq2ribo_input` and `--rhofold_input` so the two GPU-only / GPU-recommended models also run. Models with both CPU and GPU image variants automatically use their GPU images under `-profile gpu`.
+`--seq2ribo_input` and `--rhofold_input` so the two GPU-only / GPU-recommended models also run, and Riboformer's bundled-dataset test runs faster on GPU (~1.5 min vs ~2.5 min on CPU). Models with both CPU and GPU image variants automatically use their GPU images under `-profile gpu`.
 
 ### How profiles select container images
 

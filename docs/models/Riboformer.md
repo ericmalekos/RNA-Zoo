@@ -86,6 +86,26 @@ Only models with input provided will run — no ignore flags needed.
 | `--riboformer_psite` | `14` | P-site offset |
 | `--riboformer_wsize` | `40` | Window size |
 | `--riboformer_threshold` | `25` | Minimum read threshold |
+| `--riboformer_bundled_dataset` | `null` | Use a dataset already inside the image (skips external staging). When set, `--riboformer_input` is ignored. See "Bundled datasets" below. |
+
+### Bundled datasets
+
+The Docker image ships with several upstream datasets at `/opt/Riboformer/datasets/`. Pointing `--riboformer_bundled_dataset` at one of these lets you run end-to-end without committing 100+ MB of WIG / FASTA / GFF files. Used by the test profile to verify the model on the in-image E. coli data:
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --riboformer_bundled_dataset GSE119104_Mg_buffer \
+  --riboformer_reference_wig GSM3358138_filter_Cm_ctrl \
+  --riboformer_target_wig GSM3358140_freeze_Mg_ctrl \
+  --riboformer_model bacteria_cm_mg
+```
+
+Datasets that have all the files needed for end-to-end inference (WIG + FASTA + GFF):
+
+| Bundled dataset | Organism | Reference / target WIG names | Suggested model |
+|-----------------|----------|-------------------------------|-----------------|
+| `GSE119104_Mg_buffer` | E. coli (~146 MB) | `GSM3358138_filter_Cm_ctrl` / `GSM3358140_freeze_Mg_ctrl` | `bacteria_cm_mg` |
+| `GSE139036_disome` | Yeast disome (~244 MB) | `GSM4127880_end3SM015Fd` / `GSM4127896_SM015M` | `yeast_disome` |
 
 ## Available pre-trained models
 

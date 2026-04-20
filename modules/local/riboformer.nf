@@ -24,16 +24,18 @@ process RIBOFORMER {
     path "ribosome_density_plot.png",   emit: plot, optional: true
 
     script:
+    def use_bundled = params.riboformer_bundled_dataset != null
+    def dataset_name = use_bundled ? params.riboformer_bundled_dataset : 'nf_input'
+    def stage_step = use_bundled
+        ? "# Bundled mode: dataset already lives at /opt/Riboformer/datasets/${dataset_name}"
+        : "mkdir -p \"\$DATASET_DIR\" && cp ${input_dir}/* \"\$DATASET_DIR/\""
     """
     # Riboformer's scripts expect to be run from /opt/Riboformer/Riboformer/
     # and read/write files under /opt/Riboformer/datasets/<name>/.
-    # Stage the user's input dir into the container's datasets/ location,
-    # then run both pipeline steps.
     NF_WORKDIR="\$PWD"
-    DATASET_NAME="nf_input"
+    DATASET_NAME="${dataset_name}"
     DATASET_DIR="/opt/Riboformer/datasets/\$DATASET_NAME"
-    mkdir -p "\$DATASET_DIR"
-    cp ${input_dir}/* "\$DATASET_DIR/"
+    ${stage_step}
 
     # Step 1: convert WIG + FASTA + GFF3 into xc/yc/zc tensors
     ( cd /opt/Riboformer/Riboformer && python data_processing.py \\

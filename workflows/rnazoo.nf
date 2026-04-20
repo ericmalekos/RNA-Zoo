@@ -39,12 +39,18 @@ workflow RNAZOO {
         RIBONN_FINETUNE(Channel.fromPath(params.ribonn_finetune_input, checkIfExists: true))
     }
 
-    if (params.riboformer_input) {
+    if (params.riboformer_input || params.riboformer_bundled_dataset) {
         if (!params.riboformer_reference_wig || !params.riboformer_target_wig) {
-            error "riboformer_reference_wig and riboformer_target_wig are required when riboformer_input is set"
+            error "riboformer_reference_wig and riboformer_target_wig are required for riboformer"
         }
+        // For bundled mode, the in-image dataset is referenced directly by name
+        // and no external input dir is staged. Pass conf/ as a harmless placeholder
+        // so Nextflow's path input is satisfied; the module's bash skips it.
+        def input_ch = params.riboformer_bundled_dataset
+            ? Channel.fromPath("${projectDir}/conf", type: 'dir', checkIfExists: true)
+            : Channel.fromPath(params.riboformer_input, type: 'dir', checkIfExists: true)
         RIBOFORMER(
-            Channel.fromPath(params.riboformer_input, type: 'dir', checkIfExists: true),
+            input_ch,
             params.riboformer_model,
             params.riboformer_reference_wig,
             params.riboformer_target_wig
