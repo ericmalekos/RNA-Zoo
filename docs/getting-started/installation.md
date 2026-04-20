@@ -81,10 +81,24 @@ RNAZOO:UTRLM (utrlm:mrl)                       | 1 of 1 ✔
 Succeeded   : 12
 ```
 
-The test profile runs 12 of 15 models with bundled minimal inputs. Three models are excluded from the default test:
+The test profile runs 12 of 15 models with bundled minimal inputs. Three models are excluded from the default CPU test:
 
-| Model | Reason |
-|-------|--------|
-| Riboformer | Test dataset too large to bundle (240 MB) |
-| seq2ribo | Requires GPU |
-| RhoFold | Too slow on CPU (~5 min, 10 recycling iterations) |
+| Model | Reason | Covered by `test_gpu`? |
+|-------|--------|------------------------|
+| Riboformer | Test dataset too large to bundle (240 MB) | No |
+| seq2ribo | Requires GPU | Yes |
+| RhoFold | Too slow on CPU (~5 min, 10 recycling iterations) | Yes |
+
+### Run the GPU test suite
+
+If you have an NVIDIA GPU available, run the extended test profile to also exercise seq2ribo and RhoFold:
+
+```bash
+# Run the GPU test suite (14 models, requires NVIDIA Container Toolkit)
+nextflow run . -profile test_gpu,docker,gpu
+```
+
+This is identical to the CPU test profile but additionally provides
+`--seq2ribo_input` and `--rhofold_input` so the two GPU-only / GPU-recommended models also run. Models with both CPU and GPU image variants (RiboNN, RhoFold, RiboTIE) automatically use their GPU images under `-profile gpu`.
+
+**VRAM caveat:** running 14 models in parallel on a single GPU needs more memory than a typical consumer card (a 4 GB device will OOM partway through). If you have a small GPU, run models one-at-a-time with explicit `--<model>_input` flags instead of using the test profile.
