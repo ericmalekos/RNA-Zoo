@@ -2,7 +2,9 @@
 # RNAZoo parameters template
 # ============================================================================
 # Copy this file and fill in the models you want to run.
-# Only models with a non-null input will be executed.
+# Only models with a non-null `_input` will be executed.
+# Inline `# example:` hints show a plausible value; replace `null` with a real
+# path (or leave `null` to skip that model).
 # Usage:  nextflow run main.nf -profile docker,cpu -params-file my_params.yml
 # ============================================================================
 
@@ -16,47 +18,51 @@ outdir: results
 # RiboNN — translation efficiency prediction across 82 human cell types
 # Input: tab-separated file (tx_id, utr5, cds, utr3)
 # Output: prediction_output.txt
-ribonn_input: null
+ribonn_input: null             # example: data/ribonn/transcripts.tsv
 ribonn_outdir: null            # default: <outdir>/ribonn
+ribonn_species: human          # human or mouse
+ribonn_checkpoint: null        # example: results/ribonn_finetune/fold0/best.ckpt
 
 # RiboNN fine-tuning — transfer learning on user TE data for a new cell type
 # Input: tab-separated (tx_id, utr5_sequence, cds_sequence, utr3_sequence, <target_column>)
 # Output: cross-validated predictions + fine-tuned checkpoints
-ribonn_finetune_input: null
-ribonn_finetune_outdir: null   # default: <outdir>/ribonn_finetune
-ribonn_finetune_target: null   # required: name of the TE target column
+ribonn_finetune_input: null          # example: data/ribonn_finetune/training.tsv
+ribonn_finetune_outdir: null         # default: <outdir>/ribonn_finetune
+ribonn_finetune_target: null         # required; example: TE_my_cell_line
 ribonn_finetune_phase1_epochs: 50    # epochs for head-only training
 ribonn_finetune_phase2_epochs: 150   # epochs for full model training
 ribonn_finetune_patience: 50         # early stopping patience
 ribonn_finetune_folds: 5             # cross-validation folds
 
 # Riboformer — codon-level ribosome density refinement from ribo-seq
-# Input: directory with WIG, FASTA, GFF3 files
+# Input: directory with WIG (f+r for ref and target), FASTA, GFF3 files
 # Output: model_prediction.txt, pause_indices.txt
-riboformer_input: null
-riboformer_outdir: null        # default: <outdir>/riboformer
-riboformer_reference_wig: null # required: base name of reference WIG pair
-riboformer_target_wig: null    # required: base name of target WIG pair
-riboformer_model: yeast_disome # pretrained model name
-riboformer_psite: 14           # P-site offset
-riboformer_wsize: 40           # window size
-riboformer_threshold: 25
-riboformer_plot: false         # generate ribosome density plot       # minimum read threshold
+riboformer_input: null             # example: data/ribo_seq_exp/
+riboformer_bundled_dataset: null   # alternative to _input; example: GSE119104_Mg_buffer
+riboformer_outdir: null            # default: <outdir>/riboformer
+riboformer_reference_wig: null     # required; example: GSM3358138_filter_Cm_ctrl
+riboformer_target_wig: null        # required; example: GSM3358140_freeze_Mg_ctrl
+riboformer_model: yeast_disome     # pretrained model name
+riboformer_psite: 14               # P-site offset
+riboformer_wsize: 40               # window size
+riboformer_threshold: 25           # minimum read threshold
+riboformer_plot: false             # generate ribosome density plot
 
 # RiboTIE — ORF detection from ribo-seq + genomic sequence
 # Input: directory with genome FASTA, GTF, BAM files
 # Output: GTF, CSV, NPY per sample
-ribotie_input: null
+ribotie_input: null            # example: data/ribotie/
 ribotie_outdir: null           # default: <outdir>/ribotie
-ribotie_config: null           # required: YAML config file
+ribotie_config: null           # required; example: data/ribotie/config.yml
 ribotie_max_epochs: null       # optional: max training epochs
 ribotie_patience: null         # optional: early stopping patience
+ribotie_checkpoint: null       # example: results/ribotie/ribotie_out/out/ribotie_sampleA_f0.rt.ckpt
 
 # seq2ribo — ribosome profiling / TE / protein from mRNA sequence (GPU only)
 # License: CMU Academic/Non-Commercial only
 # Input: FASTA of mRNA CDS sequences
 # Output: JSON with predictions
-seq2ribo_input: null
+seq2ribo_input: null           # example: data/seq2ribo/mrna.fa
 seq2ribo_outdir: null          # default: <outdir>/seq2ribo
 seq2ribo_task: te              # riboseq, te, or protein
 seq2ribo_cell_line: hek293     # hek293, lcl, rpe, or ipsc
@@ -66,7 +72,7 @@ seq2ribo_use_utr: false        # include UTR regions
 # License: AGPL-3.0 source + CC BY-NC 4.0 weights
 # Input: FASTA of mRNA sequences
 # Output: TIS, TTS, ORF text files
-translationai_input: null
+translationai_input: null      # example: data/translationai/mrna.fa
 translationai_outdir: null     # default: <outdir>/translationai
 translationai_tis_threshold: 0.5
 translationai_tts_threshold: 0.5
@@ -74,14 +80,14 @@ translationai_tts_threshold: 0.5
 # Saluki — mRNA half-life prediction from sequence
 # Input: FASTA (lowercase=UTR, UPPERCASE=CDS)
 # Output: preds.npy (log2 half-life)
-saluki_input: null
+saluki_input: null             # example: data/saluki/transcripts.fa
 saluki_outdir: null            # default: <outdir>/saluki
 saluki_species: human          # human or mouse
 
 # CodonTransformer — codon optimization for protein sequences
 # Input: FASTA of amino acid sequences
 # Output: FASTA of optimized DNA coding sequences
-codontransformer_input: null
+codontransformer_input: null   # example: data/codontransformer/proteins.fa
 codontransformer_outdir: null  # default: <outdir>/codontransformer
 codontransformer_organism: "Homo sapiens"  # any of 164 organisms
 
@@ -92,21 +98,21 @@ codontransformer_organism: "Homo sapiens"  # any of 164 organisms
 # RNA-FM — general RNA embeddings (640-d, max 1024 nt)
 # Input: FASTA of RNA sequences
 # Output: sequence_embeddings.npy (N x 640), labels.txt
-rnafm_input: null
+rnafm_input: null              # example: data/rnafm/sequences.fa
 rnafm_outdir: null             # default: <outdir>/rnafm
 rnafm_per_token: false         # also save per-token (L x 640) .npy files
 
 # RiNALMo — large RNA language model embeddings (1280-d, 650M params)
 # Input: FASTA of RNA sequences
 # Output: sequence_embeddings.npy (N x 1280), labels.txt
-rinalmo_input: null
+rinalmo_input: null            # example: data/rinalmo/sequences.fa
 rinalmo_outdir: null           # default: <outdir>/rinalmo
 rinalmo_per_token: false       # also save per-token (L x 1280) .npy files
 
 # ERNIE-RNA — structure-aware RNA embeddings (768-d)
 # Input: FASTA of RNA sequences (max 1022 nt)
 # Output: sequence_embeddings.npy (N x 768), labels.txt
-ernierna_input: null
+ernierna_input: null           # example: data/ernierna/sequences.fa
 ernierna_outdir: null          # default: <outdir>/ernierna
 ernierna_per_token: false      # also save per-token (L x 768) .npy files
 
@@ -117,7 +123,7 @@ ernierna_per_token: false      # also save per-token (L x 768) .npy files
 # RNAformer — 2D secondary structure (base-pair matrix)
 # Input: FASTA of RNA sequences (max ~500 nt)
 # Output: structures.txt (dot-bracket), optional probability matrices
-rnaformer_input: null
+rnaformer_input: null          # example: data/rnaformer/sequences.fa
 rnaformer_outdir: null         # default: <outdir>/rnaformer
 rnaformer_cycling: 6           # recycling steps (6=best, 0=disable)
 rnaformer_save_matrix: false   # save L x L base-pair probability .npy
@@ -126,13 +132,13 @@ rnaformer_plot: false          # generate contact map heatmap PNGs
 # RhoFold — RNA 3D structure prediction (single-sequence mode)
 # Input: FASTA of RNA sequences (max ~1022 nt)
 # Output: PDB files, CT files, NPZ distograms
-rhofold_input: null
+rhofold_input: null            # example: data/rhofold/sequences.fa
 rhofold_outdir: null           # default: <outdir>/rhofold
 
 # SPOT-RNA — 2D structure including pseudoknots (5-model ensemble)
 # Input: FASTA of RNA sequences
 # Output: structures.txt (dot-bracket), bpseq, ct, prob matrices
-spotrna_input: null
+spotrna_input: null            # example: data/spotrna/sequences.fa
 spotrna_outdir: null           # default: <outdir>/spotrna
 spotrna_plot: false            # generate contact map heatmap PNGs
 
@@ -143,7 +149,7 @@ spotrna_plot: false            # generate contact map heatmap PNGs
 # MultiRM — 12 RNA modification types from sequence
 # Input: FASTA of RNA sequences (min 51 nt)
 # Output: modification_scores.tsv, predicted_sites.tsv
-multirm_input: null
+multirm_input: null            # example: data/multirm/sequences.fa
 multirm_outdir: null           # default: <outdir>/multirm
 multirm_alpha: 0.05            # significance threshold
 multirm_plot: false            # generate modification heatmap PNGs
@@ -155,7 +161,20 @@ multirm_plot: false            # generate modification heatmap PNGs
 # UTR-LM — 5'UTR expression prediction (MRL, TE, or EL)
 # Input: FASTA of 5'UTR DNA sequences
 # Output: predictions.tsv
-utrlm_input: null
+utrlm_input: null              # example: data/utrlm/utrs.fa
 utrlm_outdir: null             # default: <outdir>/utrlm
 utrlm_task: mrl                # mrl, te, or el
 utrlm_cell_line: HEK           # HEK, pc3, or Muscle (for te/el)
+utrlm_checkpoint: null         # example: results/utrlm_finetune/best_model.pt
+
+# UTR-LM fine-tuning — train ESM2 backbone + head on user expression data
+# Input: CSV/TSV with columns: name, utr, <label_column>
+# Output: predictions.tsv + best_model.pt checkpoint
+utrlm_finetune_input: null         # example: data/utrlm_finetune/training.csv
+utrlm_finetune_outdir: null        # default: <outdir>/utrlm_finetune
+utrlm_finetune_label: null         # required; example: mrl
+utrlm_finetune_task: mrl           # mrl, te, or el (determines backbone + input length)
+utrlm_finetune_epochs: 100
+utrlm_finetune_patience: 20
+utrlm_finetune_lr: 0.01
+utrlm_finetune_pretrained: null    # example: /opt/utrlm/Model/Downstream/MRL/MJ3_fold0.pt
