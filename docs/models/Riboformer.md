@@ -92,7 +92,7 @@ Only models with input provided will run — no ignore flags needed.
 
 ### Bundled datasets
 
-The Docker image ships with several upstream datasets at `/opt/Riboformer/datasets/`. Pointing `--riboformer_bundled_dataset` at one of these lets you run end-to-end without committing 100+ MB of WIG / FASTA / GFF files. Used by the test profile to verify the model on the in-image E. coli data:
+The Docker image ships with several upstream datasets at `/opt/Riboformer/datasets/`. Pointing `--riboformer_bundled_dataset` at one of these lets you run end-to-end without supplying external files:
 
 ```bash
 nextflow run main.nf -profile docker,cpu \
@@ -108,6 +108,8 @@ Datasets that have all the files needed for end-to-end inference (WIG + FASTA + 
 |-----------------|----------|-------------------------------|-----------------|
 | `GSE119104_Mg_buffer` | E. coli (~146 MB) | `GSM3358138_filter_Cm_ctrl` / `GSM3358140_freeze_Mg_ctrl` | `bacteria_cm_mg` |
 | `GSE139036_disome` | Yeast disome (~244 MB) | `GSM4127880_end3SM015Fd` / `GSM4127896_SM015M` | `yeast_disome` |
+
+The default `-profile test` uses the **external-input** path against a ~2 MB subsample of `GSE119104_Mg_buffer` committed to `tests/data/riboformer/` (generated with `scripts/subsample_mg_buffer.py` — first 100 kb of NC_000913.2 + matching WIG slices). The bundled-mode path is exercised by the recipes above but not by CI.
 
 ## Available pre-trained models
 
