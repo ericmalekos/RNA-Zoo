@@ -10,7 +10,7 @@ jobs:
   pipeline-test-singularity:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Apptainer (Singularity-compatible)
         # Apptainer is the open-source fork of Singularity. Nextflow's
@@ -68,7 +68,7 @@ jobs:
           echo "Singularity run OK."
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: pipeline-test-singularity

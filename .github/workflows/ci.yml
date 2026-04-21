@@ -11,14 +11,14 @@ jobs:
   lint-python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/ruff-action@v3
 
   lint-nextflow:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Install nf-core tools
@@ -26,7 +26,7 @@ jobs:
       - name: Lint Nextflow pipeline
         run: nf-core pipelines lint --dir . 2>&1 | tee nf-core-lint.log || true
       - name: Upload lint report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: nf-core-lint
@@ -35,7 +35,7 @@ jobs:
   pipeline-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Nextflow
         run: |
@@ -69,7 +69,7 @@ jobs:
           echo "All 13 model outputs verified."
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: pipeline-test-results
