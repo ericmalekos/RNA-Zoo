@@ -96,7 +96,10 @@ def trim_wig(src: Path, dst: Path, n: int) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("src_dir", type=Path, help="Source directory with full Mg_buffer files")
     parser.add_argument("dst_dir", type=Path, help="Output directory for trimmed test bundle")
     parser.add_argument("bp", type=int, help="Number of leading base pairs to keep (e.g. 100000)")
