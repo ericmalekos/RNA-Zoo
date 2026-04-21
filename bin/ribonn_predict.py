@@ -76,19 +76,28 @@ def predict_with_finetuned(input_path, checkpoint_path, output_path, target_name
 
 
 def predict_with_pretrained(input_path, species, output_path):
-    """Run prediction using bundled pretrained models (upstream flow)."""
+    """Run prediction using bundled pretrained models (upstream flow).
+
+    Mirrors src.main --predict: aggregates per-fold predictions by mean and adds
+    a mean_predicted_TE column averaged across cell types.
+    """
     from src.predict import predict_using_nested_cross_validation_models
 
     run_df = pd.read_csv(f"models/{species}/runs.csv")
-    result_df = predict_using_nested_cross_validation_models(
-        input_path=input_path,
-        species=species,
-        run_df=run_df,
+    predictions = predict_using_nested_cross_validation_models(
+        input_path, species, run_df, 5, batch_size=32, num_workers=4,
     )
+
+    cols = [c for c in predictions.columns if c.startswith("predicted_")]
+    predicted_TE = predictions.groupby(
+        ["tx_id", "utr5_sequence", "cds_sequence", "utr3_sequence"],
+        as_index=False,
+    )[cols].agg("mean")
+    predicted_TE["mean_predicted_TE"] = predicted_TE[cols].mean(axis=1)
 
     os.makedirs(output_path, exist_ok=True)
     out_file = os.path.join(output_path, "prediction_output.txt")
-    result_df.to_csv(out_file, sep="\t", index=False)
+    predicted_TE.to_csv(out_file, sep="\t", index=False)
     print(f"Predictions written to {out_file}", file=sys.stderr)
 
 

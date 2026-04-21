@@ -20,11 +20,15 @@ process RIBONN_FINETUNE {
     path "ribonn_finetune_out/fold*",           emit: checkpoints, optional: true
 
     script:
+    // `cd /app` lets upstream resolve relative `models/human/.../state_dict.pth`
+    // reads; the wrapper writes only to user-supplied -o, so /app stays clean.
     """
-    cp ${training_data} /app/data/user_training_data.txt
-    cd /app && python3 /opt/bin/ribonn_finetune.py \
-        -i /app/data/user_training_data.txt \
-        -o "\$OLDPWD/ribonn_finetune_out" \
+    INPUT_ABS=\$(readlink -f ${training_data})
+    OUT_ABS=\$PWD/ribonn_finetune_out
+    mkdir -p "\$OUT_ABS"
+    cd /app && python3 ${projectDir}/bin/ribonn_finetune.py \
+        -i "\$INPUT_ABS" \
+        -o "\$OUT_ABS" \
         --target "${params.ribonn_finetune_target}" \
         --phase1-epochs ${params.ribonn_finetune_phase1_epochs} \
         --phase2-epochs ${params.ribonn_finetune_phase2_epochs} \
