@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
+RUN apt-get update && apt-get install -y --no-install-recommends git wget procps && \
     rm -rf /var/lib/apt/lists/*
 
 # Install TensorFlow GPU + deps. The `[and-cuda]` extra (TF >=2.13) bundles
@@ -23,8 +23,13 @@ RUN wget -q -O /tmp/models.tar.gz \
     tar -xzf /tmp/models.tar.gz -C /opt/SPOT-RNA/ && \
     rm /tmp/models.tar.gz
 
-# Ensure TFRecord temp dir is writable by any user
-RUN mkdir -p /opt/SPOT-RNA/input_tfr_files && chmod 777 /opt/SPOT-RNA/input_tfr_files
+# Upstream SPOT-RNA.py hard-codes `{base_path}/input_tfr_files/*.tfrecords`
+# writes under /opt/SPOT-RNA. Under Singularity 3.8 (underlay mode) /opt is
+# read-only regardless of file mode, so `chmod 777` isn't enough. Point the
+# dir at /tmp (writable on every runtime) via a symlink. The wrapper
+# creates /tmp/spotrna_tfr at runtime.
+RUN rm -rf /opt/SPOT-RNA/input_tfr_files && \
+    ln -s /tmp/spotrna_tfr /opt/SPOT-RNA/input_tfr_files
 
 # Copy CLI wrapper script
 COPY bin/spotrna_predict.py /opt/bin/spotrna_predict.py

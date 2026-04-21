@@ -82,6 +82,13 @@ def main():
 
     os.makedirs(args.output, exist_ok=True)
 
+    # Upstream SPOT-RNA writes TFRecord intermediates to
+    # {base_path}/input_tfr_files/. In the image this is a symlink to
+    # /tmp/spotrna_tfr so the writes land on /tmp (writable on every
+    # runtime, including Singularity 3.8 underlay). Ensure the target
+    # exists before the subprocess runs.
+    os.makedirs("/tmp/spotrna_tfr", exist_ok=True)
+
     # Collect sequences
     sequences = list(parse_fasta(args.input))
     if not sequences:
