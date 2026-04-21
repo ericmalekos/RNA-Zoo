@@ -17,7 +17,7 @@ RNA-FM is a BERT-style foundation model pretrained on 23 million non-coding RNA 
 
 FASTA file of RNA sequences using RNA alphabet (A, C, G, U). DNA sequences (with T) are automatically converted to U.
 
-**Maximum sequence length: 1024 nt.** Longer sequences are truncated with a warning.
+**Maximum sequence length: 1022 nt.** RNA-FM has 1024 usable positional slots; BOS/EOS consume 2. Longer sequences are truncated with a warning.
 
 Example (`tests/data/rnafm_test.fa`):
 
@@ -110,5 +110,5 @@ Each row is a 640-dimensional vector representing the RNA sequence. These embedd
 
 ## Limitations
 
-- Maximum input length is **1024 nucleotides** (positional embedding limit). Longer sequences are truncated.
+- Maximum input length is **1022 nucleotides** (1024 positional slots minus 2 for BOS/EOS). Longer sequences are truncated.
 - This is the ncRNA model. An mRNA-specific model (mRNA-FM, 1280-d) also exists but is not included in this module.

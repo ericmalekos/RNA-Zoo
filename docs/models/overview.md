@@ -40,7 +40,7 @@ Models for predicting translation efficiency, ribosome profiling, ORF detection,
 
 General-purpose RNA language models that produce embeddings for downstream tasks.
 
-- **[RNA-FM](RNAFM.md)** — 99M params, 640-d embeddings, max 1024 nt (MIT)
+- **[RNA-FM](RNAFM.md)** — 99M params, 640-d embeddings, max 1022 nt (MIT)
 - **[RiNALMo](RiNALMo.md)** — 650M params, 1280-d embeddings, no hard length limit (Apache 2.0)
 - **[ERNIE-RNA](ERNIERNA.md)** — 86M params, 768-d embeddings, structure-aware attention (MIT)
 

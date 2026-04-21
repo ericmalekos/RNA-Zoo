@@ -71,7 +71,7 @@ Results appear in `results/ernierna/ernierna_out/`.
 
 | Model | Params | Embed dim | Max length | Structure-aware | License |
 |-------|--------|-----------|------------|-----------------|---------|
-| RNA-FM | 99M | 640 | 1024 | No | MIT |
+| RNA-FM | 99M | 640 | 1022 | No | MIT |
 | RiNALMo | 650M | 1280 | No hard limit | No | Apache-2.0 |
 | **ERNIE-RNA** | **86M** | **768** | **1022** | **Yes (2D bias)** | **MIT** |
 

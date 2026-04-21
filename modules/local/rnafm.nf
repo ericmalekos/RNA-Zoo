@@ -3,7 +3,7 @@
     RNAFM module: extract RNA foundation model embeddings from RNA sequences
     Upstream: https://github.com/ml4bio/RNA-FM
     Paper: Nature Machine Intelligence 2024
-    Input: FASTA of RNA sequences (A/C/G/U, max 1024 nt each)
+    Input: FASTA of RNA sequences (A/C/G/U, max 1022 nt each)
     Output: sequence_embeddings.npy (N x 640), labels.txt
 ========================================================================================
 */

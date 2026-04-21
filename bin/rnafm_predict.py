@@ -48,8 +48,10 @@ def main():
     parser.add_argument(
         "--max-len",
         type=int,
-        default=1024,
-        help="Maximum sequence length (default: 1024, the RNA-FM positional embedding limit)",
+        default=1022,
+        help="Maximum raw sequence length (default: 1022). RNA-FM has 1024 usable "
+             "positional slots; BOS/EOS consume 2, so raw inputs >1022 crash with "
+             "IndexError.",
     )
     parser.add_argument(
         "--batch-size",
