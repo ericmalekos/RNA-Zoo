@@ -25,11 +25,29 @@ jobs:
           curl -s https://get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      - name: Run test suite under singularity profile
-        # Singularity/Apptainer needs a working cache dir for image conversions
+      - name: Pre-pull Singularity images (serial, avoids parallel GHCR races)
+        # Nextflow would otherwise fire all 13 `singularity pull` commands in
+        # parallel; on GHA runners that saturates I/O and occasionally trips
+        # GHCR manifest-fetch races ("conveyor failed to get: unexpected end
+        # of JSON input"). Pulling serially into a shared cache directory
+        # sidesteps both: Nextflow finds images already cached and skips its
+        # own pull step entirely.
         run: |
-          mkdir -p ~/.singularity/cache
-          nextflow run . -profile test,singularity,cpu
+          export NXF_SINGULARITY_CACHEDIR="$PWD/.singularity_cache"
+          mkdir -p "$NXF_SINGULARITY_CACHEDIR"
+          echo "NXF_SINGULARITY_CACHEDIR=$NXF_SINGULARITY_CACHEDIR" >> "$GITHUB_ENV"
+          for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu \
+                     translationai-cpu codontransformer-cpu rnafm-cpu rinalmo-cpu \
+                     ernierna rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+            name="ghcr.io-ericmalekos-rnazoo-${img}-latest.img"
+            echo "--- Pulling $img ---"
+            singularity pull --name "$NXF_SINGULARITY_CACHEDIR/$name" \
+                "docker://ghcr.io/ericmalekos/rnazoo-${img}:latest"
+          done
+          ls -la "$NXF_SINGULARITY_CACHEDIR"
+
+      - name: Run test suite under singularity profile
+        run: nextflow run . -profile test,singularity,cpu
 
       - name: Verify outputs
         run: |
