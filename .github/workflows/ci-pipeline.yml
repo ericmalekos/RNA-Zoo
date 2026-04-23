@@ -1,0 +1,64 @@
+name: CI (Pipeline test)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '**/*.md'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '**/*.md'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+jobs:
+  pipeline-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run pipeline test suite (13 models, CPU)
+        run: nextflow run . -profile test,docker,cpu
+
+      - name: Verify outputs
+        run: |
+          echo "--- Checking model outputs ---"
+          test -f results_test/ribonn/ribonn_out/prediction_output.txt
+          test -f results_test/rnafm/rnafm_out/sequence_embeddings.npy
+          test -f results_test/rinalmo/rinalmo_out/sequence_embeddings.npy
+          test -f results_test/ernierna/ernierna_out/sequence_embeddings.npy
+          test -f results_test/codontransformer/optimized_codons.fa
+          test -f results_test/saluki/preds.npy
+          test -f results_test/rnaformer/rnaformer_out/structures.txt
+          test -f results_test/spotrna/spotrna_out/structures.txt
+          test -f results_test/multirm/multirm_out/predicted_sites.tsv
+          test -f results_test/utrlm/utrlm_out/predictions.tsv
+          # Riboformer (in-image bundled E. coli dataset)
+          test -f results_test/riboformer/model_prediction.txt
+          # TranslationAI outputs have dynamic names
+          ls results_test/translationai/*_predTIS_*.txt
+          # RiboTIE produces per-sample outputs under ribotie_out/out/
+          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000001.gtf
+          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000002.gtf
+          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000003.gtf
+          echo "All 13 model outputs verified."
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: pipeline-test-results
+          path: |
+            results_test/
+            .nextflow.log

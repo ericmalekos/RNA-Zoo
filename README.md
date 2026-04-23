@@ -1,6 +1,7 @@
 # RNAZoo
 
-[![CI](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml/badge.svg)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml)
+[![CI (Lint)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml/badge.svg)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml)
+[![CI (Pipeline)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci-pipeline.yml)
 [![CI (Singularity)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci-singularity.yml/badge.svg)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci-singularity.yml)
 [![Lint](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Documentation](https://img.shields.io/badge/docs-ericmalekos.github.io%2FRNA--Zoo-blue)](https://ericmalekos.github.io/RNA-Zoo)
