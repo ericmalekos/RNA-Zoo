@@ -2,8 +2,6 @@
 
 **A Nextflow pipeline model zoo for RNA deep learning.**
 
-RNAZoo packages 15 state-of-the-art RNA ML models into a single, portable Nextflow pipeline with Docker/Singularity containers. Each model has baked-in weights — no runtime downloads, no dependency conflicts.
-
 ## What's included
 
 15 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
