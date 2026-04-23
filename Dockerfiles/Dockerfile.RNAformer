@@ -3,15 +3,21 @@ FROM condaforge/miniforge3:latest
 RUN apt-get update && apt-get install -y --no-install-recommends git wget && \
     rm -rf /var/lib/apt/lists/*
 
-RUN mamba create -n rnaformer -c pytorch -c conda-forge -y \
+RUN mamba create -n rnaformer -c conda-forge -y \
         python=3.10 \
-        pytorch=2.2 \
-        cpuonly \
         pip \
     && mamba clean -afy
 
 ENV PATH="/opt/conda/envs/rnaformer/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=rnaformer
+
+# CUDA-enabled PyTorch (cu118 wheel matches RhoFold's proven pattern; the wheel
+# bundles its CUDA runtime libs and runs on driver ≥11.8 via CUDA forward
+# compatibility — covers the HPC cluster's driver 12.8). The previous conda
+# `pytorch=2.2 + cpuonly` build was CPU-only, which silently OOM-killed long
+# inputs on the GPU cluster.
+RUN /opt/conda/envs/rnaformer/bin/pip install --no-cache-dir \
+        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 
 # Clone RNAformer and install inference-only dependencies
 # (skip heavy training deps: deepspeed, pytorch-lightning, transformers, datasets)

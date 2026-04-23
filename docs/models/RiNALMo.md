@@ -19,7 +19,7 @@ Compared to RNA-FM (99M params, 640-d), RiNALMo is larger and produces higher-di
 
 FASTA file of RNA sequences (A, C, G, U). DNA sequences (with T) are automatically converted.
 
-**No hard sequence length limit** (uses Rotary Position Embeddings). Practically limited by memory — sequences up to ~2000 nt work well on CPU; longer sequences benefit from GPU.
+**No architectural length limit** (uses Rotary Position Embeddings) — but attention memory scales O(L²), so practical limits are memory-bound. See [Memory scaling](#memory-scaling) below for exact ceilings on common hardware.
 
 Example (reuses `tests/data/rnafm_test.fa`):
 
@@ -29,6 +29,31 @@ GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGGGAAGUCCUCGUGUUGCACCUGACUGUCUUUCCGAACGGGCGUUUCU
 >test_rna_2
 AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUUAAGCUGUAAGAUGGCAGUAGCUUACUAGGCAGGAAAAGACCCUGUUGAGCUUGACUCUAGUU
 ```
+
+## Memory scaling
+
+RiNALMo uses full self-attention (no sliding window), so attention memory scales O(L²) with sequence length. With 20 attention heads and float32 attention scores:
+
+    attention_memory = 20 × L² × 4 bytes
+
+Model weights + activations add ~3–4 GB on top.
+
+| Sequence length | Attention matrix | Observed behavior |
+|-----------------|------------------|-------------------|
+| 1,022 nt        | ~80 MB           | Fits easily on any hardware |
+| 3,000 nt        | ~690 MB          | Fits on A10G (24 GB VRAM) |
+| 5,000 nt        | ~1.9 GB          | Tight on A10G |
+| 11,933 nt       | ~10.6 GB         | OOM on A10G (24 GB) |
+| 14,859 nt       | ~16.5 GB         | OOM on A10G |
+| 20,635 nt       | ~31.8 GB         | OOM even with 30 GB CPU RAM |
+
+**Practical maximums:**
+
+- A10G (24 GB VRAM): ~2–3k nt
+- 30 GB system RAM: ~11k nt
+- 64 GB system RAM: ~16k nt
+
+For longer sequences, truncate to a sliding window (e.g. 1022 nt → ~80 MB attention, runnable anywhere).
 
 ## Output format
 

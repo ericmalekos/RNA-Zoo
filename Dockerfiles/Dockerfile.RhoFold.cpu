@@ -40,5 +40,10 @@ ENV PATH="/opt/bin:$PATH"
 # Make pretrained dir writable (inference.py calls snapshot_download which creates .cache)
 RUN chmod -R 777 /opt/rhofold/pretrained
 ENV HF_HOME=/tmp/hf_cache
+# Weights are baked in at /opt/rhofold/pretrained, so the snapshot_download call
+# in upstream inference.py has nothing to fetch. Force offline mode so the call
+# short-circuits instead of trying to reach the hub (which fails on air-gapped
+# clusters like Singularity 3.8 HPC).
+ENV HF_HUB_OFFLINE=1
 
 WORKDIR /opt/rhofold
