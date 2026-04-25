@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.description="Mamba-based mature mRNA foundation m
 # extension (orthrus._sequence) compiled by setup.py.
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git build-essential wget ca-certificates && \
+        git build-essential wget ca-certificates zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Miniforge → Python 3.10 environment (Orthrus pins min_python=3.10; the
@@ -24,6 +24,7 @@ RUN mamba create -n orthrus -c conda-forge -y \
         "numpy<2" \
         pandas \
         cython \
+        "setuptools<70" \
         pip \
     && mamba clean -afy
 
@@ -55,21 +56,25 @@ RUN /opt/conda/envs/orthrus/bin/pip install --no-cache-dir \
 # intentionally skipped — the 4-track sequence-only path doesn't need it.
 RUN git clone --depth 1 https://github.com/bowang-lab/Orthrus.git /opt/orthrus_repo && \
     cd /opt/orthrus_repo && \
-    /opt/conda/envs/orthrus/bin/pip install --no-cache-dir -e . --no-deps && \
+    /opt/conda/envs/orthrus/bin/pip install --no-cache-dir --no-build-isolation -e . --no-deps && \
     /opt/conda/envs/orthrus/bin/pip install --no-cache-dir wandb pyfaidx pytabix scikit-learn
 
 # Pre-download v1 4-track weights (~129 MB) from antichronology/orthrus into
-# /opt/orthrus_weights so no runtime HuggingFace fetch is needed. We pull only
-# the four config files + the single .ckpt for the v1_4_track variant —
-# load_model needs run_path/<checkpoint_name> + run_path/model_config.json.
-RUN mkdir -p /opt/orthrus_weights/orthrus_v1_4_track && \
-    cd /opt/orthrus_weights/orthrus_v1_4_track && \
-    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/model_config.json && \
-    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/data_config.json && \
-    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/optimizer_config.json && \
-    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/projector_config.json && \
-    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/train_config.json && \
-    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/epoch=6-step=20000.ckpt
+# /opt/orthrus_weights so no runtime HuggingFace fetch is needed. Use
+# huggingface_hub.snapshot_download (already installed in the env) — it
+# handles HF's redirect chain to xet/cas-bridge cleanly, where plain wget
+# was hitting an auth-failure exit code on one of the redirects.
+RUN /opt/conda/envs/orthrus/bin/python -c "\
+import shutil, os; \
+from huggingface_hub import snapshot_download; \
+snapshot_download(repo_id='antichronology/orthrus', \
+                  allow_patterns='models/orthrus_v1_4_track/*', \
+                  local_dir='/tmp/orthrus_dl', \
+                  local_dir_use_symlinks=False); \
+os.makedirs('/opt/orthrus_weights', exist_ok=True); \
+shutil.copytree('/tmp/orthrus_dl/models/orthrus_v1_4_track', \
+                '/opt/orthrus_weights/orthrus_v1_4_track'); \
+shutil.rmtree('/tmp/orthrus_dl')"
 
 # Copy CLI wrapper
 COPY bin/orthrus_predict.py /opt/bin/orthrus_predict.py
