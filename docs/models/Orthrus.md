@@ -1,6 +1,6 @@
 # Orthrus
 
-Mamba-based mature mRNA foundation model. Produces 256-dimensional global embeddings from full mRNA sequences for downstream property prediction (half-life, ribosome load, localization, RBP interaction, isoform function).
+Mamba-based mature mRNA foundation model. Produces 512-dimensional global embeddings from full mRNA sequences for downstream property prediction (half-life, ribosome load, localization, RBP interaction, isoform function).
 
 - **Paper:** [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3)
 - **Upstream:** https://github.com/bowang-lab/Orthrus
@@ -14,11 +14,11 @@ Orthrus is a self-supervised foundation model trained on **32.7 million transcri
 
 ## Why only 4-track?
 
-Orthrus has two upstream variants and this module ships **only the 4-track v1 model** (`orthrus_v1_4_track`, 256-d output):
+Orthrus has two upstream variants and this module ships **only the 4-track v1 model** (`orthrus_v1_4_track`, 512-d output):
 
 | Variant | Channels | Output | What's needed at inference |
 |---------|----------|--------|----------------------------|
-| **4-track** (bundled) | A, C, G, U one-hot (4) | 256-d | A FASTA. That's it. |
+| **4-track** (bundled) | A, C, G, U one-hot (4) | 512-d | A FASTA. That's it. |
 | 6-track | nucleotides (4) + CDS-mask + splice-junction-mask | 512-d | The mature spliced sequence **and** per-position CDS bounds **and** exon-junction positions. Upstream uses GenomeKit, which precompiles a GTF/GFF annotation together with a 2bit reference genome (~1 GB per assembly). |
 
 The 6-track model produces better embeddings on downstream property tasks because it gets told upfront where the protein-coding region is and where introns were spliced out. But the input contract is much heavier: users would need to provide either (a) transcript IDs + a bundled reference genome + annotation, or (b) a custom format that pre-encodes the two extra channels. The 4-track FASTA-in path matches how the rest of the model zoo works (RNA-FM, RiNALMo, ERNIE-RNA all take plain FASTA), so we ship that and revisit 6-track if a user needs it.
@@ -35,12 +35,12 @@ Example (`tests/data/orthrus_test.fa`): two synthetic ~500 nt mature-mRNA-shaped
 
 A directory containing:
 
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 256)` — one 256-d embedding per input sequence (mean-pooled across non-padding positions by `model.representation()`)
+- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 512)` — one 512-d embedding per input sequence (mean-pooled across non-padding positions by `model.representation()`)
 - **`labels.txt`**: one FASTA header per line, in the same order as the embedding rows
 
 With `--per-token`:
 
-- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L, 256)` — one 256-d embedding per nucleotide position
+- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L, 512)` — one 512-d embedding per nucleotide position
 
 ## Run with Docker
 
@@ -69,18 +69,18 @@ Under `-profile cpu` the process logs a warning and skips. Results appear in `re
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--orthrus_variant` | `v1_4_track` | Model variant. Currently only `v1_4_track` is bundled. |
-| `--orthrus_per_token` | `false` | Also output per-token (L x 256) embeddings per sequence. |
+| `--orthrus_per_token` | `false` | Also output per-token (L x 512) embeddings per sequence. |
 
 ## Reading the output
 
 ```python
 import numpy as np
 
-embeddings = np.load("orthrus_out/sequence_embeddings.npy")  # (N, 256)
+embeddings = np.load("orthrus_out/sequence_embeddings.npy")  # (N, 512)
 labels = open("orthrus_out/labels.txt").read().strip().split("\n")
 
 for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (256,)
+    print(f"{label}: {emb.shape}")  # (512,)
 ```
 
 ## Why Mamba (linear memory)
@@ -92,7 +92,7 @@ Compared to the transformer foundations in RNAZoo:
 | RNA-FM | 640-d | Transformer (12-layer) | ~2.5 GB attention matrix (full attn) |
 | RiNALMo | 1280-d | Transformer (33-layer, 650M params) | ~7 GB attention matrix (full attn) |
 | ERNIE-RNA | 768-d | Transformer (12-layer) | ~2.5 GB attention matrix (full attn) |
-| **Orthrus** | **256-d** | **Mamba SSM (6-layer, ~10M params)** | **Linear (~MB scale)** |
+| **Orthrus** | **512-d** | **Mamba SSM (6-layer, ~10M params)** | **Linear (~MB scale)** |
 
 For mRNAs >5 kb, Orthrus is often the only foundation model in the zoo that fits on a single consumer GPU.
 
@@ -101,4 +101,4 @@ For mRNAs >5 kb, Orthrus is often the only foundation model in the zoo that fits
 - **Mature transcripts only.** Partial sequences are OOD.
 - **GPU required.** No CPU fallback in the bundled image.
 - **4-track only.** The 6-track variant (which adds CDS/splice tracks for slightly better embeddings) is not exposed; GenomeKit + reference genome staging would be needed to wire it in.
-- **Embedding dimension is 256** — smaller than the transformer foundations. This is by design (Mamba SSM hidden dim) but means less granular per-position information than RNA-FM (640) / RiNALMo (1280).
+- **Embedding dimension is 512** — smaller than RiNALMo (1280) and ERNIE-RNA (768), comparable to RNA-FM (640). This is the SSM hidden dim and is fixed by the architecture.

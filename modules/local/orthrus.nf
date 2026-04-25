@@ -4,7 +4,7 @@
     Upstream: https://github.com/bowang-lab/Orthrus
     Paper: Nature Methods 2026
     Input: FASTA of complete mature mRNA sequences (A/C/G/U or A/C/G/T)
-    Output: sequence_embeddings.npy (N x 256), labels.txt
+    Output: sequence_embeddings.npy (N x 512), labels.txt
 
     NOTE: Orthrus uses Mamba's CUDA selective-scan kernel and requires a
     GPU. The workflow auto-skips this process under `--profile cpu`.
