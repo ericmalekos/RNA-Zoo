@@ -1,12 +1,14 @@
 # Quick Start
 
+> Examples below use `-profile docker,gpu`. Swap `gpu` → `cpu` if you don't have an NVIDIA GPU; foundation/structure models will still run on CPU, just slower (~30–60 s per inference call vs sub-second on GPU). seq2ribo and Orthrus are GPU-only and auto-skip under `cpu`.
+
 ## How it works
 
 RNAZoo is **opt-in** — only models you provide input for will run. No `--ignore_*` flags needed.
 
 ```bash
 # Only RNA-FM runs (everything else is skipped automatically)
-nextflow run . -profile docker,cpu --rnafm_input my_sequences.fa
+nextflow run . -profile docker,gpu --rnafm_input my_sequences.fa
 ```
 
 ## Run a single model
@@ -14,35 +16,35 @@ nextflow run . -profile docker,cpu --rnafm_input my_sequences.fa
 ### RNA embeddings (RNA-FM)
 
 ```bash
-nextflow run . -profile docker,cpu \
+nextflow run . -profile docker,gpu \
   --rnafm_input my_rna_sequences.fa
 ```
 
 ### Translation efficiency (RiboNN)
 
 ```bash
-nextflow run . -profile docker,cpu \
+nextflow run . -profile docker,gpu \
   --ribonn_input my_transcripts.txt
 ```
 
 ### RNA secondary structure (RNAformer)
 
 ```bash
-nextflow run . -profile docker,cpu \
+nextflow run . -profile docker,gpu \
   --rnaformer_input my_rna_sequences.fa
 ```
 
 ### RNA 3D structure (RhoFold)
 
 ```bash
-nextflow run . -profile docker,cpu \
+nextflow run . -profile docker,gpu \
   --rhofold_input my_rna_sequences.fa
 ```
 
 ### RNA modifications (MultiRM)
 
 ```bash
-nextflow run . -profile docker,cpu \
+nextflow run . -profile docker,gpu \
   --multirm_input my_rna_sequences.fa
 ```
 
