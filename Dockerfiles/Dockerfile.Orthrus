@@ -1,0 +1,86 @@
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+LABEL org.opencontainers.image.source="https://github.com/bowang-lab/Orthrus"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.title="orthrus"
+LABEL org.opencontainers.image.description="Mamba-based mature mRNA foundation model for RNA property prediction (4-track sequence-only embeddings, v1)."
+
+# System deps: git/wget for cloning + downloading, build tools for Cython
+# extension (orthrus._sequence) compiled by setup.py.
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git build-essential wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Miniforge → Python 3.10 environment (Orthrus pins min_python=3.10; the
+# prebuilt mamba_ssm/causal_conv1d wheels we use also target cp310).
+RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -O /tmp/miniforge.sh && \
+    bash /tmp/miniforge.sh -b -p /opt/conda && \
+    rm /tmp/miniforge.sh
+ENV PATH="/opt/conda/bin:$PATH"
+
+RUN mamba create -n orthrus -c conda-forge -y \
+        python=3.10 \
+        "numpy<2" \
+        pandas \
+        cython \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/orthrus/bin:/usr/local/cuda/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=orthrus
+
+# CUDA-enabled PyTorch 2.2.0 (cu118) — matches Orthrus's env.yml pin
+# (pytorch=2.2) and the wheel ABI of the mamba_ssm/causal_conv1d builds below.
+RUN /opt/conda/envs/orthrus/bin/pip install --no-cache-dir \
+        torch==2.2.0 \
+        --index-url https://download.pytorch.org/whl/cu118
+
+# Mamba kernels: prebuilt wheels for cu118 + torch 2.2 + Python 3.10 from
+# Dao-AILab and state-spaces GitHub releases. Versions match Orthrus's
+# README pins (causal_conv1d==1.2.0.post2, mamba_ssm==1.2.0.post1).
+RUN /opt/conda/envs/orthrus/bin/pip install --no-cache-dir \
+        "https://github.com/Dao-AILab/causal-conv1d/releases/download/v1.2.0.post2/causal_conv1d-1.2.0.post2+cu118torch2.2cxx11abiFALSE-cp310-cp310-linux_x86_64.whl" \
+        "https://github.com/state-spaces/mamba/releases/download/v1.2.0.post1/mamba_ssm-1.2.0.post1+cu118torch2.2cxx11abiFALSE-cp310-cp310-linux_x86_64.whl" \
+        "lightning>=2.4" \
+        "pytorch-lightning>=2.4" \
+        triton \
+        "transformers<4.45" \
+        "huggingface_hub<0.25" \
+        einops \
+        packaging
+
+# Clone Orthrus and install the Python package (registers `orthrus.*` modules
+# and compiles the Cython extension orthrus._sequence). GenomeKit is
+# intentionally skipped — the 4-track sequence-only path doesn't need it.
+RUN git clone --depth 1 https://github.com/bowang-lab/Orthrus.git /opt/orthrus_repo && \
+    cd /opt/orthrus_repo && \
+    /opt/conda/envs/orthrus/bin/pip install --no-cache-dir -e . --no-deps && \
+    /opt/conda/envs/orthrus/bin/pip install --no-cache-dir wandb pyfaidx pytabix scikit-learn
+
+# Pre-download v1 4-track weights (~129 MB) from antichronology/orthrus into
+# /opt/orthrus_weights so no runtime HuggingFace fetch is needed. We pull only
+# the four config files + the single .ckpt for the v1_4_track variant —
+# load_model needs run_path/<checkpoint_name> + run_path/model_config.json.
+RUN mkdir -p /opt/orthrus_weights/orthrus_v1_4_track && \
+    cd /opt/orthrus_weights/orthrus_v1_4_track && \
+    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/model_config.json && \
+    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/data_config.json && \
+    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/optimizer_config.json && \
+    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/projector_config.json && \
+    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/train_config.json && \
+    wget -q https://huggingface.co/antichronology/orthrus/resolve/main/models/orthrus_v1_4_track/epoch=6-step=20000.ckpt
+
+# Copy CLI wrapper
+COPY bin/orthrus_predict.py /opt/bin/orthrus_predict.py
+RUN chmod +x /opt/bin/orthrus_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+# HF cache redirected so any incidental hub call (transformers etc.) doesn't
+# try to write to /root. HF_HUB_OFFLINE=1 short-circuits any runtime fetch
+# (consistent with the RhoFold image's offline-cluster fix from 2026-04-22).
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+ENV PYTHONPATH="/opt/orthrus_repo:$PYTHONPATH"
+
+WORKDIR /opt/orthrus_repo

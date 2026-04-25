@@ -4,7 +4,7 @@
 
 ## What's included
 
-15 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
+16 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
 
 | Model | Track | Training set | Input | Output | GPU image | CPU image |
 |-------|-------|--------------|-------|--------|-----------|-----------|
@@ -18,13 +18,14 @@
 | [RNA-FM](models/RNAFM.md) | Foundation | 23M ncRNAs (RNAcentral) | FASTA RNA | `sequence_embeddings.npy` + `labels.txt` | 4.2 GB | 1.7 GB |
 | [RiNALMo](models/RiNALMo.md) | Foundation | 36M ncRNAs (RNAcentral) | FASTA RNA | `sequence_embeddings.npy` + `labels.txt` | 5.6 GB | 3.1 GB |
 | [ERNIE-RNA](models/ERNIERNA.md) | Foundation | 20M ncRNAs (RNAcentral) | FASTA RNA | `sequence_embeddings.npy` + `labels.txt` | 5.7 GB | — (single image) |
+| [Orthrus](models/Orthrus.md) | Foundation | 32.7M mRNAs (GENCODE+RefSeq+Zoonomia, contrastive) | FASTA mature mRNA (4-track) | `sequence_embeddings.npy` + `labels.txt` | ~5 GB | — (GPU only) |
 | [RNAformer](models/RNAformer.md) | Structure | bpRNA + PDB (LoRA-finetuned) | FASTA RNA | `structures.txt` (dot-bracket) | 3.8 GB | — (single image) |
 | [RhoFold](models/RhoFold.md) | Structure | PDB + bpRNA self-distillation | FASTA RNA | PDB + `ss.ct` + `results.npz` | 4.2 GB | 1.7 GB |
 | [SPOT-RNA](models/SPOTRNA.md) | Structure | bpRNA + PDB + Rfam | FASTA RNA | `structures.txt` + per-seq `bpseq` / `ct` / `prob` | 2.7 GB | 0.6 GB |
 | [MultiRM](models/MultiRM.md) | Modification | ~300K human modification sites | FASTA RNA | `modification_scores.tsv` + `predicted_sites.tsv` | 3.5 GB | 1.0 GB |
 | [UTR-LM](models/UTRLM.md) | mRNA Design | 5'UTRs, 5 species + MPRA (MRL) | FASTA 5'UTR | `predictions.tsv` | 4.9 GB | 2.4 GB |
 
-**Totals:** CPU set is **~28 GB** across 14 images; GPU set is **~65 GB** across 15 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
+**Totals:** CPU set is **~28 GB** across 14 images; GPU set is **~70 GB** across 16 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
 
 ## Quick start
 

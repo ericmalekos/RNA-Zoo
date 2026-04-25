@@ -6,7 +6,7 @@
 [![Lint](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Documentation](https://img.shields.io/badge/docs-ericmalekos.github.io%2FRNA--Zoo-blue)](https://ericmalekos.github.io/RNA-Zoo)
 
-A Nextflow pipeline model zoo for RNA deep learning — 15 models across translation, structure, modification, and more.
+A Nextflow pipeline model zoo for RNA deep learning — 16 models across translation, structure, modification, and more.
 
 | Model | Track | Task | Paper | License |
 |-------|-------|------|-------|---------|
@@ -20,6 +20,7 @@ A Nextflow pipeline model zoo for RNA deep learning — 15 models across transla
 | [RNA-FM](https://github.com/ml4bio/RNA-FM) | Foundation | RNA embeddings (640-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00836-4) | MIT |
 | [RiNALMo](https://github.com/lbcb-sci/RiNALMo) | Foundation | RNA embeddings (1280-d) | [NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/RiNALMo) | Apache 2.0 |
 | [ERNIE-RNA](https://github.com/Bruce-ywj/ERNIE-RNA) | Foundation | Structure-aware embeddings (768-d) | [Nature Comms 2025](https://www.nature.com/articles/s41467-025-64972-0) | MIT |
+| [Orthrus](https://github.com/bowang-lab/Orthrus) | Foundation | Mamba mRNA embeddings (4-track, 256-d, GPU) | [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3) | MIT |
 | [RNAformer](https://github.com/automl/RNAformer) | Structure | 2D base-pair prediction | [ICLR 2024](https://openreview.net/forum?id=RNAformer) | Apache 2.0 |
 | [RhoFold](https://github.com/ml4bio/RhoFold) | Structure | 3D structure (PDB output) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) | Apache 2.0 |
 | [SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | Structure | 2D structure + pseudoknots | [Nature Comms 2019](https://doi.org/10.1038/s41467-019-13395-9) | MPL-2.0 |

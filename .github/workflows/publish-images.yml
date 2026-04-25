@@ -58,6 +58,8 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.RiNALMo.cpu
           - name: rnazoo-ernierna
             dockerfile: Dockerfiles/Dockerfile.ERNIERNA
+          - name: rnazoo-orthrus
+            dockerfile: Dockerfiles/Dockerfile.Orthrus
           # Structure
           - name: rnazoo-rnaformer
             dockerfile: Dockerfiles/Dockerfile.RNAformer

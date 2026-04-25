@@ -16,6 +16,7 @@ include { CODONTRANSFORMER } from '../modules/local/codontransformer'
 include { RNAFM            } from '../modules/local/rnafm'
 include { RINALMO          } from '../modules/local/rinalmo'
 include { ERNIERNA         } from '../modules/local/ernierna'
+include { ORTHRUS          } from '../modules/local/orthrus'
 include { RNAFORMER        } from '../modules/local/rnaformer'
 include { RHOFOLD          } from '../modules/local/rhofold'
 include { SPOTRNA          } from '../modules/local/spotrna'
@@ -109,6 +110,14 @@ workflow RNAZOO {
 
     if (params.ernierna_input) {
         ERNIERNA(Channel.fromPath(params.ernierna_input, checkIfExists: true))
+    }
+
+    if (params.orthrus_input) {
+        if (params.device == 'cpu') {
+            log.warn "Orthrus requires a GPU — skipping under CPU mode"
+        } else {
+            ORTHRUS(Channel.fromPath(params.orthrus_input, checkIfExists: true))
+        }
     }
 
     // ----- RNA Structure -----
