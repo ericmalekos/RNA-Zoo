@@ -4,7 +4,25 @@
 
 ## What's included
 
-16 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
+17 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
+
+### RNA Foundation Models
+
+All foundation models take a FASTA of RNA sequences and write `sequence_embeddings.npy` (shape `(N, D)`) plus a matching `labels.txt`. Per-token `(L, D)` embeddings are available with `--<model>_per_token`.
+
+| Model | Architecture | Output dim | Pooling | Training set | Max input | GPU image | CPU image |
+|-------|--------------|-----------|---------|--------------|-----------|-----------|-----------|
+| [RNA-FM](models/RNAFM.md) | 12-layer Transformer | **640-d** | Mean (excl CLS+EOS) | 23M ncRNAs (RNAcentral) | 1022 nt | 4.2 GB | 1.7 GB |
+| [RiNALMo](models/RiNALMo.md) | 33-layer Transformer (650M params) | **1280-d** | Mean (excl CLS+EOS) | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | 5.6 GB | 3.1 GB |
+| [ERNIE-RNA](models/ERNIERNA.md) | 12-layer Transformer + 2D structure attention | **768-d** | **[CLS]** | 20M ncRNAs (RNAcentral) | 1022 nt | 5.7 GB | — (single image) |
+| [Orthrus](models/Orthrus.md) | 6-layer Mamba SSM (~10M params) | **512-d** | Mean (`mean_unpadded`) | 32.7M mRNAs (GENCODE+RefSeq+Zoonomia, contrastive) | unbounded (linear mem) | ~5 GB | — (GPU only) |
+| [RNAErnie](models/RNAErnie.md) | 12-layer Transformer (motif-aware MLM) | **768-d** | Mean (excl CLS+SEP) | 23M ncRNAs (RNAcentral) | 2046 nt | ~4 GB | ~1.5 GB |
+
+**Pooling note:** values reflect the as-implemented behavior of the wrapper scripts in `bin/`. ERNIE-RNA is the only foundation model using the `[CLS]` token as the per-sequence representation; the other four mean-pool over actual sequence positions (excluding special tokens). This matters when comparing embeddings across models — `[CLS]` from an MLM-only model is qualitatively different from a position-mean.
+
+### Specialized models
+
+The remaining 12 models are task-specific predictors across translation, structure, modification, and mRNA design. Each uses its native input/output format — see the linked model card for details.
 
 | Model | Track | Training set | Input | Output | GPU image | CPU image |
 |-------|-------|--------------|-------|--------|-----------|-----------|
@@ -15,17 +33,13 @@
 | [TranslationAI](models/TranslationAI.md) | Translation | 47K human RefSeq mRNAs | FASTA mRNA | `*_predTIS` / `*_predTTS` / `*_predORFs.txt` | 1.9 GB | 0.6 GB |
 | [Saluki](models/Saluki.md) | Translation | 66 mRNA-decay datasets (human + mouse) | FASTA (UTR lowercase, CDS UPPERCASE) | `preds.npy` | 4.2 GB | 1.4 GB |
 | [CodonTransformer](models/CodonTransformer.md) | Translation | 1M genes across 164 organisms | FASTA protein | optimized DNA FASTA | 3.7 GB | 1.2 GB |
-| [RNA-FM](models/RNAFM.md) | Foundation | 23M ncRNAs (RNAcentral) | FASTA RNA | `sequence_embeddings.npy` + `labels.txt` | 4.2 GB | 1.7 GB |
-| [RiNALMo](models/RiNALMo.md) | Foundation | 36M ncRNAs (RNAcentral) | FASTA RNA | `sequence_embeddings.npy` + `labels.txt` | 5.6 GB | 3.1 GB |
-| [ERNIE-RNA](models/ERNIERNA.md) | Foundation | 20M ncRNAs (RNAcentral) | FASTA RNA | `sequence_embeddings.npy` + `labels.txt` | 5.7 GB | — (single image) |
-| [Orthrus](models/Orthrus.md) | Foundation | 32.7M mRNAs (GENCODE+RefSeq+Zoonomia, contrastive) | FASTA mature mRNA (4-track) | `sequence_embeddings.npy` + `labels.txt` | ~5 GB | — (GPU only) |
 | [RNAformer](models/RNAformer.md) | Structure | bpRNA + PDB (LoRA-finetuned) | FASTA RNA | `structures.txt` (dot-bracket) | 3.8 GB | — (single image) |
 | [RhoFold](models/RhoFold.md) | Structure | PDB + bpRNA self-distillation | FASTA RNA | PDB + `ss.ct` + `results.npz` | 4.2 GB | 1.7 GB |
 | [SPOT-RNA](models/SPOTRNA.md) | Structure | bpRNA + PDB + Rfam | FASTA RNA | `structures.txt` + per-seq `bpseq` / `ct` / `prob` | 2.7 GB | 0.6 GB |
 | [MultiRM](models/MultiRM.md) | Modification | ~300K human modification sites | FASTA RNA | `modification_scores.tsv` + `predicted_sites.tsv` | 3.5 GB | 1.0 GB |
 | [UTR-LM](models/UTRLM.md) | mRNA Design | 5'UTRs, 5 species + MPRA (MRL) | FASTA 5'UTR | `predictions.tsv` | 4.9 GB | 2.4 GB |
 
-**Totals:** CPU set is **~28 GB** across 14 images; GPU set is **~70 GB** across 16 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
+**Totals:** CPU set is **~30 GB** across 15 images; GPU set is **~74 GB** across 17 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
 
 ## Quick start
 
@@ -64,8 +78,8 @@ See the [Direct Docker guide](direct-docker.md) for invocations of every model.
 ## Design principles
 
 - **One Docker image per model** — weights baked in at build time, no runtime downloads
-- **CPU by default** — GPU-only models auto-skip under `--profile cpu`
-- **Per-model input/output** — each model uses its native format, no forced preprocessing
+- **GPU by default** — the test suite and per-model docs assume `--profile gpu`; foundation and structure models are 30–60× faster on GPU than CPU
+- **CPU supported for small runs** — most models also ship a `-cpu` image; pick `--profile cpu` for laptop / no-GPU use, with the caveat that GPU-only models (seq2ribo, Orthrus) auto-skip with a warning
 - **Portable** — runs anywhere with Docker or Singularity + Nextflow
 
 ## License

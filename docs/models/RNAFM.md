@@ -2,7 +2,7 @@
 
 Extract general-purpose RNA embeddings from sequence using a pretrained foundation model.
 
-- **Paper:** [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00836-4)
+- **Paper:** [arXiv 2022](https://arxiv.org/abs/2204.00300) — "Interpretable RNA Foundation Model from Unannotated Data for Highly Accurate RNA Structure and Function Predictions" (Chen et al.)
 - **Upstream:** https://github.com/ml4bio/RNA-FM
 - **License:** MIT
 - **Device:** CPU or GPU. Two image variants:

@@ -17,6 +17,7 @@ include { RNAFM            } from '../modules/local/rnafm'
 include { RINALMO          } from '../modules/local/rinalmo'
 include { ERNIERNA         } from '../modules/local/ernierna'
 include { ORTHRUS          } from '../modules/local/orthrus'
+include { RNAERNIE         } from '../modules/local/rnaernie'
 include { RNAFORMER        } from '../modules/local/rnaformer'
 include { RHOFOLD          } from '../modules/local/rhofold'
 include { SPOTRNA          } from '../modules/local/spotrna'
@@ -118,6 +119,10 @@ workflow RNAZOO {
         } else {
             ORTHRUS(Channel.fromPath(params.orthrus_input, checkIfExists: true))
         }
+    }
+
+    if (params.rnaernie_input) {
+        RNAERNIE(Channel.fromPath(params.rnaernie_input, checkIfExists: true))
     }
 
     // ----- RNA Structure -----

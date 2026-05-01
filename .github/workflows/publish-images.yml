@@ -60,6 +60,10 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.ERNIERNA
           - name: rnazoo-orthrus
             dockerfile: Dockerfiles/Dockerfile.Orthrus
+          - name: rnazoo-rnaernie
+            dockerfile: Dockerfiles/Dockerfile.RNAErnie
+          - name: rnazoo-rnaernie-cpu
+            dockerfile: Dockerfiles/Dockerfile.RNAErnie.cpu
           # Structure
           - name: rnazoo-rnaformer
             dockerfile: Dockerfiles/Dockerfile.RNAformer

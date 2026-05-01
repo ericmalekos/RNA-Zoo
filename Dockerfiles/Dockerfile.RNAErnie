@@ -1,0 +1,53 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://github.com/CatIIIIIIII/RNAErnie"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.title="rnaernie"
+LABEL org.opencontainers.image.description="ERNIE-framework RNA language model with motif-aware pretraining; embeddings via the LLM-EDA/RNAErnie HF port (Apache-2.0)."
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n rnaernie -c conda-forge -y \
+        python=3.10 \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/rnaernie/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=rnaernie
+
+# CUDA-enabled PyTorch 2.2 (cu118 wheel includes the CUDA runtime libs).
+RUN /opt/conda/envs/rnaernie/bin/pip install --no-cache-dir \
+        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
+
+# Just transformers + huggingface_hub — no multimolecule. The wrapper
+# uses `transformers.BertModel` directly with a tiny custom char-level
+# tokenizer baked in (the RNAErnie vocab is just A/U/C/G/N + 6 specials,
+# so we don't need a heavy tokenizer package). Avoids multimolecule's
+# transformers-version compatibility issues (it imports symbols that
+# move between minor releases).
+RUN /opt/conda/envs/rnaernie/bin/pip install --no-cache-dir \
+        "transformers<4.50" \
+        "huggingface_hub<0.25"
+
+# Pre-download weights (~340 MB) from the official LLM-EDA HF port
+# (Apache-2.0; 2048-token context). Same snapshot_download recipe used
+# for Orthrus — handles HF redirect chain cleanly.
+RUN /opt/conda/envs/rnaernie/bin/python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download(repo_id='LLM-EDA/RNAErnie', \
+                  local_dir='/opt/rnaernie_weights', \
+                  local_dir_use_symlinks=False)"
+
+# Copy CLI wrapper
+COPY bin/rnaernie_predict.py /opt/bin/rnaernie_predict.py
+RUN chmod +x /opt/bin/rnaernie_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+# Match the offline-cluster pattern used by Orthrus + RhoFold —
+# any incidental hub call short-circuits instead of trying to fetch.
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt
