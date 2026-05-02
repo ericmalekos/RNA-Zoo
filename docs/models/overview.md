@@ -1,6 +1,6 @@
 # Model Overview
 
-RNAZoo includes 15 RNA deep learning models across 5 tracks. Each model runs in its own Docker container with baked-in weights.
+RNAZoo includes 18 RNA deep learning models across 5 tracks. Each model runs in its own Docker container with baked-in weights.
 
 ## All models at a glance
 
@@ -16,6 +16,9 @@ RNAZoo includes 15 RNA deep learning models across 5 tracks. Each model runs in 
 | [RNA-FM](RNAFM.md) | Foundation | RNA embeddings (640-d) | FASTA (RNA) | NumPy (N x 640) | CPU/GPU | MIT |
 | [RiNALMo](RiNALMo.md) | Foundation | RNA embeddings (1280-d) | FASTA (RNA) | NumPy (N x 1280) | CPU/GPU | Apache 2.0 |
 | [ERNIE-RNA](ERNIERNA.md) | Foundation | Structure-aware embeddings (768-d) | FASTA (RNA) | NumPy (N x 768) | CPU/GPU | MIT |
+| [Orthrus](Orthrus.md) | Foundation | Mamba mRNA embeddings (4-track, 512-d) | FASTA (RNA) | NumPy (N x 512) | **GPU only** | MIT |
+| [RNAErnie](RNAErnie.md) | Foundation | Motif-aware RNA embeddings (768-d) | FASTA (RNA) | NumPy (N x 768) | CPU/GPU | Apache-2.0 (HF port) |
+| [PlantRNA-FM](PlantRNAFM.md) | Foundation | Plant-only RNA embeddings (480-d) | FASTA (RNA) | NumPy (N x 480) | CPU/GPU | MIT |
 | [RNAformer](RNAformer.md) | Structure | 2D structure (base-pair matrix) | FASTA (RNA) | Dot-bracket + prob matrix | CPU/GPU | Apache 2.0 |
 | [RhoFold](RhoFold.md) | Structure | 3D structure prediction | FASTA (RNA) | PDB + CT | CPU/GPU | Apache 2.0 |
 | [SPOT-RNA](SPOTRNA.md) | Structure | 2D structure + pseudoknots | FASTA (RNA) | bpseq + CT + prob + dot-bracket | CPU/GPU | MPL-2.0 |
@@ -36,13 +39,16 @@ Models for predicting translation efficiency, ribosome profiling, ORF detection,
 - **[Saluki](Saluki.md)** — Predict mRNA half-life from sequence (50-model ensemble)
 - **[CodonTransformer](CodonTransformer.md)** — Optimize codon usage for 164 organisms
 
-### RNA Foundation Models (3 models)
+### RNA Foundation Models (6 models)
 
 General-purpose RNA language models that produce embeddings for downstream tasks.
 
 - **[RNA-FM](RNAFM.md)** — 99M params, 640-d embeddings, max 1022 nt (MIT)
 - **[RiNALMo](RiNALMo.md)** — 650M params, 1280-d embeddings, no hard length limit (Apache 2.0)
 - **[ERNIE-RNA](ERNIERNA.md)** — 86M params, 768-d embeddings, structure-aware attention (MIT)
+- **[Orthrus](Orthrus.md)** — Mamba SSM (~10M params), 512-d embeddings, unbounded input (linear memory), **GPU only** (MIT)
+- **[RNAErnie](RNAErnie.md)** — 12-layer transformer, 768-d embeddings, motif-aware MLM, max 2046 nt (Apache-2.0 HF port)
+- **[PlantRNA-FM](PlantRNAFM.md)** — 35M-param ESM transformer, 480-d embeddings, plant-only training (1124 species), max 1024 nt (MIT)
 
 ### RNA Structure (3 models)
 
@@ -86,6 +92,7 @@ Some models can be fine-tuned on your own data. Fine-tuned checkpoints are saved
 | ERNIE-RNA | MIT | [Bruce-ywj/ERNIE-RNA](https://github.com/Bruce-ywj/ERNIE-RNA) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-64972-0) |
 | Orthrus | MIT | [bowang-lab/Orthrus](https://github.com/bowang-lab/Orthrus) | [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3) |
 | RNAErnie | MIT (code) + Apache-2.0 (LLM-EDA HF port weights) | [CatIIIIIIII/RNAErnie](https://github.com/CatIIIIIIII/RNAErnie) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00836-4) |
+| PlantRNA-FM | MIT | [yangheng/PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00946-z) |
 | RNAformer | Apache 2.0 | [automl/RNAformer](https://github.com/automl/RNAformer) | [ICLR 2024](https://openreview.net/forum?id=RNAformer) |
 | RhoFold | Apache 2.0 | [ml4bio/RhoFold](https://github.com/ml4bio/RhoFold) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) |
 | SPOT-RNA | MPL-2.0 | [jaswindersingh2/SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9) |

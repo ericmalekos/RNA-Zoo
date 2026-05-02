@@ -68,6 +68,8 @@ Then: `run_rnazoo rnafm rnafm_predict.py -i /data/input.fa -o /out`, etc.
 | [RiNALMo](models/RiNALMo.md) | `rinalmo_predict.py -i /data/input.fa -o /out` |
 | [UTR-LM](models/UTRLM.md) | `utrlm_predict.py -i /data/input.fa -o /out --task mrl --model-dir /opt/utrlm/Model` |
 | [ERNIE-RNA](models/ERNIERNA.md) | `ernierna_predict.py -i /data/input.fa -o /out` |
+| [RNAErnie](models/RNAErnie.md) | `rnaernie_predict.py -i /data/input.fa -o /out` |
+| [PlantRNA-FM](models/PlantRNAFM.md) | `plantrnafm_predict.py -i /data/input.fa -o /out` |
 | [RhoFold](models/RhoFold.md) | `rhofold_predict.py -i /data/input.fa -o /out` |
 | [SPOT-RNA](models/SPOTRNA.md) | `spotrna_predict.py -i /data/input.fa -o /out` |
 | [RNAformer](models/RNAformer.md) | `rnaformer_predict.py -i /data/input.fa -o /out` |
@@ -114,11 +116,12 @@ docker run --rm \
              cp /opt/Riboformer/datasets/GSE119104_Mg_buffer/model_prediction.txt /out/"
 ```
 
-### GPU-only model
+### GPU-only models
 
-**seq2ribo** requires CUDA at import time (mamba-ssm); it cannot run on CPU.
+Both **seq2ribo** and **Orthrus** require CUDA at import time (mamba-ssm); they cannot run on CPU.
 
 ```bash
+# seq2ribo (riboseq / TE / protein)
 docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
     -u $(id -u):$(id -g) \
     -e HOME=/tmp -e USER=$(whoami) \
@@ -126,6 +129,15 @@ docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
     -v /path/to/output:/out \
     ghcr.io/ericmalekos/rnazoo-seq2ribo:latest \
     /opt/seq2ribo/scripts/run_inference.py -i /data/input.fa -o /out --task te --cell_line hek293
+
+# Orthrus (mature-mRNA embeddings, 4-track 512-d)
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
+    -u $(id -u):$(id -g) \
+    -e HOME=/tmp -e USER=$(whoami) \
+    -v /path/to/input.fa:/data/input.fa \
+    -v /path/to/output:/out \
+    ghcr.io/ericmalekos/rnazoo-orthrus:latest \
+    orthrus_predict.py -i /data/input.fa -o /out
 ```
 
 ## Help text

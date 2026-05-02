@@ -66,6 +66,9 @@ nav:
       - RNA-FM: models/RNAFM.md
       - RiNALMo: models/RiNALMo.md
       - ERNIE-RNA: models/ERNIERNA.md
+      - Orthrus: models/Orthrus.md
+      - RNAErnie: models/RNAErnie.md
+      - PlantRNA-FM: models/PlantRNAFM.md
     - RNA Structure:
       - RNAformer: models/RNAformer.md
       - RhoFold: models/RhoFold.md

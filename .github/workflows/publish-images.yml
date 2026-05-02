@@ -64,6 +64,10 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.RNAErnie
           - name: rnazoo-rnaernie-cpu
             dockerfile: Dockerfiles/Dockerfile.RNAErnie.cpu
+          - name: rnazoo-plantrnafm
+            dockerfile: Dockerfiles/Dockerfile.PlantRNAFM
+          - name: rnazoo-plantrnafm-cpu
+            dockerfile: Dockerfiles/Dockerfile.PlantRNAFM.cpu
           # Structure
           - name: rnazoo-rnaformer
             dockerfile: Dockerfiles/Dockerfile.RNAformer

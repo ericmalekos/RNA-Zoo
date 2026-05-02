@@ -1,0 +1,49 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://huggingface.co/yangheng/PlantRNA-FM"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.title="plantrnafm"
+LABEL org.opencontainers.image.description="Plant RNA foundation model (Yu/Yang et al., NMI 2024). 35M-param ESM encoder pretrained on ~25M plant RNAs across 1124 species."
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n plantrnafm -c conda-forge -y \
+        python=3.10 \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/plantrnafm/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=plantrnafm
+
+# CUDA-enabled PyTorch 2.2 (cu118 wheel includes the CUDA runtime libs).
+RUN /opt/conda/envs/plantrnafm/bin/pip install --no-cache-dir \
+        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
+
+# transformers + huggingface_hub. PlantRNA-FM is a stock EsmForMaskedLM
+# checkpoint, so AutoModel + AutoTokenizer load it without custom code.
+RUN /opt/conda/envs/plantrnafm/bin/pip install --no-cache-dir \
+        "transformers<4.50" \
+        "huggingface_hub<0.25"
+
+# Pre-download weights (~135 MB) from the official HF repo (MIT). Same
+# snapshot_download recipe used for RNAErnie / Orthrus — handles the HF
+# redirect chain cleanly (wget trips on xet/cas-bridge for binary blobs).
+RUN /opt/conda/envs/plantrnafm/bin/python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download(repo_id='yangheng/PlantRNA-FM', \
+                  local_dir='/opt/plantrnafm_weights', \
+                  local_dir_use_symlinks=False)"
+
+# Copy CLI wrapper
+COPY bin/plantrnafm_predict.py /opt/bin/plantrnafm_predict.py
+RUN chmod +x /opt/bin/plantrnafm_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+# Match the offline-cluster pattern used by RNAErnie / Orthrus / RhoFold —
+# any incidental hub call short-circuits instead of trying to fetch.
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt

@@ -1,0 +1,39 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://huggingface.co/yangheng/PlantRNA-FM"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.title="plantrnafm-cpu"
+LABEL org.opencontainers.image.description="Plant RNA foundation model (Yu/Yang et al., NMI 2024) — CPU-only build."
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n plantrnafm -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/plantrnafm/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=plantrnafm
+
+RUN /opt/conda/envs/plantrnafm/bin/pip install --no-cache-dir \
+        "transformers<4.50" \
+        "huggingface_hub<0.25"
+
+RUN /opt/conda/envs/plantrnafm/bin/python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download(repo_id='yangheng/PlantRNA-FM', \
+                  local_dir='/opt/plantrnafm_weights', \
+                  local_dir_use_symlinks=False)"
+
+COPY bin/plantrnafm_predict.py /opt/bin/plantrnafm_predict.py
+RUN chmod +x /opt/bin/plantrnafm_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt
