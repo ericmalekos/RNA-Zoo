@@ -15,17 +15,16 @@ env:
   IMAGE_PREFIX: ghcr.io/ericmalekos
 
 jobs:
-  build-and-push:
+  setup:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.images == 'all' || contains(format(',{0},', inputs.images), format(',{0},', matrix.name)) }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - id: set
+        env:
+          IMAGES: ${{ inputs.images || 'all' }}
+        run: |
+          MATRIX_YAML=$(cat <<'YAML'
           # Translation
           - name: rnazoo-ribonn
             dockerfile: Dockerfiles/Dockerfile.RiboNN
@@ -95,6 +94,36 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.UTRLM
           - name: rnazoo-utrlm-cpu
             dockerfile: Dockerfiles/Dockerfile.UTRLM.cpu
+          YAML
+          )
+          FULL=$(yq -o=json <<<"$MATRIX_YAML")
+          if [ "$IMAGES" = "all" ] || [ -z "$IMAGES" ]; then
+            FILTERED="$FULL"
+          else
+            FILTERED=$(jq -c --arg names "$IMAGES" \
+              '($names | split(",")) as $a | map(select(.name as $n | $a | index($n)))' \
+              <<<"$FULL")
+          fi
+          COUNT=$(jq 'length' <<<"$FILTERED")
+          echo "Selected $COUNT image(s) from input '$IMAGES'"
+          jq -r '.[].name' <<<"$FILTERED" | sed 's/^/  - /'
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::No matrix entries match: $IMAGES"
+            exit 1
+          fi
+          echo "matrix=$(jq -c <<<"$FILTERED")" >> "$GITHUB_OUTPUT"
+
+  build-and-push:
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.setup.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v5
