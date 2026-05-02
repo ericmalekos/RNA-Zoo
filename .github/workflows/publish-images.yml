@@ -4,6 +4,11 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      images:
+        description: 'Image(s) to build: "all", a single matrix name, or a comma-separated list with no spaces (e.g. "rnazoo-plantrnafm,rnazoo-plantrnafm-cpu")'
+        required: false
+        default: 'all'
 
 env:
   REGISTRY: ghcr.io
@@ -15,6 +20,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.images == 'all' || contains(format(',{0},', inputs.images), format(',{0},', matrix.name)) }}
 
     strategy:
       fail-fast: false
