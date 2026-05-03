@@ -113,61 +113,18 @@ Each row is a 640-dimensional vector representing the RNA sequence. These embedd
 - Maximum input length is **1022 nucleotides** (1024 positional slots minus 2 for BOS/EOS). Longer sequences are truncated.
 - This is the ncRNA model. An mRNA-specific model (mRNA-FM, 1280-d) also exists but is not included in this module.
 
-## Fine-tuning (linear probe)
+## Fine-tuning
 
-For supervised tasks on user-labeled data, RNA-Zoo exposes a **linear-probe fine-tune** for RNAFM: the backbone stays frozen, and a small MLP head trains on top of the 640-d embeddings. This is the de facto standard for foundation models — same pattern Orthrus and HydraRNA use upstream. Backbone fine-tuning is out of scope here (separate per-model design; UTR-LM's pattern is the closest existing reference but only feasible for small backbones).
+RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen 640-d RNA-FM embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
 
-### Input format
-
-TSV or CSV with required columns `name`, `sequence`, and a numeric label column. Example:
-
-```
-name<TAB>sequence<TAB>te
-seq_001<TAB>GGGUGCGAU...<TAB>1.42
-seq_002<TAB>AUUCCGAGA...<TAB>0.87
-```
-
-### Run with Nextflow
-
-```bash
-nextflow run main.nf -profile docker,cpu      # or gpu \
-  --rnafm_finetune_input my_labels.tsv \
-  --rnafm_finetune_label te
-```
-
-Device: CPU or GPU (uses the inference image). The fine-tune reuses the inference image — no new Docker image to pull.
-
-Outputs land in `results/rnafm_finetune/rnafm_finetune_out/`:
-
-- **`best_head.pt`** — trained MLP head (state_dict + config dict including label mean/std for inverse-transform at predict time)
-- **`predictions.tsv`** — predictions for every input row, with `train`/`val` split annotation
-- **`metrics.json`** — overall + train + val MSE / R² / Pearson r / Spearman r
-
-### Parameters
+### RNA-FM-specific parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--rnafm_finetune_label` | (required) | Column name in input TSV/CSV |
-| `--rnafm_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
-| `--rnafm_finetune_lr` | 1e-3 | Adam learning rate |
-
-### Fine-tune from precomputed embeddings (skip predict)
-
-If you've already run inference and saved `sequence_embeddings.npy`, you can skip the backbone forward pass and feed those embeddings directly into the head trainer — useful when iterating on head training (different epochs / lr / labels) without re-paying the predict cost.
-
-```bash
-nextflow run main.nf -profile docker,cpu \
-  --rnafm_finetune_input my_labels.tsv \
-  --rnafm_finetune_label te \
-  --rnafm_finetune_embeddings my_embeddings.npy
-```
-
-When `--rnafm_finetune_embeddings` is set, the workflow skips `rnafm_predict.py` and uses the supplied `(N, D)` `.npy` directly. The TSV still supplies `name` and the label column; the `sequence` column is optional and ignored. Row order in the `.npy` must match row order in the TSV — the head trainer exits with an error if shapes disagree.
-
-Outputs land in the same `rnafm_finetune_out/` directory with the same files (`best_head.pt`, `predictions.tsv`, `metrics.json`) as the full-chain mode.
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--rnafm_finetune_embeddings` | `null` | Optional precomputed `(N, D)` `.npy`; when set, skips predict |
-| `--rnafm_finetune_head_type` | `linear` | `linear` (strict probe), `mlp` (2-layer), or `xgboost` (requires `_embeddings`) |
-| `--rnafm_finetune_task` | `auto` | `auto`, `regression`, or `classification`; auto-detects from labels |
+| `--rnafm_finetune_input` | `null` | TSV/CSV with `name`, `sequence`, label column |
+| `--rnafm_finetune_label` | (required) | Column name with target values |
+| `--rnafm_finetune_embeddings` | `null` | Precomputed `(N, D)` `.npy` — switches to the head-only path |
+| `--rnafm_finetune_head_type` | `linear` | `linear`, `mlp`, or `xgboost` (xgboost requires `_embeddings`) |
+| `--rnafm_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
+| `--rnafm_finetune_epochs` | 20 | Max training epochs (torch heads) |
+| `--rnafm_finetune_lr` | 1e-3 | Adam (torch) or XGBoost learning rate |

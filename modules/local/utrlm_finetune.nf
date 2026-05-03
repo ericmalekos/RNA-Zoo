@@ -20,7 +20,7 @@ process UTRLM_FINETUNE {
     script:
     def pretrained_flag = params.utrlm_finetune_pretrained ? "--pretrained ${params.utrlm_finetune_pretrained}" : ''
     """
-    utrlm_finetune.py \
+    ${projectDir}/bin/utrlm_finetune.py \
         -i ${training_data} \
         -o utrlm_finetune_out \
         --label "${params.utrlm_finetune_label}" \

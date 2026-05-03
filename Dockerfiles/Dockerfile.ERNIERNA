@@ -3,6 +3,13 @@ FROM condaforge/miniforge3:latest
 RUN apt-get update && apt-get install -y --no-install-recommends git build-essential && \
     rm -rf /var/lib/apt/lists/*
 
+# NOTE: `cpuonly` here is nominal — the fairseq pip install below pulls a
+# torchaudio dep that forces a torch upgrade to the latest CUDA-enabled wheel
+# (currently torch 2.8.0+cu128). The resulting image runs fine on CPU AND GPU
+# (verified via `torch.cuda.is_available()` under --runtime=nvidia). If you
+# want to lock to torch 1.13.x specifically, drop `cpuonly` here and pin both
+# `torch==1.13.1` and `torchaudio==0.13.1` from the cu117 wheel index BEFORE
+# the fairseq install. Single image is published as `rnazoo-ernierna`.
 RUN mamba create -n ernierna -c pytorch -c conda-forge -y \
         python=3.9 \
         "pytorch=1.13" \

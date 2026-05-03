@@ -97,6 +97,20 @@ Results appear in `results/utrlm/utrlm_out/`.
 
 ## Fine-tuning on your own data
 
+> **Known issue (tracked, not yet fixed).** As of 2026-05-03 the fine-tune workflow
+> below reaches the training loop but errors during the first batch with
+> `ValueError: not enough values to unpack (expected 4, got 2)` from UTR-LM's
+> custom ESM `BatchConverter`. The `collate` function in `bin/utrlm_finetune.py`
+> emits 2-tuples `(label, seq)` while the upstream fork expects 4-tuples
+> `(label, seq, masked_seq, masked_indices)`. A previous PATH-invocation bug
+> masked this; that's now fixed (`modules/local/utrlm_finetune.nf` invokes
+> `${projectDir}/bin/utrlm_finetune.py`), so the deeper issue is reachable.
+> The collate fix is on the backlog — see project notes. The inference (`utrlm_predict.py`)
+> and prediction-from-checkpoint paths are unaffected. For supervised tasks on
+> 5'UTR sequences in the meantime, the foundation-model
+> [head trainer](../finetuning.md) on RNA-FM / RiNALMo / mRNABERT embeddings
+> is a working alternative.
+
 UTR-LM can be fine-tuned on your own expression data (MRL, TE, or EL measurements for 5'UTR sequences).
 
 ### Input format

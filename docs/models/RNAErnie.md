@@ -113,61 +113,18 @@ RNAErnie's unique angle is motif-aware pretraining + the type-guided fine-tuning
 - **Maximum input length is 2046 nt** — short ncRNAs and miRNAs fit comfortably; longer mRNAs (>2 kb) must be truncated or chunked. For long mRNAs use Orthrus (Mamba, linear memory).
 - **Inference-only currently.** Type-guided fine-tuning is in upstream and exists as a TODO in the fine-tuning support table.
 
-## Fine-tuning (linear probe)
+## Fine-tuning
 
-For supervised tasks on user-labeled data, RNA-Zoo exposes a **linear-probe fine-tune** for RNAErnie: the backbone stays frozen, and a small MLP head trains on top of the 768-d embeddings. This is the de facto standard for foundation models — same pattern Orthrus and HydraRNA use upstream. Backbone fine-tuning is out of scope here (separate per-model design; UTR-LM's pattern is the closest existing reference but only feasible for small backbones).
+RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen 768-d RNAErnie embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
 
-### Input format
-
-TSV or CSV with required columns `name`, `sequence`, and a numeric label column. Example:
-
-```
-name<TAB>sequence<TAB>te
-seq_001<TAB>GGGUGCGAU...<TAB>1.42
-seq_002<TAB>AUUCCGAGA...<TAB>0.87
-```
-
-### Run with Nextflow
-
-```bash
-nextflow run main.nf -profile docker,cpu   # or gpu \
-  --rnaernie_finetune_input my_labels.tsv \
-  --rnaernie_finetune_label te
-```
-
-Device: CPU or GPU (uses the inference image). The fine-tune reuses the inference image — no new Docker image to pull.
-
-Outputs land in `results/rnaernie_finetune/rnaernie_finetune_out/`:
-
-- **`best_head.pt`** — trained MLP head (state_dict + config dict including label mean/std for inverse-transform at predict time)
-- **`predictions.tsv`** — predictions for every input row, with `train`/`val` split annotation
-- **`metrics.json`** — overall + train + val MSE / R² / Pearson r / Spearman r
-
-### Parameters
+### RNAErnie-specific parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--rnaernie_finetune_label` | (required) | Column name in input TSV/CSV |
-| `--rnaernie_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
-| `--rnaernie_finetune_lr` | 1e-3 | Adam learning rate |
-
-### Fine-tune from precomputed embeddings (skip predict)
-
-If you've already run inference and saved `sequence_embeddings.npy`, you can skip the backbone forward pass and feed those embeddings directly into the head trainer — useful when iterating on head training (different epochs / lr / labels) without re-paying the predict cost.
-
-```bash
-nextflow run main.nf -profile docker,cpu \
-  --rnaernie_finetune_input my_labels.tsv \
-  --rnaernie_finetune_label te \
-  --rnaernie_finetune_embeddings my_embeddings.npy
-```
-
-When `--rnaernie_finetune_embeddings` is set, the workflow skips `rnaernie_predict.py` and uses the supplied `(N, D)` `.npy` directly. The TSV still supplies `name` and the label column; the `sequence` column is optional and ignored. Row order in the `.npy` must match row order in the TSV — the head trainer exits with an error if shapes disagree.
-
-Outputs land in the same `rnaernie_finetune_out/` directory with the same files (`best_head.pt`, `predictions.tsv`, `metrics.json`) as the full-chain mode.
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--rnaernie_finetune_embeddings` | `null` | Optional precomputed `(N, D)` `.npy`; when set, skips predict |
-| `--rnaernie_finetune_head_type` | `linear` | `linear` (strict probe), `mlp` (2-layer), or `xgboost` (requires `_embeddings`) |
-| `--rnaernie_finetune_task` | `auto` | `auto`, `regression`, or `classification`; auto-detects from labels |
+| `--rnaernie_finetune_input` | `null` | TSV/CSV with `name`, `sequence`, label column |
+| `--rnaernie_finetune_label` | (required) | Column name with target values |
+| `--rnaernie_finetune_embeddings` | `null` | Precomputed `(N, D)` `.npy` — switches to the head-only path |
+| `--rnaernie_finetune_head_type` | `linear` | `linear`, `mlp`, or `xgboost` (xgboost requires `_embeddings`) |
+| `--rnaernie_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
+| `--rnaernie_finetune_epochs` | 20 | Max training epochs (torch heads) |
+| `--rnaernie_finetune_lr` | 1e-3 | Adam (torch) or XGBoost learning rate |
