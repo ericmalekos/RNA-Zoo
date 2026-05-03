@@ -31,6 +31,7 @@ The bundled datasets are in `/opt/Riboformer/datasets/` inside the Docker image 
 
 - **`model_prediction.txt`**: codon-level predicted ribosome density values (one value per line per codon)
 - **`pause_indices.txt`** (optional): ribosome pause indices per codon
+- **`ribosome_density_plot.png`** (optional): line plot of predicted ribosome density per codon. Emitted only when `--riboformer_plot` is set.
 
 ## Run with Docker
 
@@ -89,6 +90,7 @@ Only models with input provided will run — no ignore flags needed.
 | `--riboformer_wsize` | `40` | Window size |
 | `--riboformer_threshold` | `25` | Minimum read threshold |
 | `--riboformer_bundled_dataset` | `null` | Use a dataset already inside the image (skips external staging). When set, `--riboformer_input` is ignored. See "Bundled datasets" below. |
+| `--riboformer_plot` | `false` | Also generate `ribosome_density_plot.png` (line plot of predicted density per codon) |
 
 ### Bundled datasets
 

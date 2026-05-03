@@ -58,6 +58,8 @@ test_rna_modification	m6A	28	C	0.953859	0.000000
 test_rna_modification	m6A	29	T	0.968842	0.000000
 ```
 
+**`<name>_modifications.png`** (optional) — per-sequence heatmap of the 12 modification probabilities along the sequence. Emitted only when `--multirm_plot` is set.
+
 ## Run with Docker
 
 > See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
@@ -97,6 +99,7 @@ Results appear in `results/multirm/multirm_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--multirm_alpha` | `0.05` | Significance threshold for calling modification sites |
+| `--multirm_plot` | `false` | Also save per-sequence modification-probability heatmaps as `<name>_modifications.png` |
 
 ## Technical notes
 

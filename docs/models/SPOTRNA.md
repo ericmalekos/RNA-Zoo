@@ -45,6 +45,7 @@ Per-sequence files:
 - **`*.bpseq`** — base-pair format (index, base, pair partner; 0=unpaired)
 - **`*.ct`** — connectivity table format
 - **`*.prob`** — full L x L base-pair probability matrix
+- **`*_contact.png`** (optional) — base-pair probability heatmap. Emitted only when `--spotrna_plot` is set.
 
 ## Run with Docker
 
@@ -79,6 +80,12 @@ nextflow run main.nf -profile docker,gpu --spotrna_input /path/to/input.fa
 Only models with input provided will run — no ignore flags needed.
 
 Results appear in `results/spotrna/spotrna_out/`.
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--spotrna_plot` | `false` | Also save per-sequence contact-map heatmaps as `<name>_contact.png` |
 
 ## Reading the probability matrix
 

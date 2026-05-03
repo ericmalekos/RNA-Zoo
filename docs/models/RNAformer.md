@@ -42,6 +42,8 @@ Dot-bracket notation: `()`=nested pairs, `[]`=first pseudoknot level, `{}`=secon
 
 With `--save-matrix`: also saves per-sequence base-pair probability matrices as `<name>_bpmat.npy` (NumPy array, shape L x L, values 0-1).
 
+With `--plot`: also saves per-sequence base-pair probability heatmaps as `<name>_contact.png`.
+
 ## Run with Docker
 
 > See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
@@ -80,7 +82,8 @@ Results appear in `results/rnaformer/rnaformer_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--rnaformer_cycling` | `6` | Number of recycling steps (6=best quality, 0=disable) |
-| `--rnaformer_save_matrix` | `false` | Also save L x L base-pair probability matrices as .npy |
+| `--rnaformer_save_matrix` | `false` | Also save L x L base-pair probability matrices as `<name>_bpmat.npy` |
+| `--rnaformer_plot` | `false` | Also save per-sequence contact-map heatmaps as `<name>_contact.png` |
 
 ## Reading the probability matrix
 
