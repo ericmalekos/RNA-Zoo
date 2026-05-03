@@ -1,0 +1,51 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://github.com/oxpig/CaLM"
+LABEL org.opencontainers.image.licenses="BSD-3-Clause"
+LABEL org.opencontainers.image.title="calm"
+LABEL org.opencontainers.image.description="Codon adaptation Language Model (Outeiral & Deane, NMI 2024). 12-layer 768-dim codon-level RNA LM trained on cross-organism CDS sequences."
+
+RUN apt-get update && apt-get install -y --no-install-recommends git wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n calm -c conda-forge -y \
+        python=3.10 \
+        "numpy<2" \
+        "setuptools<70" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/calm/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=calm
+
+# CUDA-enabled PyTorch 2.2 (cu118 wheel includes the CUDA runtime libs).
+RUN /opt/conda/envs/calm/bin/pip install --no-cache-dir \
+        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
+
+# Clone upstream CaLM (BSD-3) and install. Deps come from pyproject.toml:
+# numpy, requests, torch, biopython, einops, rotary_embedding_torch.
+RUN git clone --depth 1 https://github.com/oxpig/CaLM.git /opt/calm_repo && \
+    /opt/conda/envs/calm/bin/pip install --no-cache-dir --no-build-isolation -e /opt/calm_repo
+
+# Pre-download weights (~340 MB) from OPIG plain HTTP. CaLM's pretrained
+# loader auto-fetches on first init when weights_file is missing, but we
+# bake them in to honor the project rule (no runtime downloads). The
+# upstream loader pickles the file under /opt/calm_repo/calm/calm_weights/
+# but accepts an explicit weights_file path — we keep the path stable at
+# /opt/calm_weights/calm_weights.pkl and pass it through bin/calm_predict.py.
+RUN mkdir -p /opt/calm_weights && \
+    wget -q --tries=3 --timeout=120 \
+        -O /opt/calm_weights/calm_weights.pkl \
+        http://opig.stats.ox.ac.uk/data/downloads/calm_weights.pkl
+
+# Copy CLI wrapper
+COPY bin/calm_predict.py /opt/bin/calm_predict.py
+RUN chmod +x /opt/bin/calm_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+# CaLM wrapper doesn't hit HF; HF_HUB_OFFLINE only matters for parity
+# with other foundation-model images.
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt

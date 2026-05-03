@@ -73,6 +73,19 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.PlantRNAFM
           - name: rnazoo-plantrnafm-cpu
             dockerfile: Dockerfiles/Dockerfile.PlantRNAFM.cpu
+          - name: rnazoo-calm
+            dockerfile: Dockerfiles/Dockerfile.CaLM
+          - name: rnazoo-calm-cpu
+            dockerfile: Dockerfiles/Dockerfile.CaLM.cpu
+          - name: rnazoo-mrnabert
+            dockerfile: Dockerfiles/Dockerfile.mRNABERT
+          - name: rnazoo-mrnabert-cpu
+            dockerfile: Dockerfiles/Dockerfile.mRNABERT.cpu
+          # HydraRNA: weights are Google-Drive-only; the GH-hosted runner cannot
+          # access /home/eric/hydrarna_weights_local/HydraRNA_model.pt at build time.
+          # Re-enable once weights are mirrored to HF or Zenodo. See docs/models/HydraRNA.md.
+          # - name: rnazoo-hydrarna
+          #   dockerfile: Dockerfiles/Dockerfile.HydraRNA
           # Structure
           - name: rnazoo-rnaformer
             dockerfile: Dockerfiles/Dockerfile.RNAformer
@@ -84,6 +97,8 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.SPOTRNA
           - name: rnazoo-spotrna-cpu
             dockerfile: Dockerfiles/Dockerfile.SPOTRNA.cpu
+          - name: rnazoo-drfold2
+            dockerfile: Dockerfiles/Dockerfile.DRfold2
           # Modification
           - name: rnazoo-multirm
             dockerfile: Dockerfiles/Dockerfile.MultiRM

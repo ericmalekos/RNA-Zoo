@@ -1,0 +1,59 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://huggingface.co/YYLY66/mRNABERT"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.title="mrnabert"
+LABEL org.opencontainers.image.description="Full-length mRNA language model (Xiong et al., NComms 2025). 12-layer 768-d MosaicBERT with hybrid per-nt-UTR + per-codon-CDS tokenization (74-token vocab) and ALiBi for length extrapolation."
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n mrnabert -c conda-forge -y \
+        python=3.10 \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/mrnabert/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=mrnabert
+
+# CUDA-enabled PyTorch 2.2 (cu118 wheel includes triton — the model uses
+# the triton-based flash-attention path on GPU and falls back to plain
+# PyTorch attention if triton import fails — see bert_layers.py:24-30).
+RUN /opt/conda/envs/mrnabert/bin/pip install --no-cache-dir \
+        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
+
+# transformers + huggingface_hub + einops. Model uses trust_remote_code=True
+# (custom MosaicBERT with ALiBi positional embeddings).
+RUN /opt/conda/envs/mrnabert/bin/pip install --no-cache-dir \
+        "transformers<4.50" \
+        "huggingface_hub<0.25" \
+        einops
+
+# Pre-download weights (~340 MB) from the official YYLY66 HF repo (Apache-2.0).
+RUN /opt/conda/envs/mrnabert/bin/python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download(repo_id='YYLY66/mRNABERT', \
+                  local_dir='/opt/mrnabert_weights', \
+                  local_dir_use_symlinks=False)"
+
+# Disable the upstream triton flash-attention kernel. The shipped
+# flash_attn_triton.py uses tl.dot(trans_b=True), an API removed in
+# triton 2.1+; PyTorch 2.2's bundled triton (2.2.0) makes the kernel
+# fail to compile at first use. Replace the file with a stub that
+# raises ImportError at module-load time — bert_layers.py:24-30 wraps
+# the import in try/except and falls back to plain PyTorch attention
+# (the same path the CPU image takes). Throughput cost is real but
+# numerical results are correct.
+RUN echo 'raise ImportError("flash_attn_triton disabled by RNAZoo: tl.dot(trans_b=True) was removed in triton 2.1+; using plain PyTorch attention")' > /opt/mrnabert_weights/flash_attn_triton.py
+
+# Copy CLI wrapper
+COPY bin/mrnabert_predict.py /opt/bin/mrnabert_predict.py
+RUN chmod +x /opt/bin/mrnabert_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+# Match the offline-cluster pattern used by PlantRNA-FM / RNAErnie / Orthrus.
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt

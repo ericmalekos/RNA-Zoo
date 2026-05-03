@@ -1,0 +1,38 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://github.com/oxpig/CaLM"
+LABEL org.opencontainers.image.licenses="BSD-3-Clause"
+LABEL org.opencontainers.image.title="calm-cpu"
+LABEL org.opencontainers.image.description="Codon adaptation Language Model (Outeiral & Deane, NMI 2024) — CPU-only build."
+
+RUN apt-get update && apt-get install -y --no-install-recommends git wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n calm -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        "numpy<2" \
+        "setuptools<70" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/calm/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=calm
+
+RUN git clone --depth 1 https://github.com/oxpig/CaLM.git /opt/calm_repo && \
+    /opt/conda/envs/calm/bin/pip install --no-cache-dir --no-build-isolation -e /opt/calm_repo
+
+RUN mkdir -p /opt/calm_weights && \
+    wget -q --tries=3 --timeout=120 \
+        -O /opt/calm_weights/calm_weights.pkl \
+        http://opig.stats.ox.ac.uk/data/downloads/calm_weights.pkl
+
+COPY bin/calm_predict.py /opt/bin/calm_predict.py
+RUN chmod +x /opt/bin/calm_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt

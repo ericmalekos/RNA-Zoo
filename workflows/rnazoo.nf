@@ -19,9 +19,13 @@ include { ERNIERNA         } from '../modules/local/ernierna'
 include { ORTHRUS          } from '../modules/local/orthrus'
 include { RNAERNIE         } from '../modules/local/rnaernie'
 include { PLANTRNAFM       } from '../modules/local/plantrnafm'
+include { CALM             } from '../modules/local/calm'
+include { MRNABERT         } from '../modules/local/mrnabert'
+include { HYDRARNA         } from '../modules/local/hydrarna'
 include { RNAFORMER        } from '../modules/local/rnaformer'
 include { RHOFOLD          } from '../modules/local/rhofold'
 include { SPOTRNA          } from '../modules/local/spotrna'
+include { DRFOLD2          } from '../modules/local/drfold2'
 include { MULTIRM          } from '../modules/local/multirm'
 include { UTRLM            } from '../modules/local/utrlm'
 include { UTRLM_FINETUNE   } from '../modules/local/utrlm_finetune'
@@ -130,6 +134,22 @@ workflow RNAZOO {
         PLANTRNAFM(Channel.fromPath(params.plantrnafm_input, checkIfExists: true))
     }
 
+    if (params.calm_input) {
+        CALM(Channel.fromPath(params.calm_input, checkIfExists: true))
+    }
+
+    if (params.mrnabert_input) {
+        MRNABERT(Channel.fromPath(params.mrnabert_input, checkIfExists: true))
+    }
+
+    if (params.hydrarna_input) {
+        if (params.device == 'cpu') {
+            log.warn "HydraRNA requires a GPU — skipping under CPU mode"
+        } else {
+            HYDRARNA(Channel.fromPath(params.hydrarna_input, checkIfExists: true))
+        }
+    }
+
     // ----- RNA Structure -----
 
     if (params.rnaformer_input) {
@@ -142,6 +162,14 @@ workflow RNAZOO {
 
     if (params.spotrna_input) {
         SPOTRNA(Channel.fromPath(params.spotrna_input, checkIfExists: true))
+    }
+
+    if (params.drfold2_input) {
+        if (params.device == 'cpu') {
+            log.warn "DRfold2 requires a GPU — skipping under CPU mode"
+        } else {
+            DRFOLD2(Channel.fromPath(params.drfold2_input, checkIfExists: true))
+        }
     }
 
     // ----- RNA Modification -----

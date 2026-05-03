@@ -70,6 +70,8 @@ Then: `run_rnazoo rnafm rnafm_predict.py -i /data/input.fa -o /out`, etc.
 | [ERNIE-RNA](models/ERNIERNA.md) | `ernierna_predict.py -i /data/input.fa -o /out` |
 | [RNAErnie](models/RNAErnie.md) | `rnaernie_predict.py -i /data/input.fa -o /out` |
 | [PlantRNA-FM](models/PlantRNAFM.md) | `plantrnafm_predict.py -i /data/input.fa -o /out` |
+| [CaLM](models/CaLM.md) | `calm_predict.py -i /data/input.fa -o /out` |
+| [mRNABERT](models/mRNABERT.md) | `mrnabert_predict.py -i /data/input.fa -o /out` |
 | [RhoFold](models/RhoFold.md) | `rhofold_predict.py -i /data/input.fa -o /out` |
 | [SPOT-RNA](models/SPOTRNA.md) | `spotrna_predict.py -i /data/input.fa -o /out` |
 | [RNAformer](models/RNAformer.md) | `rnaformer_predict.py -i /data/input.fa -o /out` |
@@ -138,6 +140,26 @@ docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
     -v /path/to/output:/out \
     ghcr.io/ericmalekos/rnazoo-orthrus:latest \
     orthrus_predict.py -i /data/input.fa -o /out
+
+# DRfold2 (single-sequence ab initio 3D structure)
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
+    -u $(id -u):$(id -g) \
+    -e HOME=/tmp -e USER=$(whoami) \
+    -v /path/to/input.fa:/data/input.fa \
+    -v /path/to/output:/out \
+    ghcr.io/ericmalekos/rnazoo-drfold2:latest \
+    drfold2_predict.py -i /data/input.fa -o /out
+
+# HydraRNA (full-length RNA embeddings, 1024-d, supports up to 10K nt)
+# Note: rnazoo-hydrarna:latest is not yet on ghcr.io — weights are
+# Google-Drive-only and must be locally baked. See docs/models/HydraRNA.md.
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
+    -u $(id -u):$(id -g) \
+    -e HOME=/tmp -e USER=$(whoami) \
+    -v /path/to/input.fa:/data/input.fa \
+    -v /path/to/output:/out \
+    rnazoo-hydrarna:local-test \
+    hydrarna_predict.py -i /data/input.fa -o /out
 ```
 
 ## Help text

@@ -69,10 +69,14 @@ nav:
       - Orthrus: models/Orthrus.md
       - RNAErnie: models/RNAErnie.md
       - PlantRNA-FM: models/PlantRNAFM.md
+      - CaLM: models/CaLM.md
+      - mRNABERT: models/mRNABERT.md
+      - HydraRNA: models/HydraRNA.md
     - RNA Structure:
       - RNAformer: models/RNAformer.md
       - RhoFold: models/RhoFold.md
       - SPOT-RNA: models/SPOTRNA.md
+      - DRfold2: models/DRfold2.md
     - RNA Modification:
       - MultiRM: models/MultiRM.md
     - mRNA Design:

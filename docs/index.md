@@ -4,7 +4,7 @@
 
 ## What's included
 
-18 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
+22 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
 
 ### RNA Foundation Models
 
@@ -18,6 +18,9 @@ All foundation models take a FASTA of RNA sequences and write `sequence_embeddin
 | [Orthrus](models/Orthrus.md) | 6-layer Mamba SSM (~10M params) | **512-d** | Mean (`mean_unpadded`) | 32.7M mRNAs (GENCODE+RefSeq+Zoonomia, contrastive) | unbounded (linear mem) | ~5 GB | — (GPU only) |
 | [RNAErnie](models/RNAErnie.md) | 12-layer Transformer (motif-aware MLM) | **768-d** | Mean (excl CLS+SEP) | 23M ncRNAs (RNAcentral) | 2046 nt | ~4 GB | ~1.5 GB |
 | [PlantRNA-FM](models/PlantRNAFM.md) | 12-layer ESM Transformer (35M params) | **480-d** | Mean (excl CLS+EOS) | ~25M plant RNAs (1124 species, 54.2B bases) | 1024 nt | ~3 GB | ~1.2 GB |
+| [CaLM](models/CaLM.md) | 12-layer Transformer (~86M params) | **768-d** | Mean (excl CLS+EOS) | ~9M CDSs (cross-organism ENA codingseqs) | 1024 codons (~3 kb) | ~3 GB | ~1.2 GB |
+| [mRNABERT](models/mRNABERT.md) | 12-layer MosaicBERT + ALiBi (~86M params) | **768-d** | Mean (excl CLS+SEP) | ~18M full-length mRNAs | 1024 tokens (hybrid 1-nt UTR + 3-nt CDS codons) | ~3 GB | ~1.2 GB |
+| [HydraRNA](models/HydraRNA.md) | 12-layer hybrid Hydra-SSM + 2 attention layers (~84M params) | **1024-d** | Mean (excl BOS+EOS) | ~73M ncRNAs + ~22M mRNAs | 10K nt (auto-chunked beyond) | ~7 GB | — (GPU only) |
 
 **Pooling note:** values reflect the as-implemented behavior of the wrapper scripts in `bin/`. ERNIE-RNA is the only foundation model using the `[CLS]` token as the per-sequence representation; the other four mean-pool over actual sequence positions (excluding special tokens). This matters when comparing embeddings across models — `[CLS]` from an MLM-only model is qualitatively different from a position-mean.
 
@@ -37,10 +40,11 @@ The remaining 12 models are task-specific predictors across translation, structu
 | [RNAformer](models/RNAformer.md) | Structure | bpRNA + PDB (LoRA-finetuned) | FASTA RNA | `structures.txt` (dot-bracket) | 3.8 GB | — (single image) |
 | [RhoFold](models/RhoFold.md) | Structure | PDB + bpRNA self-distillation | FASTA RNA | PDB + `ss.ct` + `results.npz` | 4.2 GB | 1.7 GB |
 | [SPOT-RNA](models/SPOTRNA.md) | Structure | bpRNA + PDB + Rfam | FASTA RNA | `structures.txt` + per-seq `bpseq` / `ct` / `prob` | 2.7 GB | 0.6 GB |
+| [DRfold2](models/DRfold2.md) | Structure (Tier 2) | bpRNA + PDB single-seq | FASTA RNA | per-seq PDB | ~5 GB | — (GPU only) |
 | [MultiRM](models/MultiRM.md) | Modification | ~300K human modification sites | FASTA RNA | `modification_scores.tsv` + `predicted_sites.tsv` | 3.5 GB | 1.0 GB |
 | [UTR-LM](models/UTRLM.md) | mRNA Design | 5'UTRs, 5 species + MPRA (MRL) | FASTA 5'UTR | `predictions.tsv` | 4.9 GB | 2.4 GB |
 
-**Totals:** CPU set is **~31 GB** across 16 images; GPU set is **~77 GB** across 18 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
+**Totals:** CPU set is **~33 GB** across 18 images; GPU set is **~95 GB** across 22 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
 
 ## Quick start
 

@@ -4,7 +4,7 @@
 
 - **Nextflow** >= 23.04.0 ([install guide](https://www.nextflow.io/docs/latest/getstarted.html))
 - **Docker** or **Singularity** (for running model containers)
-- **NVIDIA GPU** (recommended) — required for seq2ribo and Orthrus; foundation/structure models also run much faster on GPU. CPU works for the other 15 models, just slower.
+- **NVIDIA GPU** (recommended) — required for seq2ribo, Orthrus, DRfold2, and HydraRNA; foundation/structure models also run much faster on GPU. CPU works for the other 17 models, just slower.
 - **NVIDIA Container Toolkit** (for GPU runs) — needed so Docker can expose the GPU to containers. See the [official install guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html). Without it, GPU profiles fail with `unknown runtime: nvidia`.
 
 ## Install Nextflow
@@ -41,7 +41,7 @@ If you want to warm the cache up front, pick the loop that matches your hardware
 # are GPU-only by design (mamba-ssm requires CUDA at import time).
 for img in ribonn riboformer tristan seq2ribo saluki translationai \
            codontransformer rnafm rinalmo ernierna orthrus rnaernie \
-           plantrnafm rnaformer rhofold spotrna multirm utrlm; do
+           plantrnafm calm mrnabert hydrarna rnaformer rhofold spotrna drfold2 multirm utrlm; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
@@ -59,7 +59,7 @@ done
 # orthrus are GPU-only and not in this list.
 for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu translationai-cpu \
            codontransformer-cpu rnafm-cpu rinalmo-cpu ernierna rnaernie-cpu \
-           plantrnafm-cpu rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+           plantrnafm-cpu calm-cpu mrnabert-cpu rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
@@ -90,11 +90,11 @@ nextflow run . -profile test_gpu,docker,gpu
 If you have an NVIDIA GPU, run the GPU test suite — this is the canonical end-to-end check:
 
 ```bash
-# Run the GPU test suite (18 models, requires NVIDIA Container Toolkit)
+# Run the GPU test suite (22 models, requires NVIDIA Container Toolkit)
 nextflow run . -profile test_gpu,docker,gpu
 ```
 
-Expected output — all 18 models should pass:
+Expected output — all 22 models should pass:
 
 ```
 RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
@@ -109,27 +109,31 @@ RNAZOO:ERNIERNA (ernierna)                            | 1 of 1 ✔
 RNAZOO:ORTHRUS (orthrus)                              | 1 of 1 ✔
 RNAZOO:RNAERNIE (rnaernie)                            | 1 of 1 ✔
 RNAZOO:PLANTRNAFM (plantrnafm)                        | 1 of 1 ✔
+RNAZOO:CALM (calm)                                    | 1 of 1 ✔
+RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
+RNAZOO:HYDRARNA (hydrarna)                            | 1 of 1 ✔
 RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
 RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
 RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
 RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
 RNAZOO:SEQ2RIBO (seq2ribo:te:hek293)                  | 1 of 1 ✔
 RNAZOO:RHOFOLD (rhofold)                              | 1 of 1 ✔
-Succeeded   : 18
+RNAZOO:DRFOLD2 (drfold2)                              | 1 of 1 ✔
+Succeeded   : 22
 ```
 
 Riboformer's bundled-dataset test runs faster on GPU (~1.5 min vs ~2.5 min on CPU). Models with both CPU and GPU image variants automatically use their GPU images under `-profile gpu`.
 
 ### CPU fallback
 
-If you don't have an NVIDIA GPU, the smaller `test` profile runs the 15 of 18 models that work on CPU in a reasonable time:
+If you don't have an NVIDIA GPU, the smaller `test` profile runs the 17 of 22 models that work on CPU in a reasonable time:
 
 ```bash
-# Run the CPU test suite (15 models on CPU, ~5 minutes)
+# Run the CPU test suite (17 models on CPU, ~5 minutes)
 nextflow run . -profile test,docker,cpu
 ```
 
-Expected output — all 15 should pass:
+Expected output — all 17 should pass:
 
 ```
 RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
@@ -143,20 +147,24 @@ RNAZOO:RINALMO (rinalmo)                              | 1 of 1 ✔
 RNAZOO:ERNIERNA (ernierna)                            | 1 of 1 ✔
 RNAZOO:RNAERNIE (rnaernie)                            | 1 of 1 ✔
 RNAZOO:PLANTRNAFM (plantrnafm)                        | 1 of 1 ✔
+RNAZOO:CALM (calm)                                    | 1 of 1 ✔
+RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
 RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
 RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
 RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
 RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
-Succeeded   : 15
+Succeeded   : 17
 ```
 
-Three of the 18 models are excluded from the default CPU test:
+Five of the 22 models are excluded from the default CPU test:
 
 | Model | Reason | Covered by `test_gpu`? |
 |-------|--------|------------------------|
 | seq2ribo | GPU-only (mamba-ssm requires CUDA at import) | Yes |
 | Orthrus | GPU-only (mamba-ssm requires CUDA at import) | Yes |
 | RhoFold | Too slow on CPU (~5 min, 10 recycling iterations) | Yes |
+| DRfold2 | GPU-only; multi-stage 4-model ensemble + IPA optimization is impractical on CPU | Yes |
+| HydraRNA | GPU-only (Hydra/Mamba SSM + flash-attention require CUDA at import) | Yes |
 
 > Riboformer uses the in-image E. coli dataset (`GSE119104_Mg_buffer`) via `--riboformer_bundled_dataset` — no external test data needed. See [the Riboformer page](../models/Riboformer.md) for how to point it at a bundled dataset.
 

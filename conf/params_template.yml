@@ -116,6 +116,28 @@ ernierna_input: null           # example: data/ernierna/sequences.fa
 ernierna_outdir: null          # default: <outdir>/ernierna
 ernierna_per_token: false      # also save per-token (L x 768) .npy files
 
+# CaLM — codon-level RNA / CDS embeddings (768-d, max 1024 codons)
+# Input: FASTA of RNA / CDS sequences (codon-aligned; non-codon-aligned tails are trimmed)
+# Output: sequence_embeddings.npy (N x 768), labels.txt
+calm_input: null               # example: data/calm/cds.fa
+calm_outdir: null              # default: <outdir>/calm
+calm_per_token: false          # also save per-codon (L+2 x 768) .npy files
+
+# mRNABERT — full-length mRNA embeddings (768-d, hybrid UTR/CDS tokenization)
+# Input: FASTA of mRNA sequences (DNA or RNA; ORF auto-detected per upstream
+#        process_pretrain_data.py — single-letter UTR + 3-letter CDS codon tokens)
+# Output: sequence_embeddings.npy (N x 768), labels.txt
+mrnabert_input: null           # example: data/mrnabert/transcripts.fa
+mrnabert_outdir: null          # default: <outdir>/mrnabert
+mrnabert_per_token: false      # also save per-token (T x 768) .npy files
+
+# HydraRNA — full-length RNA embeddings (1024-d, ≤10K nt, GPU-only)
+# Input: FASTA of RNA sequences (auto-skipped under -profile cpu; long sequences are auto-chunked)
+# Output: sequence_embeddings.npy (N x 1024), labels.txt
+hydrarna_input: null           # example: data/hydrarna/transcripts.fa
+hydrarna_outdir: null          # default: <outdir>/hydrarna
+hydrarna_per_token: false      # also save per-token (N+2 x 1024) .npy files
+
 # ============================================================================
 # RNA STRUCTURE
 # ============================================================================
@@ -141,6 +163,15 @@ rhofold_outdir: null           # default: <outdir>/rhofold
 spotrna_input: null            # example: data/spotrna/sequences.fa
 spotrna_outdir: null           # default: <outdir>/spotrna
 spotrna_plot: false            # generate contact map heatmap PNGs
+
+# DRfold2 — single-sequence ab initio RNA 3D structure prediction (GPU-only)
+# Input: FASTA of RNA sequences (auto-skipped under -profile cpu)
+# Output: per-sequence PDB files; runtime is ~10-30 min for short sequences
+#         (24 nt) and scales nonlinearly with length. See docs/models/DRfold2.md.
+drfold2_input: null            # example: data/drfold2/sequences.fa
+drfold2_outdir: null           # default: <outdir>/drfold2
+drfold2_cluster: false         # also emit alternative-conformation models (longer runtime)
+drfold2_keep_intermediate: false  # retain per-sequence working dirs (can be many GB)
 
 # ============================================================================
 # RNA MODIFICATION

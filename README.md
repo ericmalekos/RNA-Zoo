@@ -6,7 +6,7 @@
 [![Lint](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Documentation](https://img.shields.io/badge/docs-ericmalekos.github.io%2FRNA--Zoo-blue)](https://ericmalekos.github.io/RNA-Zoo)
 
-A Nextflow pipeline model zoo for RNA deep learning — 18 models across translation, structure, modification, and more.
+A Nextflow pipeline model zoo for RNA deep learning — 22 models across translation, structure, modification, and more.
 
 | Model | Track | Task | Paper | License |
 |-------|-------|------|-------|---------|
@@ -23,8 +23,12 @@ A Nextflow pipeline model zoo for RNA deep learning — 18 models across transla
 | [Orthrus](https://github.com/bowang-lab/Orthrus) | Foundation | Mamba mRNA embeddings (4-track, 512-d, GPU) | [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3) | MIT |
 | [RNAErnie](https://github.com/CatIIIIIIII/RNAErnie) | Foundation | Motif-aware RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00836-4) | Apache-2.0 |
 | [PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | Foundation | Plant-only RNA embeddings (480-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00946-z) | MIT |
+| [CaLM](https://github.com/oxpig/CaLM) | Foundation | Codon-level RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00791-0) | BSD-3-Clause |
+| [mRNABERT](https://huggingface.co/YYLY66/mRNABERT) | Foundation | Hybrid UTR/CDS mRNA embeddings (768-d) | [Nature Comms 2025](https://doi.org/10.1038/s41467-025-65340-8) | Apache-2.0 |
+| [HydraRNA](https://github.com/GuipengLi/HydraRNA) | Foundation | Hybrid Mamba+attention RNA embeddings (1024-d, ≤10K nt, GPU) | [Genome Biology 2025](https://doi.org/10.1186/s13059-025-03853-7) | MIT |
 | [RNAformer](https://github.com/automl/RNAformer) | Structure | 2D base-pair prediction | [ICLR 2024](https://openreview.net/forum?id=RNAformer) | Apache 2.0 |
 | [RhoFold](https://github.com/ml4bio/RhoFold) | Structure | 3D structure (PDB output) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) | Apache 2.0 |
 | [SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | Structure | 2D structure + pseudoknots | [Nature Comms 2019](https://doi.org/10.1038/s41467-019-13395-9) | MPL-2.0 |
+| [DRfold2](https://github.com/leeyang/DRfold2) | Structure | Single-seq ab initio 3D (GPU) | [Li et al. 2025](https://github.com/leeyang/DRfold2) | MIT |
 | [MultiRM](https://github.com/Tsedao/MultiRM) | Modification | 12 RNA modification types | [NAR 2021](https://doi.org/10.1093/nar/gkab507) | MIT |
 | [UTR-LM](https://github.com/a96123155/UTR-LM) | mRNA Design | 5'UTR MRL / TE / expression | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00823-9) | GPL-3.0 |

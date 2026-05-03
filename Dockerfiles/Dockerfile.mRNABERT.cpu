@@ -1,0 +1,40 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://huggingface.co/YYLY66/mRNABERT"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.title="mrnabert-cpu"
+LABEL org.opencontainers.image.description="Full-length mRNA language model (Xiong et al., NComms 2025) — CPU-only build. Uses plain PyTorch attention (model auto-falls-back when triton isn't importable; see bert_layers.py)."
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n mrnabert -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/mrnabert/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=mrnabert
+
+RUN /opt/conda/envs/mrnabert/bin/pip install --no-cache-dir \
+        "transformers<4.50" \
+        "huggingface_hub<0.25" \
+        einops
+
+RUN /opt/conda/envs/mrnabert/bin/python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download(repo_id='YYLY66/mRNABERT', \
+                  local_dir='/opt/mrnabert_weights', \
+                  local_dir_use_symlinks=False)"
+
+COPY bin/mrnabert_predict.py /opt/bin/mrnabert_predict.py
+RUN chmod +x /opt/bin/mrnabert_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt

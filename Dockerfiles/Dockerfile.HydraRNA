@@ -1,0 +1,85 @@
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+LABEL org.opencontainers.image.source="https://github.com/GuipengLi/HydraRNA"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.title="hydrarna"
+LABEL org.opencontainers.image.description="Full-length RNA language model (Li et al., Genome Biology 2025). 12-layer hybrid Hydra-SSM + 2-layer attention; pretrained on ~73M ncRNAs and ~22M protein-coding mRNAs; supports up to 10K nt at inference."
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git wget build-essential ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install miniforge + python 3.9.12 (HydraRNA upstream pins this exactly).
+RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -O /tmp/miniforge.sh && \
+    bash /tmp/miniforge.sh -b -p /opt/conda && rm /tmp/miniforge.sh
+ENV PATH="/opt/conda/bin:$PATH"
+
+RUN mamba create -n hydrarna -c conda-forge -y \
+        python=3.9.12 \
+        "numpy<2" \
+        cython \
+        "setuptools<70" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/hydrarna/bin:/usr/local/cuda/bin:$PATH"
+ENV CUDA_HOME=/usr/local/cuda
+ENV CONDA_DEFAULT_ENV=hydrarna
+
+# torch 2.3.1 + cu118 (HydraRNA upstream pins these versions).
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
+        torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
+        --index-url https://download.pytorch.org/whl/cu118
+
+# Prebuilt wheels for the CUDA-extension stack — all three are released by
+# upstream for the cu118+torch2.3+cp39 ABI matrix. Avoids ~30 min of source
+# compilation that would otherwise be needed.
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
+        "https://github.com/Dao-AILab/causal-conv1d/releases/download/v1.4.0/causal_conv1d-1.4.0+cu118torch2.3cxx11abiFALSE-cp39-cp39-linux_x86_64.whl" \
+        "https://github.com/state-spaces/mamba/releases/download/v2.2.2/mamba_ssm-2.2.2+cu118torch2.3cxx11abiFALSE-cp39-cp39-linux_x86_64.whl" \
+        "https://github.com/Dao-AILab/flash-attention/releases/download/v2.6.1/flash_attn-2.6.1+cu118torch2.3cxx11abiFALSE-cp39-cp39-linux_x86_64.whl"
+
+# fused_dense_lib has no prebuilt wheel — build from flash-attention v2.6.1
+# source. Requires CUDA toolkit + nvcc (provided by nvidia/cuda:11.8.0-devel base).
+# TORCH_CUDA_ARCH_LIST must be set explicitly: at Docker build time there's no
+# visible GPU so torch.cuda.get_device_capability() returns nothing, which makes
+# _get_cuda_arch_flags() crash with "list index out of range". Cover Turing →
+# Hopper to make the image work on consumer GPUs (GTX 16xx/RTX 20-40xx/A100/H100).
+ENV TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9;9.0+PTX"
+RUN git clone --depth 1 --branch v2.6.1 https://github.com/Dao-AILab/flash-attention.git /opt/flash-attention && \
+    cd /opt/flash-attention/csrc/fused_dense_lib && \
+    /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir --no-build-isolation .
+
+# Pin pip 24.0 per upstream install_hydrarna_env.sh (newer pip breaks the
+# fairseq editable install with PEP-660-incompatible build_meta).
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir pip==24.0
+
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
+        pandas tqdm tensorboardX pysam transformers==4.44.0
+
+# Clone HydraRNA + install vendored fairseq with cython-generated cpp.
+# Upstream's install_hydrarna_env.sh runs cython on two .pyx files before
+# pip install -e . — we replicate exactly.
+RUN git clone --depth 1 https://github.com/GuipengLi/HydraRNA.git /opt/hydrarna_repo && \
+    cd /opt/hydrarna_repo/fairseq && \
+    /opt/conda/envs/hydrarna/bin/cython fairseq/data/data_utils_fast.pyx -3 && \
+    /opt/conda/envs/hydrarna/bin/cython fairseq/data/token_block_utils_fast.pyx -3 && \
+    /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir --no-build-isolation -e .
+
+# Bake weights from the local download (Google Drive distribution; upstream
+# does not host on HF or Zenodo so this image cannot be reproduced via GH
+# Actions until weights are mirrored to a public registry — flagged in
+# docs/models/HydraRNA.md as a redistribution blocker).
+COPY --from=hydrarna_weights HydraRNA_model.pt /opt/hydrarna_weights/HydraRNA_model.pt
+
+COPY bin/hydrarna_predict.py /opt/bin/hydrarna_predict.py
+RUN chmod +x /opt/bin/hydrarna_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+# fairseq's masked_lm_span task needs the dict.txt to be available at
+# inference time — point it at the dict baked into the cloned repo.
+ENV HYDRARNA_DICT=/opt/hydrarna_repo/dict
+ENV HYDRARNA_WEIGHTS=/opt/hydrarna_weights/HydraRNA_model.pt
+
+WORKDIR /opt/hydrarna_repo
