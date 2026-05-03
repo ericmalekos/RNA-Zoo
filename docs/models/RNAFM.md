@@ -79,6 +79,8 @@ Results appear in `results/rnafm/rnafm_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--rnafm_per_token` | `false` | Also output per-token (L x 640) embeddings per sequence |
+| `--rnafm_max_len` | `1022` | Truncate inputs to this many nt (RNA-FM's positional-embedding cap) |
+| `--rnafm_batch_size` | `8` | Sequences per forward pass; lower if you hit GPU OOM |
 
 ## Reading the output
 

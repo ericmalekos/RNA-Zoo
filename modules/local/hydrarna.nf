@@ -24,10 +24,12 @@ process HYDRARNA {
 
     script:
     def per_token_flag = params.hydrarna_per_token ? '--per-token' : ''
+    def no_half_flag   = params.hydrarna_no_half  ? '--no-half'  : ''
     """
     hydrarna_predict.py \\
         -i ${input_fasta} \\
         -o hydrarna_out \\
+        ${no_half_flag} \\
         ${per_token_flag}
     """
 }

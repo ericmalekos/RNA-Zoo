@@ -26,6 +26,7 @@ process RINALMO {
     rinalmo_predict.py \
         -i ${input_fasta} \
         -o rinalmo_out \
+        --batch-size ${params.rinalmo_batch_size} \
         ${per_token_flag}
     """
 }

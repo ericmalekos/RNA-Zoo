@@ -84,6 +84,8 @@ Results appear in `results/plantrnafm/plantrnafm_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--plantrnafm_per_token` | `false` | Also output per-token (L x 480) embeddings per sequence |
+| `--plantrnafm_max_len` | `1024` | Truncate inputs to this many nt (PlantRNA-FM's positional-embedding cap, 1026 minus CLS+EOS) |
+| `--plantrnafm_batch_size` | `8` | Sequences per forward pass; lower if you hit GPU OOM |
 
 ## Reading the output
 

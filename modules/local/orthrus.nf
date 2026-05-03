@@ -30,6 +30,7 @@ process ORTHRUS {
         -i ${input_fasta} \
         -o orthrus_out \
         --variant ${params.orthrus_variant} \
+        --min-len ${params.orthrus_min_len} \
         ${per_token_flag}
     """
 }

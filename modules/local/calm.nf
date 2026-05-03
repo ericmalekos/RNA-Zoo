@@ -27,6 +27,7 @@ process CALM {
     calm_predict.py \\
         -i ${input_fasta} \\
         -o calm_out \\
+        --max-codons ${params.calm_max_codons} \\
         ${per_token_flag}
     """
 }

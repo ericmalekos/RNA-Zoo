@@ -68,6 +68,7 @@ Results land in `results/hydrarna/hydrarna_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--hydrarna_per_token` | `false` | Also output per-token (N+2 x 1024) embeddings |
+| `--hydrarna_no_half` | `false` | Disable `model.half()` — use full fp32 instead of fp16 (slower but more accurate; useful for debugging fp16 issues) |
 
 ## Comparison with the other foundation models in the zoo
 

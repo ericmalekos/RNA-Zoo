@@ -26,6 +26,8 @@ process RNAFM {
     rnafm_predict.py \
         -i ${input_fasta} \
         -o rnafm_out \
+        --max-len ${params.rnafm_max_len} \
+        --batch-size ${params.rnafm_batch_size} \
         ${per_token_flag}
     """
 }

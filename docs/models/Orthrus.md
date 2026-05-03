@@ -70,6 +70,7 @@ Under `-profile cpu` the process logs a warning and skips. Results appear in `re
 |-----------|---------|-------------|
 | `--orthrus_variant` | `v1_4_track` | Model variant. Currently only `v1_4_track` is bundled. |
 | `--orthrus_per_token` | `false` | Also output per-token (L x 512) embeddings per sequence. |
+| `--orthrus_min_len` | `200` | Warn (don't refuse) when sequences are shorter than this — Orthrus is mature-mRNA only, fragments are out-of-distribution. |
 
 ## Reading the output
 

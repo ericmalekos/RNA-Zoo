@@ -83,6 +83,8 @@ Results appear in `results/rnaernie/rnaernie_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--rnaernie_per_token` | `false` | Also output per-token (L x 768) embeddings per sequence |
+| `--rnaernie_max_len` | `2046` | Truncate inputs to this many nt (RNAErnie's positional-embedding cap, 2048 minus CLS+SEP) |
+| `--rnaernie_batch_size` | `8` | Sequences per forward pass; lower if you hit GPU OOM |
 
 ## Reading the output
 

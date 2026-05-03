@@ -66,6 +66,7 @@ Results appear in `results/ernierna/ernierna_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--ernierna_per_token` | `false` | Also output per-token (L x 768) embeddings per sequence |
+| `--ernierna_max_len` | `1022` | Truncate inputs to this many nt (ERNIE-RNA's positional-embedding cap) |
 
 ## Comparison with other foundation models
 

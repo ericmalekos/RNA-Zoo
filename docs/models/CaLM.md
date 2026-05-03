@@ -86,6 +86,7 @@ Results appear in `results/calm/calm_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--calm_per_token` | `false` | Also output per-codon (L+2 x 768) embeddings per sequence |
+| `--calm_max_codons` | `1024` | Truncate to this many codons (CaLM's `max_positions` cap, ~3 kb of CDS) |
 
 ## Reading the output
 

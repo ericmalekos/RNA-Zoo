@@ -106,6 +106,7 @@ Results appear in `results/rinalmo/rinalmo_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--rinalmo_per_token` | `false` | Also output per-token (L x 1280) embeddings per sequence |
+| `--rinalmo_batch_size` | `1` | Sequences per forward pass; default is 1 because the 650M backbone OOMs easily — bump up if you have headroom |
 
 ## Reading the output
 

@@ -27,6 +27,7 @@ process MRNABERT {
     mrnabert_predict.py \\
         -i ${input_fasta} \\
         -o mrnabert_out \\
+        --max-tokens ${params.mrnabert_max_tokens} \\
         ${per_token_flag}
     """
 }

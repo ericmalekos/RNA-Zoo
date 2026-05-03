@@ -27,6 +27,8 @@ process PLANTRNAFM {
     plantrnafm_predict.py \
         -i ${input_fasta} \
         -o plantrnafm_out \
+        --max-len ${params.plantrnafm_max_len} \
+        --batch-size ${params.plantrnafm_batch_size} \
         ${per_token_flag}
     """
 }

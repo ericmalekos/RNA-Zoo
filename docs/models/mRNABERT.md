@@ -83,6 +83,7 @@ Results land in `results/mrnabert/mrnabert_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--mrnabert_per_token` | `false` | Also output per-token (T x 768) embeddings per sequence |
+| `--mrnabert_max_tokens` | `1024` | Truncate to this many tokens (tokenizer's `model_max_length`; ALiBi extrapolates beyond config max_pos=512) |
 
 ## Reading the output
 

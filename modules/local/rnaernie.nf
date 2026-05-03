@@ -27,6 +27,8 @@ process RNAERNIE {
     rnaernie_predict.py \
         -i ${input_fasta} \
         -o rnaernie_out \
+        --max-len ${params.rnaernie_max_len} \
+        --batch-size ${params.rnaernie_batch_size} \
         ${per_token_flag}
     """
 }

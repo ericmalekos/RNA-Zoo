@@ -26,6 +26,7 @@ process ERNIERNA {
     ernierna_predict.py \
         -i ${input_fasta} \
         -o ernierna_out \
+        --max-len ${params.ernierna_max_len} \
         ${per_token_flag}
     """
 }
