@@ -28,6 +28,8 @@ process UTRLM_FINETUNE {
         --epochs ${params.utrlm_finetune_epochs} \
         --patience ${params.utrlm_finetune_patience} \
         --lr ${params.utrlm_finetune_lr} \
+        --batch-size ${params.utrlm_finetune_batch_size} \
+        --val-frac ${params.utrlm_finetune_val_frac} \
         --model-dir /opt/utrlm/Model \
         ${pretrained_flag}
     """

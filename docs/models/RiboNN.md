@@ -79,7 +79,7 @@ After fine-tuning (see below), use the saved checkpoint for prediction on new da
 ```bash
 nextflow run main.nf -profile docker,cpu \
   --ribonn_input /path/to/input.txt \
-  --ribonn_checkpoint results/ribonn_finetune/fold0/*.ckpt \
+  --ribonn_checkpoint results/ribonn_finetune/ribonn_finetune_out/fold0/*.ckpt \
   --ribonn_finetune_target TE_MyCondition
 ```
 
@@ -90,6 +90,7 @@ nextflow run main.nf -profile docker,cpu \
 | `--ribonn_input` | `null` | Tab-separated input file |
 | `--ribonn_species` | `human` | Species for pretrained models (`human` or `mouse`) |
 | `--ribonn_checkpoint` | `null` | Path to a fine-tuned `.ckpt` checkpoint for prediction |
+| `--ribonn_finetune_target` | `null` | When predicting with a fine-tuned `--ribonn_checkpoint`, the target column name the checkpoint was trained on (passed as the wrapper's `--target` flag). Reuses the same key as the fine-tune target. |
 
 ## Example output (truncated)
 
@@ -127,5 +128,5 @@ nextflow run main.nf -profile docker,cpu \
 
 ### Output
 
-- `ribonn_finetune/predictions.tsv` — cross-validated predictions on held-out test folds
-- `ribonn_finetune/fold*/` — saved model checkpoints per fold
+- `results/ribonn_finetune/ribonn_finetune_out/predictions.tsv` — cross-validated predictions on held-out test folds
+- `results/ribonn_finetune/ribonn_finetune_out/fold*/` — saved model checkpoints per fold

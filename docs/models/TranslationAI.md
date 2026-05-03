@@ -45,7 +45,17 @@ Three text files per input:
 > See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
 
 ```bash
+# CPU
 docker run --rm \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
+  ghcr.io/ericmalekos/rnazoo-translationai-cpu:latest \
+  bash -c "cp /data/input.fa /tmp/input.fa && \
+    translationai -I /tmp/input.fa -t 0.5,0.5 && \
+    cp /tmp/input_pred*.txt /out/"
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-translationai:latest \

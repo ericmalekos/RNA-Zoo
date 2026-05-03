@@ -86,6 +86,7 @@ Results appear in `results/utrlm/utrlm_out/`.
 |-----------|---------|-------------|
 | `--utrlm_task` | `mrl` | Prediction task: `mrl`, `te`, or `el` |
 | `--utrlm_cell_line` | `HEK` | Cell line for TE/EL tasks: `HEK`, `pc3`, or `Muscle` |
+| `--utrlm_checkpoint` | `null` | Path to a fine-tuned `.pt` checkpoint to use instead of the bundled pretrained weights |
 
 ## Available tasks
 
@@ -132,7 +133,7 @@ nextflow run main.nf -profile docker,cpu \
   --utrlm_finetune_task mrl
 ```
 
-Output: `utrlm_finetune/best_model.pt` (fine-tuned checkpoint) + `utrlm_finetune/predictions.tsv`.
+Output: `results/utrlm_finetune/utrlm_finetune_out/best_model.pt` (fine-tuned checkpoint) + `results/utrlm_finetune/utrlm_finetune_out/predictions.tsv`.
 
 ### Step 2: Predict with fine-tuned model
 
@@ -141,7 +142,7 @@ Use the saved checkpoint for subsequent predictions on new sequences:
 ```bash
 nextflow run main.nf -profile docker,cpu \
   --utrlm_input new_sequences.fa \
-  --utrlm_checkpoint utrlm_finetune/best_model.pt \
+  --utrlm_checkpoint results/utrlm_finetune/utrlm_finetune_out/best_model.pt \
   --utrlm_task mrl
 ```
 
@@ -154,6 +155,8 @@ nextflow run main.nf -profile docker,cpu \
 | `--utrlm_finetune_epochs` | `100` | Training epochs |
 | `--utrlm_finetune_patience` | `20` | Early stopping patience |
 | `--utrlm_finetune_lr` | `0.01` | Learning rate |
+| `--utrlm_finetune_batch_size` | `32` | Mini-batch size during training |
+| `--utrlm_finetune_val_frac` | `0.2` | Fraction of training rows held out for validation |
 | `--utrlm_finetune_pretrained` | (none) | Optional: initialize from an existing checkpoint |
 
 ## Technical notes

@@ -100,6 +100,8 @@ Only models with input provided will run — no ignore flags needed.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
+| `--ribotie_input` | `null` (required) | Directory containing the FASTA + GTF + BAM(s) referenced by the YAML config |
+| `--ribotie_config` | `null` (required) | YAML config file with `samples`, `out_prefix`, etc. (see upstream `transcript_transformer` docs) |
 | `--ribotie_max_epochs` | (upstream default) | Maximum training epochs |
 | `--ribotie_patience` | (upstream default) | Early stopping patience |
 | `--ribotie_checkpoint` | `null` | Path to a `*.rt.ckpt` saved from a previous run. When set, each fold's `transfer_checkpoint` in the YAML is rewritten to this file so the model skips re-fine-tuning. |

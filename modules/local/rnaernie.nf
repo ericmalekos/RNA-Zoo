@@ -1,10 +1,10 @@
 /*
 ========================================================================================
     RNAERNIE module: extract embeddings from the RNAErnie ERNIE-framework RNA LM
-    Upstream: https://github.com/CatIIIIIIII/RNAErnie
+    Upstream (original PaddlePaddle): https://github.com/CatIIIIIIII/RNAErnie (MIT)
     Paper: Wang et al., Nature Machine Intelligence 2024 (s42256-024-00836-4)
-    HF port: multimolecule/rnaernie (AGPL-3.0)
-    Input: FASTA of RNA sequences (A/C/G/U, max 510 nt each)
+    HF port (used here): LLM-EDA/RNAErnie (Apache-2.0) — official PyTorch port
+    Input: FASTA of RNA sequences (A/C/G/U, max 2046 nt each — 2048 minus CLS+SEP)
     Output: sequence_embeddings.npy (N x 768), labels.txt
 ========================================================================================
 */

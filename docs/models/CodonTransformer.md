@@ -82,6 +82,7 @@ Only models with input provided will run — no ignore flags needed.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--codontransformer_organism` | `Homo sapiens` | Target organism (any of 164 supported organisms) |
+| `--codontransformer_deterministic` | `true` | When `true`, decode by argmax (reproducible). Pass `--codontransformer_deterministic false` to sample instead. |
 
 ## Supported organisms (partial list)
 

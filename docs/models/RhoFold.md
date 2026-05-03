@@ -69,6 +69,12 @@ Only models with input provided will run — no ignore flags needed.
 
 Results appear in `results/rhofold/rhofold_out/<sequence_name>/`.
 
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--rhofold_relax_steps` | `0` | Amber energy-minimization steps after structure prediction. `0` disables relaxation (default). Set to `1000` to run Amber relaxation if OpenMM is installed in the image. |
+
 ## Viewing the output
 
 ```bash
@@ -84,7 +90,7 @@ grep "^ATOM" unrelaxed_model.pdb | awk '{print $6, $11}'
 - **CPU:** ~5-15 minutes per sequence (76 nt tRNA). Very slow for long sequences.
 - **GPU:** ~1-3 minutes per sequence. Recommended for production use.
 - Memory scales quadratically with sequence length (pair representations are L x L x 128).
-- Amber energy relaxation is disabled by default (`--relax-steps 0`). Enable with `--relax-steps 1000` if OpenMM is installed.
+- Amber energy relaxation is disabled by default. Enable via `--rhofold_relax_steps 1000` if OpenMM is installed in the image.
 
 ## Technical notes
 

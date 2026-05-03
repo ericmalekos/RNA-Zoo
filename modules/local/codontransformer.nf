@@ -20,10 +20,12 @@ process CODONTRANSFORMER {
     path "optimized_codons.fa", emit: optimized_sequences
 
     script:
+    def deterministic_flag = params.codontransformer_deterministic ? '--deterministic' : '--no-deterministic'
     """
     codon_transformer_predict.py \\
         -i ${input_fasta} \\
         -o optimized_codons.fa \\
-        --organism "${organism}"
+        --organism "${organism}" \\
+        ${deterministic_flag}
     """
 }

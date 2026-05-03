@@ -44,11 +44,14 @@ def main():
         default="Homo sapiens",
         help="Target organism name (default: 'Homo sapiens')",
     )
+    # Use BooleanOptionalAction so users can pass --deterministic or --no-deterministic;
+    # the previous declaration was action="store_true" + default=True, which made the
+    # flag a no-op (it could never set the value False).
     parser.add_argument(
         "--deterministic",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=True,
-        help="Use deterministic prediction (default: True)",
+        help="Use deterministic decoding (default: on; pass --no-deterministic to sample)",
     )
     args = parser.parse_args()
 

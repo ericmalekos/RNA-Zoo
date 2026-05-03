@@ -19,6 +19,7 @@ process RHOFOLD {
     path "rhofold_out/**/unrelaxed_model.pdb", emit: structures
     path "rhofold_out/**/ss.ct",               emit: secondary_structures
     path "rhofold_out/**/results.npz",         emit: distograms, optional: true
+    path "rhofold_out/**/log.txt",             emit: logs,       optional: true
     path "rhofold_out",                        emit: out_dir
 
     script:
@@ -26,6 +27,6 @@ process RHOFOLD {
     rhofold_predict.py \
         -i ${input_fasta} \
         -o rhofold_out \
-        --relax-steps 0
+        --relax-steps ${params.rhofold_relax_steps}
     """
 }
