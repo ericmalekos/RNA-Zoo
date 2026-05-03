@@ -39,6 +39,8 @@ process CALM_FINETUNE {
         -l calm_finetune_input_labels.txt \\
         --names-fasta calm_finetune_input.fa \\
         -o calm_finetune_out \\
+        --head-type ${params.calm_finetune_head_type} \\
+        --task ${params.calm_finetune_task} \\
         --epochs ${params.calm_finetune_epochs} \\
         --lr ${params.calm_finetune_lr}
     """

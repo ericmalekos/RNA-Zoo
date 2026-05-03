@@ -34,6 +34,8 @@ process ERNIERNA_FINETUNE {
         -l ernierna_finetune_input_labels.txt \\
         --names-fasta ernierna_finetune_input.fa \\
         -o ernierna_finetune_out \\
+        --head-type ${params.ernierna_finetune_head_type} \\
+        --task ${params.ernierna_finetune_task} \\
         --epochs ${params.ernierna_finetune_epochs} \\
         --lr ${params.ernierna_finetune_lr}
     """

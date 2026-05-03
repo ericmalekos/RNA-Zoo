@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+# Slim base + CPU-only torch + sklearn + xgboost. No model weights, no
+# transformers, no fairseq — this image only does head training on
+# precomputed embeddings.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# CPU-only PyTorch keeps the image small (~700 MB just for torch). The head
+# trainer is tiny (~ a few thousand params); GPU is unnecessary here.
+RUN pip install --no-cache-dir \
+        torch --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip install --no-cache-dir \
+        "numpy<2" \
+        scipy \
+        scikit-learn \
+        xgboost
+
+# Bake the head-trainer scripts so the image can be run standalone (the
+# Nextflow modules also host-mount these via ${projectDir}/bin/...).
+COPY bin/tsv_to_fasta.py /opt/bin/tsv_to_fasta.py
+COPY bin/finetune_head.py /opt/bin/finetune_head.py
+RUN chmod +x /opt/bin/tsv_to_fasta.py /opt/bin/finetune_head.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

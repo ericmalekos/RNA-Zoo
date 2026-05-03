@@ -177,3 +177,24 @@ Outputs land in `results/rinalmo_finetune/rinalmo_finetune_out/`:
 | `--rinalmo_finetune_label` | (required) | Column name in input TSV/CSV |
 | `--rinalmo_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
 | `--rinalmo_finetune_lr` | 1e-3 | Adam learning rate |
+
+### Fine-tune from precomputed embeddings (skip predict)
+
+If you've already run inference and saved `sequence_embeddings.npy`, you can skip the backbone forward pass and feed those embeddings directly into the head trainer — particularly valuable for RiNALMo (650M params) where re-embedding is expensive.
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --rinalmo_finetune_input my_labels.tsv \
+  --rinalmo_finetune_label te \
+  --rinalmo_finetune_embeddings my_embeddings.npy
+```
+
+When `--rinalmo_finetune_embeddings` is set, the workflow skips `rinalmo_predict.py` and uses the supplied `(N, D)` `.npy` directly. The TSV still supplies `name` and the label column; the `sequence` column is optional and ignored. Row order in the `.npy` must match row order in the TSV — the head trainer exits with an error if shapes disagree.
+
+Outputs land in the same `rinalmo_finetune_out/` directory with the same files (`best_head.pt`, `predictions.tsv`, `metrics.json`) as the full-chain mode.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--rinalmo_finetune_embeddings` | `null` | Optional precomputed `(N, D)` `.npy`; when set, skips predict |
+| `--rinalmo_finetune_head_type` | `linear` | `linear` (strict probe), `mlp` (2-layer), or `xgboost` (requires `_embeddings`) |
+| `--rinalmo_finetune_task` | `auto` | `auto`, `regression`, or `classification`; auto-detects from labels |

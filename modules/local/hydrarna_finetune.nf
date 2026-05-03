@@ -35,6 +35,8 @@ process HYDRARNA_FINETUNE {
         -l hydrarna_finetune_input_labels.txt \\
         --names-fasta hydrarna_finetune_input.fa \\
         -o hydrarna_finetune_out \\
+        --head-type ${params.hydrarna_finetune_head_type} \\
+        --task ${params.hydrarna_finetune_task} \\
         --epochs ${params.hydrarna_finetune_epochs} \\
         --lr ${params.hydrarna_finetune_lr}
     """

@@ -34,6 +34,8 @@ process ORTHRUS_FINETUNE {
         -l orthrus_finetune_input_labels.txt \\
         --names-fasta orthrus_finetune_input.fa \\
         -o orthrus_finetune_out \\
+        --head-type ${params.orthrus_finetune_head_type} \\
+        --task ${params.orthrus_finetune_task} \\
         --epochs ${params.orthrus_finetune_epochs} \\
         --lr ${params.orthrus_finetune_lr}
     """

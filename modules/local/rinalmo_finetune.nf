@@ -34,6 +34,8 @@ process RINALMO_FINETUNE {
         -l rinalmo_finetune_input_labels.txt \\
         --names-fasta rinalmo_finetune_input.fa \\
         -o rinalmo_finetune_out \\
+        --head-type ${params.rinalmo_finetune_head_type} \\
+        --task ${params.rinalmo_finetune_task} \\
         --epochs ${params.rinalmo_finetune_epochs} \\
         --lr ${params.rinalmo_finetune_lr}
     """

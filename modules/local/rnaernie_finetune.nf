@@ -32,6 +32,8 @@ process RNAERNIE_FINETUNE {
         -l rnaernie_finetune_input_labels.txt \\
         --names-fasta rnaernie_finetune_input.fa \\
         -o rnaernie_finetune_out \\
+        --head-type ${params.rnaernie_finetune_head_type} \\
+        --task ${params.rnaernie_finetune_task} \\
         --epochs ${params.rnaernie_finetune_epochs} \\
         --lr ${params.rnaernie_finetune_lr}
     """

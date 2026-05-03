@@ -109,6 +109,10 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.UTRLM
           - name: rnazoo-utrlm-cpu
             dockerfile: Dockerfiles/Dockerfile.UTRLM.cpu
+          # Generic head trainer (linear / MLP / XGBoost) for the precomputed-embeddings
+          # fine-tune path. CPU-only — head training is tiny.
+          - name: rnazoo-finetune-head
+            dockerfile: Dockerfiles/Dockerfile.FinetuneHead
           YAML
           )
           FULL=$(yq -o=json <<<"$MATRIX_YAML")

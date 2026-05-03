@@ -153,3 +153,24 @@ Outputs land in `results/plantrnafm_finetune/plantrnafm_finetune_out/`:
 | `--plantrnafm_finetune_label` | (required) | Column name in input TSV/CSV |
 | `--plantrnafm_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
 | `--plantrnafm_finetune_lr` | 1e-3 | Adam learning rate |
+
+### Fine-tune from precomputed embeddings (skip predict)
+
+If you've already run inference and saved `sequence_embeddings.npy`, you can skip the backbone forward pass and feed those embeddings directly into the head trainer — useful when iterating on head training (different epochs / lr / labels) without re-paying the predict cost.
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --plantrnafm_finetune_input my_labels.tsv \
+  --plantrnafm_finetune_label te \
+  --plantrnafm_finetune_embeddings my_embeddings.npy
+```
+
+When `--plantrnafm_finetune_embeddings` is set, the workflow skips `plantrnafm_predict.py` and uses the supplied `(N, D)` `.npy` directly. The TSV still supplies `name` and the label column; the `sequence` column is optional and ignored. Row order in the `.npy` must match row order in the TSV — the head trainer exits with an error if shapes disagree.
+
+Outputs land in the same `plantrnafm_finetune_out/` directory with the same files (`best_head.pt`, `predictions.tsv`, `metrics.json`) as the full-chain mode.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--plantrnafm_finetune_embeddings` | `null` | Optional precomputed `(N, D)` `.npy`; when set, skips predict |
+| `--plantrnafm_finetune_head_type` | `linear` | `linear` (strict probe), `mlp` (2-layer), or `xgboost` (requires `_embeddings`) |
+| `--plantrnafm_finetune_task` | `auto` | `auto`, `regression`, or `classification`; auto-detects from labels |

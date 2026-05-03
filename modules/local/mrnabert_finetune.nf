@@ -33,6 +33,8 @@ process MRNABERT_FINETUNE {
         -l mrnabert_finetune_input_labels.txt \\
         --names-fasta mrnabert_finetune_input.fa \\
         -o mrnabert_finetune_out \\
+        --head-type ${params.mrnabert_finetune_head_type} \\
+        --task ${params.mrnabert_finetune_task} \\
         --epochs ${params.mrnabert_finetune_epochs} \\
         --lr ${params.mrnabert_finetune_lr}
     """

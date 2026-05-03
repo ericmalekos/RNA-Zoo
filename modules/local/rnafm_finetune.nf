@@ -40,6 +40,8 @@ process RNAFM_FINETUNE {
         -l rnafm_finetune_input_labels.txt \\
         --names-fasta rnafm_finetune_input.fa \\
         -o rnafm_finetune_out \\
+        --head-type ${params.rnafm_finetune_head_type} \\
+        --task ${params.rnafm_finetune_task} \\
         --epochs ${params.rnafm_finetune_epochs} \\
         --lr ${params.rnafm_finetune_lr}
     """

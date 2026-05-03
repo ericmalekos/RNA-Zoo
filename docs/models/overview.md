@@ -83,7 +83,57 @@ Some models can be fine-tuned on your own data. Fine-tuned checkpoints are saved
 | [RiboNN](RiboNN.md#fine-tuning-on-your-own-data) | Transfer learning | Freeze pretrained conv layers, train head on user TE data; use saved checkpoint via `--ribonn_checkpoint` |
 | [UTR-LM](UTRLM.md#fine-tuning-on-your-own-data) | Full fine-tuning | Train ESM2 backbone + head on user MRL/TE/EL data; use saved checkpoint for prediction |
 | [RiboTIE](RiboTIE.md) | Built-in | Automatically fine-tunes on user ribo-seq BAMs before ORF prediction |
-| [RNA-FM](RNAFM.md) / [RiNALMo](RiNALMo.md) / [ERNIE-RNA](ERNIERNA.md) / [Orthrus](Orthrus.md) / [RNAErnie](RNAErnie.md) / [PlantRNA-FM](PlantRNAFM.md) / [CaLM](CaLM.md) / [mRNABERT](mRNABERT.md) / [HydraRNA](HydraRNA.md) | Linear probe | Frozen backbone + MLP head on user `(sequence, label)` data via `<MODEL>_FINETUNE`. Uniform contract: TSV/CSV with `name`, `sequence`, label column. Outputs trained head + predictions + metrics JSON. |
+| [RNA-FM](RNAFM.md) / [RiNALMo](RiNALMo.md) / [ERNIE-RNA](ERNIERNA.md) / [Orthrus](Orthrus.md) / [RNAErnie](RNAErnie.md) / [PlantRNA-FM](PlantRNAFM.md) / [CaLM](CaLM.md) / [mRNABERT](mRNABERT.md) / [HydraRNA](HydraRNA.md) | Linear probe / MLP / XGBoost; regression or classification | Frozen backbone + head on user `(sequence, label)` data via `<MODEL>_FINETUNE`. Uniform contract: TSV/CSV with `name`, `sequence`, label column. Outputs trained head + predictions + metrics JSON. Optional precomputed-embeddings shortcut: pass `--<model>_finetune_embeddings <file.npy>` to skip the predict step. |
+
+### Choosing a head
+
+Three head architectures are available via `--<model>_finetune_head_type`:
+
+- **`linear`** (default) — single `nn.Linear(D, out_dim)`. The canonical foundation-model representation-quality probe. Forces the comparison to be about backbone embeddings, not head capacity. Best when you want to publish numbers that reflect the model.
+- **`mlp`** — `Linear(D, 64) → ReLU → Dropout(0.2) → Linear(64, out_dim)`. The previous default. Pick this if you have non-linear interactions in the embedding space and enough labeled data (~hundreds+) to fit ~40K head parameters without overfitting.
+- **`xgboost`** — `XGBRegressor` / `XGBClassifier`, 200 trees, depth=6. Often beats small MLPs on small-n labeled data (≤ a few hundred examples) — tree ensembles handle non-linearities and regularize naturally. Available only via the precomputed-embeddings shortcut (`--<model>_finetune_embeddings`); runs in the dedicated `rnazoo-finetune-head` image.
+
+Backward compat: prior to 2026-05-03 the default was `mlp`. To reproduce earlier numbers, pass `--<model>_finetune_head_type mlp`.
+
+### Regression vs. classification
+
+Set `--<model>_finetune_task` to `regression`, `classification`, or `auto` (default).
+Auto-detection: numeric labels with > 10 unique values → regression; integer labels with ≤ 10 unique values, or any non-numeric labels → classification (string labels are encoded with a stable order).
+
+Regression metrics: MSE, R², Pearson r, Spearman r.
+Classification metrics: accuracy, macro/weighted F1, AUROC (binary only), confusion matrix, per-class precision/recall.
+
+#### Worked classification example: mRNA stability bin
+
+Practical scenario: you have a wet-lab dataset of mRNAs with measured half-lives, and you want a binary high-stability vs. low-stability classifier for screening new designs. Bin classification is more robust than continuous regression on noisy stability proxies.
+
+```bash
+# 1. (One-time) Compute embeddings for your sequences using the inference workflow
+nextflow run main.nf -profile docker,cpu \
+  --mrnabert_input my_seqs.fa \
+  --outdir results_emb
+
+# 2. Make a labels TSV (your data) with name + sequence + a binary "stability" column
+# name      sequence    stability
+# tx_001    AUGCC...    high
+# tx_002    AUGGG...    low
+# ...
+
+# 3. Fine-tune a classifier on top of the cached embeddings
+nextflow run main.nf -profile docker,cpu \
+  --mrnabert_finetune_input my_labels.tsv \
+  --mrnabert_finetune_label stability \
+  --mrnabert_finetune_embeddings results_emb/mrnabert/mrnabert_out/sequence_embeddings.npy \
+  --mrnabert_finetune_head_type xgboost \
+  --mrnabert_finetune_task classification
+```
+
+The result lands in `results/mrnabert_finetune/mrnabert_finetune_out/` with `best_head.ubj` (XGBoost binary), `predictions.tsv` (per-row class + probability), `metrics.json` (accuracy, macro F1, AUROC, confusion matrix).
+
+Other classification fits well-suited to RNA-Zoo's foundation models:
+- **ncRNA type** (multi-class: miRNA / snoRNA / lncRNA / tRNA / rRNA / snRNA) — standard rep-quality benchmark in foundation-model papers.
+- **Coding vs. non-coding** (binary) — de novo annotation; the LncRNA-BERT motivation.
+- **mRNA subcellular localization** (multi-class) — cytoplasm / nucleus / ER / mitochondria.
 
 ## Licenses
 

@@ -33,6 +33,8 @@ process PLANTRNAFM_FINETUNE {
         -l plantrnafm_finetune_input_labels.txt \\
         --names-fasta plantrnafm_finetune_input.fa \\
         -o plantrnafm_finetune_out \\
+        --head-type ${params.plantrnafm_finetune_head_type} \\
+        --task ${params.plantrnafm_finetune_task} \\
         --epochs ${params.plantrnafm_finetune_epochs} \\
         --lr ${params.plantrnafm_finetune_lr}
     """
