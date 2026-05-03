@@ -123,3 +123,41 @@ Pairing notes:
 - **Codon-aligned input required.** Sequences whose length is not a multiple of 3 are trimmed to the largest codon-aligned prefix; if your sequence has 5'UTR + CDS + 3'UTR concatenated without removing the UTRs, CaLM will treat the whole thing as codons and the embedding will be partly noise. Strip the UTRs first.
 - **Maximum 1024 codons** (~3 kb). Longer CDSs are truncated. For long mRNAs use Orthrus (Mamba, linear memory).
 - **Inference-only.** Upstream `training.py` exists for from-scratch pretraining but no fine-tuning recipe is shipped — fine-tuning support is not currently exposed in the pipeline.
+
+## Fine-tuning (linear probe)
+
+For supervised tasks on user-labeled data, RNA-Zoo exposes a **linear-probe fine-tune** for CaLM: the backbone stays frozen, and a small MLP head trains on top of the 768-d embeddings. This is the de facto standard for foundation models — same pattern Orthrus and HydraRNA use upstream. Backbone fine-tuning is out of scope here (separate per-model design; UTR-LM's pattern is the closest existing reference but only feasible for small backbones).
+
+### Input format
+
+TSV or CSV with required columns `name`, `sequence`, and a numeric label column. Example:
+
+```
+name<TAB>sequence<TAB>te
+seq_001<TAB>GGGUGCGAU...<TAB>1.42
+seq_002<TAB>AUUCCGAGA...<TAB>0.87
+```
+
+### Run with Nextflow
+
+```bash
+nextflow run main.nf -profile docker,cpu       # or gpu \
+  --calm_finetune_input my_labels.tsv \
+  --calm_finetune_label te
+```
+
+Device: CPU or GPU (uses the inference image). The fine-tune reuses the inference image — no new Docker image to pull.
+
+Outputs land in `results/calm_finetune/calm_finetune_out/`:
+
+- **`best_head.pt`** — trained MLP head (state_dict + config dict including label mean/std for inverse-transform at predict time)
+- **`predictions.tsv`** — predictions for every input row, with `train`/`val` split annotation
+- **`metrics.json`** — overall + train + val MSE / R² / Pearson r / Spearman r
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--calm_finetune_label` | (required) | Column name in input TSV/CSV |
+| `--calm_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
+| `--calm_finetune_lr` | 1e-3 | Adam learning rate |

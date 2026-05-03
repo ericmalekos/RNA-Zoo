@@ -83,3 +83,41 @@ ERNIE-RNA's key differentiator is the structural bias injected into attention �
 - Pretrained weights (~1 GB) downloaded from Google Drive at build time
 - The 2D structural bias computation is O(L^2), so longer sequences are slower
 - Additional fine-tuned checkpoints for SS prediction, 3D closeness, and MRL are available in the upstream repo but not exposed in this module
+
+## Fine-tuning (linear probe)
+
+For supervised tasks on user-labeled data, RNA-Zoo exposes a **linear-probe fine-tune** for ERNIERNA: the backbone stays frozen, and a small MLP head trains on top of the 768-d embeddings. This is the de facto standard for foundation models — same pattern Orthrus and HydraRNA use upstream. Backbone fine-tuning is out of scope here (separate per-model design; UTR-LM's pattern is the closest existing reference but only feasible for small backbones).
+
+### Input format
+
+TSV or CSV with required columns `name`, `sequence`, and a numeric label column. Example:
+
+```
+name<TAB>sequence<TAB>te
+seq_001<TAB>GGGUGCGAU...<TAB>1.42
+seq_002<TAB>AUUCCGAGA...<TAB>0.87
+```
+
+### Run with Nextflow
+
+```bash
+nextflow run main.nf -profile docker,cpu  # or gpu — single image \
+  --ernierna_finetune_input my_labels.tsv \
+  --ernierna_finetune_label te
+```
+
+Device: CPU or GPU (single image; uses the inference image).
+
+Outputs land in `results/ernierna_finetune/ernierna_finetune_out/`:
+
+- **`best_head.pt`** — trained MLP head (state_dict + config dict including label mean/std for inverse-transform at predict time)
+- **`predictions.tsv`** — predictions for every input row, with `train`/`val` split annotation
+- **`metrics.json`** — overall + train + val MSE / R² / Pearson r / Spearman r
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--ernierna_finetune_label` | (required) | Column name in input TSV/CSV |
+| `--ernierna_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
+| `--ernierna_finetune_lr` | 1e-3 | Adam learning rate |

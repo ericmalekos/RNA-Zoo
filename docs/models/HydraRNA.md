@@ -114,3 +114,41 @@ HydraRNA and Orthrus are the two SSM-based models in the zoo. Orthrus is mRNA-fo
 - **Inference-only.** Upstream `examples/finetune_HydraAttRNA12_mlp_5UTRMRL_scaled.py` shows MLP fine-tuning on user data, but neither continued pretraining nor task-specific heads are exposed through the pipeline.
 
 - **Long-input memory.** A 4 GB consumer GPU may OOM on inputs > 5K nt even with fp16. Try shorter chunks if you hit OOM (the wrapper currently uses the upstream's 10240 chunk size).
+
+## Fine-tuning (linear probe)
+
+For supervised tasks on user-labeled data, RNA-Zoo exposes a **linear-probe fine-tune** for HydraRNA: the backbone stays frozen, and a small MLP head trains on top of the 1024-d embeddings. This is the de facto standard for foundation models — same pattern Orthrus and HydraRNA use upstream. Backbone fine-tuning is out of scope here (separate per-model design; UTR-LM's pattern is the closest existing reference but only feasible for small backbones).
+
+### Input format
+
+TSV or CSV with required columns `name`, `sequence`, and a numeric label column. Example:
+
+```
+name<TAB>sequence<TAB>te
+seq_001<TAB>GGGUGCGAU...<TAB>1.42
+seq_002<TAB>AUUCCGAGA...<TAB>0.87
+```
+
+### Run with Nextflow
+
+```bash
+nextflow run main.nf -profile docker,gpu   # GPU-only \
+  --hydrarna_finetune_input my_labels.tsv \
+  --hydrarna_finetune_label te
+```
+
+Device: GPU only (uses the inference image; auto-skips under -profile cpu). The fine-tune reuses the inference image — no new Docker image to pull.
+
+Outputs land in `results/hydrarna_finetune/hydrarna_finetune_out/`:
+
+- **`best_head.pt`** — trained MLP head (state_dict + config dict including label mean/std for inverse-transform at predict time)
+- **`predictions.tsv`** — predictions for every input row, with `train`/`val` split annotation
+- **`metrics.json`** — overall + train + val MSE / R² / Pearson r / Spearman r
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--hydrarna_finetune_label` | (required) | Column name in input TSV/CSV |
+| `--hydrarna_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
+| `--hydrarna_finetune_lr` | 1e-3 | Adam learning rate |

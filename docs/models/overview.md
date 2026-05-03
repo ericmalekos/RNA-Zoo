@@ -83,6 +83,7 @@ Some models can be fine-tuned on your own data. Fine-tuned checkpoints are saved
 | [RiboNN](RiboNN.md#fine-tuning-on-your-own-data) | Transfer learning | Freeze pretrained conv layers, train head on user TE data; use saved checkpoint via `--ribonn_checkpoint` |
 | [UTR-LM](UTRLM.md#fine-tuning-on-your-own-data) | Full fine-tuning | Train ESM2 backbone + head on user MRL/TE/EL data; use saved checkpoint for prediction |
 | [RiboTIE](RiboTIE.md) | Built-in | Automatically fine-tunes on user ribo-seq BAMs before ORF prediction |
+| [RNA-FM](RNAFM.md) / [RiNALMo](RiNALMo.md) / [ERNIE-RNA](ERNIERNA.md) / [Orthrus](Orthrus.md) / [RNAErnie](RNAErnie.md) / [PlantRNA-FM](PlantRNAFM.md) / [CaLM](CaLM.md) / [mRNABERT](mRNABERT.md) / [HydraRNA](HydraRNA.md) | Linear probe | Frozen backbone + MLP head on user `(sequence, label)` data via `<MODEL>_FINETUNE`. Uniform contract: TSV/CSV with `name`, `sequence`, label column. Outputs trained head + predictions + metrics JSON. |
 
 ## Licenses
 

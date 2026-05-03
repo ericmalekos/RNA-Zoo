@@ -102,3 +102,41 @@ For mRNAs >5 kb, Orthrus is often the only foundation model in the zoo that fits
 - **GPU required.** No CPU fallback in the bundled image.
 - **4-track only.** The 6-track variant (which adds CDS/splice tracks for slightly better embeddings) is not exposed; GenomeKit + reference genome staging would be needed to wire it in.
 - **Embedding dimension is 512** — smaller than RiNALMo (1280) and ERNIE-RNA (768), comparable to RNA-FM (640). This is the SSM hidden dim and is fixed by the architecture.
+
+## Fine-tuning (linear probe)
+
+For supervised tasks on user-labeled data, RNA-Zoo exposes a **linear-probe fine-tune** for Orthrus: the backbone stays frozen, and a small MLP head trains on top of the 512-d embeddings. This is the de facto standard for foundation models — same pattern Orthrus and HydraRNA use upstream. Backbone fine-tuning is out of scope here (separate per-model design; UTR-LM's pattern is the closest existing reference but only feasible for small backbones).
+
+### Input format
+
+TSV or CSV with required columns `name`, `sequence`, and a numeric label column. Example:
+
+```
+name<TAB>sequence<TAB>te
+seq_001<TAB>GGGUGCGAU...<TAB>1.42
+seq_002<TAB>AUUCCGAGA...<TAB>0.87
+```
+
+### Run with Nextflow
+
+```bash
+nextflow run main.nf -profile docker,gpu    # GPU-only \
+  --orthrus_finetune_input my_labels.tsv \
+  --orthrus_finetune_label te
+```
+
+Device: GPU only (uses the inference image; auto-skips under -profile cpu). The fine-tune reuses the inference image — no new Docker image to pull.
+
+Outputs land in `results/orthrus_finetune/orthrus_finetune_out/`:
+
+- **`best_head.pt`** — trained MLP head (state_dict + config dict including label mean/std for inverse-transform at predict time)
+- **`predictions.tsv`** — predictions for every input row, with `train`/`val` split annotation
+- **`metrics.json`** — overall + train + val MSE / R² / Pearson r / Spearman r
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--orthrus_finetune_label` | (required) | Column name in input TSV/CSV |
+| `--orthrus_finetune_epochs` | 20 | Max training epochs (early-stop patience 5) |
+| `--orthrus_finetune_lr` | 1e-3 | Adam learning rate |

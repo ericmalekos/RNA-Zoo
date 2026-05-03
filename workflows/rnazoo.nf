@@ -14,14 +14,23 @@ include { SALUKI           } from '../modules/local/saluki'
 include { TRANSLATIONAI    } from '../modules/local/translationai'
 include { CODONTRANSFORMER } from '../modules/local/codontransformer'
 include { RNAFM            } from '../modules/local/rnafm'
+include { RNAFM_FINETUNE   } from '../modules/local/rnafm_finetune'
 include { RINALMO          } from '../modules/local/rinalmo'
+include { RINALMO_FINETUNE } from '../modules/local/rinalmo_finetune'
 include { ERNIERNA         } from '../modules/local/ernierna'
+include { ERNIERNA_FINETUNE } from '../modules/local/ernierna_finetune'
 include { ORTHRUS          } from '../modules/local/orthrus'
+include { ORTHRUS_FINETUNE } from '../modules/local/orthrus_finetune'
 include { RNAERNIE         } from '../modules/local/rnaernie'
+include { RNAERNIE_FINETUNE } from '../modules/local/rnaernie_finetune'
 include { PLANTRNAFM       } from '../modules/local/plantrnafm'
+include { PLANTRNAFM_FINETUNE } from '../modules/local/plantrnafm_finetune'
 include { CALM             } from '../modules/local/calm'
+include { CALM_FINETUNE    } from '../modules/local/calm_finetune'
 include { MRNABERT         } from '../modules/local/mrnabert'
+include { MRNABERT_FINETUNE } from '../modules/local/mrnabert_finetune'
 include { HYDRARNA         } from '../modules/local/hydrarna'
+include { HYDRARNA_FINETUNE } from '../modules/local/hydrarna_finetune'
 include { RNAFORMER        } from '../modules/local/rnaformer'
 include { RHOFOLD          } from '../modules/local/rhofold'
 include { SPOTRNA          } from '../modules/local/spotrna'
@@ -110,12 +119,33 @@ workflow RNAZOO {
         RNAFM(Channel.fromPath(params.rnafm_input, checkIfExists: true))
     }
 
+    if (params.rnafm_finetune_input) {
+        if (!params.rnafm_finetune_label) {
+            error "rnafm_finetune_label is required when rnafm_finetune_input is set"
+        }
+        RNAFM_FINETUNE(Channel.fromPath(params.rnafm_finetune_input, checkIfExists: true))
+    }
+
     if (params.rinalmo_input) {
         RINALMO(Channel.fromPath(params.rinalmo_input, checkIfExists: true))
     }
 
+    if (params.rinalmo_finetune_input) {
+        if (!params.rinalmo_finetune_label) {
+            error "rinalmo_finetune_label is required when rinalmo_finetune_input is set"
+        }
+        RINALMO_FINETUNE(Channel.fromPath(params.rinalmo_finetune_input, checkIfExists: true))
+    }
+
     if (params.ernierna_input) {
         ERNIERNA(Channel.fromPath(params.ernierna_input, checkIfExists: true))
+    }
+
+    if (params.ernierna_finetune_input) {
+        if (!params.ernierna_finetune_label) {
+            error "ernierna_finetune_label is required when ernierna_finetune_input is set"
+        }
+        ERNIERNA_FINETUNE(Channel.fromPath(params.ernierna_finetune_input, checkIfExists: true))
     }
 
     if (params.orthrus_input) {
@@ -126,20 +156,59 @@ workflow RNAZOO {
         }
     }
 
+    if (params.orthrus_finetune_input) {
+        if (!params.orthrus_finetune_label) {
+            error "orthrus_finetune_label is required when orthrus_finetune_input is set"
+        }
+        if (params.device == 'cpu') {
+            log.warn "Orthrus fine-tune requires a GPU — skipping under CPU mode"
+        } else {
+            ORTHRUS_FINETUNE(Channel.fromPath(params.orthrus_finetune_input, checkIfExists: true))
+        }
+    }
+
     if (params.rnaernie_input) {
         RNAERNIE(Channel.fromPath(params.rnaernie_input, checkIfExists: true))
+    }
+
+    if (params.rnaernie_finetune_input) {
+        if (!params.rnaernie_finetune_label) {
+            error "rnaernie_finetune_label is required when rnaernie_finetune_input is set"
+        }
+        RNAERNIE_FINETUNE(Channel.fromPath(params.rnaernie_finetune_input, checkIfExists: true))
     }
 
     if (params.plantrnafm_input) {
         PLANTRNAFM(Channel.fromPath(params.plantrnafm_input, checkIfExists: true))
     }
 
+    if (params.plantrnafm_finetune_input) {
+        if (!params.plantrnafm_finetune_label) {
+            error "plantrnafm_finetune_label is required when plantrnafm_finetune_input is set"
+        }
+        PLANTRNAFM_FINETUNE(Channel.fromPath(params.plantrnafm_finetune_input, checkIfExists: true))
+    }
+
     if (params.calm_input) {
         CALM(Channel.fromPath(params.calm_input, checkIfExists: true))
     }
 
+    if (params.calm_finetune_input) {
+        if (!params.calm_finetune_label) {
+            error "calm_finetune_label is required when calm_finetune_input is set"
+        }
+        CALM_FINETUNE(Channel.fromPath(params.calm_finetune_input, checkIfExists: true))
+    }
+
     if (params.mrnabert_input) {
         MRNABERT(Channel.fromPath(params.mrnabert_input, checkIfExists: true))
+    }
+
+    if (params.mrnabert_finetune_input) {
+        if (!params.mrnabert_finetune_label) {
+            error "mrnabert_finetune_label is required when mrnabert_finetune_input is set"
+        }
+        MRNABERT_FINETUNE(Channel.fromPath(params.mrnabert_finetune_input, checkIfExists: true))
     }
 
     if (params.hydrarna_input) {
@@ -147,6 +216,17 @@ workflow RNAZOO {
             log.warn "HydraRNA requires a GPU — skipping under CPU mode"
         } else {
             HYDRARNA(Channel.fromPath(params.hydrarna_input, checkIfExists: true))
+        }
+    }
+
+    if (params.hydrarna_finetune_input) {
+        if (!params.hydrarna_finetune_label) {
+            error "hydrarna_finetune_label is required when hydrarna_finetune_input is set"
+        }
+        if (params.device == 'cpu') {
+            log.warn "HydraRNA fine-tune requires a GPU — skipping under CPU mode"
+        } else {
+            HYDRARNA_FINETUNE(Channel.fromPath(params.hydrarna_finetune_input, checkIfExists: true))
         }
     }
 
