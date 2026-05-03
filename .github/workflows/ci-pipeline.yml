@@ -28,7 +28,7 @@ jobs:
           curl -s https://get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      - name: Run pipeline test suite (13 models, CPU)
+      - name: Run pipeline test suite (17 models, CPU)
         run: nextflow run . -profile test,docker,cpu
 
       - name: Verify outputs
@@ -38,6 +38,10 @@ jobs:
           test -f results_test/rnafm/rnafm_out/sequence_embeddings.npy
           test -f results_test/rinalmo/rinalmo_out/sequence_embeddings.npy
           test -f results_test/ernierna/ernierna_out/sequence_embeddings.npy
+          test -f results_test/rnaernie/rnaernie_out/sequence_embeddings.npy
+          test -f results_test/plantrnafm/plantrnafm_out/sequence_embeddings.npy
+          test -f results_test/calm/calm_out/sequence_embeddings.npy
+          test -f results_test/mrnabert/mrnabert_out/sequence_embeddings.npy
           test -f results_test/codontransformer/optimized_codons.fa
           test -f results_test/saluki/preds.npy
           test -f results_test/rnaformer/rnaformer_out/structures.txt
@@ -52,7 +56,7 @@ jobs:
           ls results_test/ribotie/ribotie_out/out/ribotie_SRR000001.gtf
           ls results_test/ribotie/ribotie_out/out/ribotie_SRR000002.gtf
           ls results_test/ribotie/ribotie_out/out/ribotie_SRR000003.gtf
-          echo "All 13 model outputs verified."
+          echo "All 17 model outputs verified."
 
       - name: Upload test results
         uses: actions/upload-artifact@v5

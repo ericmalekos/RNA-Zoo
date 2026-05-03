@@ -38,7 +38,8 @@ jobs:
           echo "NXF_SINGULARITY_CACHEDIR=$NXF_SINGULARITY_CACHEDIR" >> "$GITHUB_ENV"
           for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu \
                      translationai-cpu codontransformer-cpu rnafm-cpu rinalmo-cpu \
-                     ernierna rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+                     ernierna rnaernie-cpu plantrnafm-cpu calm-cpu mrnabert-cpu \
+                     rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
             name="ghcr.io-ericmalekos-rnazoo-${img}-latest.img"
             echo "--- Pulling $img ---"
             singularity pull --name "$NXF_SINGULARITY_CACHEDIR/$name" \
@@ -56,6 +57,10 @@ jobs:
           test -f results_test/rnafm/rnafm_out/sequence_embeddings.npy
           test -f results_test/rinalmo/rinalmo_out/sequence_embeddings.npy
           test -f results_test/ernierna/ernierna_out/sequence_embeddings.npy
+          test -f results_test/rnaernie/rnaernie_out/sequence_embeddings.npy
+          test -f results_test/plantrnafm/plantrnafm_out/sequence_embeddings.npy
+          test -f results_test/calm/calm_out/sequence_embeddings.npy
+          test -f results_test/mrnabert/mrnabert_out/sequence_embeddings.npy
           test -f results_test/codontransformer/optimized_codons.fa
           test -f results_test/saluki/preds.npy
           test -f results_test/rnaformer/rnaformer_out/structures.txt
