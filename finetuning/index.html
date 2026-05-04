@@ -1,0 +1,2505 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A Nextflow pipeline model zoo for RNA deep learning">
+      
+      
+      
+        <link rel="canonical" href="https://ericmalekos.github.io/RNA-Zoo/finetuning/">
+      
+      
+        <link rel="prev" href="../direct-docker/">
+      
+      
+        <link rel="next" href="../models/overview/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Fine Tuning - RNAZoo</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fine-tuning" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="RNAZoo" class="md-header__button md-logo" aria-label="RNAZoo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RNAZoo
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Fine Tuning
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ericmalekos/RNA-Zoo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ericmalekos/RNA-Zoo
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Fine Tuning
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../models/overview/" class="md-tabs__link">
+          
+  
+  
+  Models
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="RNAZoo" class="md-nav__button md-logo" aria-label="RNAZoo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RNAZoo
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ericmalekos/RNA-Zoo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ericmalekos/RNA-Zoo
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../direct-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Direct Docker usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fine Tuning
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fine Tuning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-foundation-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported foundation models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-execution-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two execution paths
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two execution paths">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-a-full-chain-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A: full chain (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-b-precomputed-embeddings-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B: precomputed embeddings (shortcut)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#head-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Head types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regression-vs-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regression vs. classification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-example-mrna-stability-bin-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked example: mRNA stability bin classification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-classification-tasks-well-suited-to-rnazoo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other classification tasks well-suited to RNAZoo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opt-in-test-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opt-in test profiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-specific-fine-tuning-workflows-not-the-head-trainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model-specific fine-tuning workflows (not the head trainer)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Translation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Translation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/RiboNN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RiboNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/Riboformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Riboformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/RiboTIE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RiboTIE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/seq2ribo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    seq2ribo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/TranslationAI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TranslationAI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/Saluki/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Saluki
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/CodonTransformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CodonTransformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA Foundation Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RNA Foundation Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/RNAFM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA-FM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/RiNALMo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RiNALMo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/ERNIERNA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ERNIE-RNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/Orthrus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orthrus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/RNAErnie/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNAErnie
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/PlantRNAFM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlantRNA-FM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/CaLM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CaLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/mRNABERT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mRNABERT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/HydraRNA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HydraRNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA Structure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RNA Structure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/RNAformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNAformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/RhoFold/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RhoFold
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/SPOTRNA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SPOT-RNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/DRfold2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DRfold2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA Modification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RNA Modification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/MultiRM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MultiRM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splicing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Splicing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/Pangolin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pangolin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/SpliceAI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SpliceAI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/SpliceBERT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SpliceBERT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mRNA Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    mRNA Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/UTRLM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UTR-LM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-foundation-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported foundation models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-execution-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two execution paths
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two execution paths">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-a-full-chain-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A: full chain (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-b-precomputed-embeddings-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B: precomputed embeddings (shortcut)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#head-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Head types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regression-vs-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regression vs. classification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-example-mrna-stability-bin-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked example: mRNA stability bin classification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-classification-tasks-well-suited-to-rnazoo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other classification tasks well-suited to RNAZoo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opt-in-test-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opt-in test profiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-specific-fine-tuning-workflows-not-the-head-trainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model-specific fine-tuning workflows (not the head trainer)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="fine-tuning">Fine Tuning<a class="headerlink" href="#fine-tuning" title="Permanent link">&para;</a></h1>
+<p>RNAZoo exposes a generic <strong>head trainer</strong> that fits a small head (linear / MLP / XGBoost) on top of frozen embeddings from any of the 9 foundation models — the standard "linear probe" pattern from foundation-model literature, extended with non-linear options.</p>
+<p>Three model-specific fine-tunes — <a href="../models/RiboNN/#fine-tuning-on-your-own-data">RiboNN</a>, <a href="../models/UTRLM/#fine-tuning-on-your-own-data">UTR-LM</a>, and <a href="../models/RiboTIE/">RiboTIE</a> — use their own custom training loops (not the head trainer) and are documented on their model pages. This page is about the head trainer.</p>
+<h2 id="supported-foundation-models">Supported foundation models<a class="headerlink" href="#supported-foundation-models" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Embed dim</th>
+<th>CPU image</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../models/RNAFM/">RNA-FM</a></td>
+<td>640</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><a href="../models/RiNALMo/">RiNALMo</a></td>
+<td>1280</td>
+<td>yes (slow)</td>
+</tr>
+<tr>
+<td><a href="../models/ERNIERNA/">ERNIE-RNA</a></td>
+<td>768</td>
+<td>single image</td>
+</tr>
+<tr>
+<td><a href="../models/Orthrus/">Orthrus</a></td>
+<td>512</td>
+<td>GPU-only inference; CPU fine-tune via embeddings shortcut</td>
+</tr>
+<tr>
+<td><a href="../models/RNAErnie/">RNAErnie</a></td>
+<td>768</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><a href="../models/PlantRNAFM/">PlantRNA-FM</a></td>
+<td>480</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><a href="../models/CaLM/">CaLM</a></td>
+<td>768</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><a href="../models/mRNABERT/">mRNABERT</a></td>
+<td>768</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><a href="../models/HydraRNA/">HydraRNA</a></td>
+<td>1024</td>
+<td>GPU-only inference; CPU fine-tune via embeddings shortcut</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Regression on RNA-FM with the default linear head</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-profile<span class="w"> </span>docker,cpu<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>--rnafm_finetune_input<span class="w"> </span>my_labels.tsv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--rnafm_finetune_label<span class="w"> </span>te
+</code></pre></div>
+<p>Outputs in <code>results/rnafm_finetune/rnafm_finetune_out/</code>:
+- <code>best_head.pt</code> — trained head + config
+- <code>predictions.tsv</code> — per-row predictions (train/val split annotated)
+- <code>metrics.json</code> — MSE, R², Pearson r, Spearman r (regression) or accuracy / F1 / AUROC / confusion matrix (classification)</p>
+<p>Replace <code>rnafm</code> with any other foundation-model prefix (<code>rinalmo</code>, <code>ernierna</code>, <code>orthrus</code>, <code>rnaernie</code>, <code>plantrnafm</code>, <code>calm</code>, <code>mrnabert</code>, <code>hydrarna</code>) — the rest of the interface is identical.</p>
+<h2 id="input-format">Input format<a class="headerlink" href="#input-format" title="Permanent link">&para;</a></h2>
+<p>TSV (default) or CSV with a header row. Required columns: <code>name</code>, <code>sequence</code>, and the label column (configurable via <code>--&lt;model&gt;_finetune_label</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>name&lt;TAB&gt;sequence&lt;TAB&gt;te
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>seq_001&lt;TAB&gt;GGGUGCGAU...&lt;TAB&gt;1.42
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>seq_002&lt;TAB&gt;AUUCCGAGA...&lt;TAB&gt;0.87
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>...
+</code></pre></div>
+<p>Labels can be:
+- <strong>Numeric</strong> — treated as regression by default.
+- <strong>Integer with ≤ 10 unique values</strong> — auto-detected as classification.
+- <strong>Strings</strong> (e.g. <code>high</code>, <code>low</code>) — always classification; encoded internally with a stable sort order.</p>
+<p>Override auto-detection with <code>--&lt;model&gt;_finetune_task regression|classification</code>.</p>
+<h2 id="two-execution-paths">Two execution paths<a class="headerlink" href="#two-execution-paths" title="Permanent link">&para;</a></h2>
+<h3 id="path-a-full-chain-default">Path A: full chain (default)<a class="headerlink" href="#path-a-full-chain-default" title="Permanent link">&para;</a></h3>
+<p>Predict + head training happen in one Nextflow process inside the model's existing inference image:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-profile<span class="w"> </span>docker,cpu<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--rnafm_finetune_input<span class="w"> </span>my_labels.tsv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--rnafm_finetune_label<span class="w"> </span>te
+</code></pre></div>
+<p>The backbone runs once per training session — fine if you're only fine-tuning once. Supports <code>--&lt;model&gt;_finetune_head_type linear|mlp</code> (XGBoost requires Path B).</p>
+<h3 id="path-b-precomputed-embeddings-shortcut">Path B: precomputed embeddings (shortcut)<a class="headerlink" href="#path-b-precomputed-embeddings-shortcut" title="Permanent link">&para;</a></h3>
+<p>If you've already cached embeddings (e.g., from a prior inference run), feed the <code>.npy</code> directly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 1. (One-time) Compute embeddings via the inference workflow</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-profile<span class="w"> </span>docker,cpu<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--rnafm_input<span class="w"> </span>my_seqs.fa<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>--outdir<span class="w"> </span>results_emb
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># 2. Re-use those embeddings for any number of fine-tune sessions</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-profile<span class="w"> </span>docker,cpu<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span>--rnafm_finetune_input<span class="w"> </span>my_labels.tsv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span>--rnafm_finetune_label<span class="w"> </span>te<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span>--rnafm_finetune_embeddings<span class="w"> </span>results_emb/rnafm/rnafm_out/sequence_embeddings.npy
+</code></pre></div>
+<p>When <code>--&lt;model&gt;_finetune_embeddings</code> is set, the workflow skips <code>&lt;model&gt;_predict.py</code> and runs head training in the dedicated <code>rnazoo-finetune-head</code> image (CPU, ~1.9 GB). Supports all three head types.</p>
+<p>Side benefit: Orthrus and HydraRNA fine-tunes via Path B no longer require a GPU — head training is CPU and the dedicated image doesn't need the model's CUDA stack.</p>
+<p>Embedding row order <strong>must</strong> match TSV row order. The head trainer exits with an error if shapes disagree. The <code>sequence</code> column in the TSV is optional and ignored when <code>_embeddings</code> is set.</p>
+<h2 id="head-types">Head types<a class="headerlink" href="#head-types" title="Permanent link">&para;</a></h2>
+<p>Set via <code>--&lt;model&gt;_finetune_head_type</code>. Default is <code>linear</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Architecture</th>
+<th>Approx params (D=640)</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>linear</code> (default)</td>
+<td><code>nn.Linear(D, out_dim)</code></td>
+<td>~640</td>
+<td>Canonical representation-quality probe. Forces the comparison to be about backbone embeddings, not head capacity. Best when you want numbers that reflect the foundation model.</td>
+</tr>
+<tr>
+<td><code>mlp</code></td>
+<td><code>Linear(D, 64) → ReLU → Dropout(0.2) → Linear(64, out_dim)</code></td>
+<td>~41K</td>
+<td>Non-linear interactions in the embedding space. Need a few hundred labeled examples to avoid overfitting. The default before 2026-05-03.</td>
+</tr>
+<tr>
+<td><code>xgboost</code></td>
+<td><code>XGBRegressor</code> / <code>XGBClassifier</code>, 200 trees, depth=6</td>
+<td>tree ensemble</td>
+<td>Small labeled datasets (≤ ~few hundred examples). Tree ensembles often beat small MLPs on small-n tabular data. <strong>Path B only</strong> (requires the dedicated <code>rnazoo-finetune-head</code> image).</td>
+</tr>
+</tbody>
+</table>
+<p>Backward compat: to reproduce numbers from before 2026-05-03, pass <code>--&lt;model&gt;_finetune_head_type mlp</code>.</p>
+<h2 id="regression-vs-classification">Regression vs. classification<a class="headerlink" href="#regression-vs-classification" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Regression</th>
+<th>Classification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Loss</td>
+<td>MSE (torch heads) / RMSE (XGBoost)</td>
+<td>Cross-entropy / log-loss</td>
+</tr>
+<tr>
+<td>Output</td>
+<td>Single float per row</td>
+<td>Argmax class + per-class probabilities</td>
+</tr>
+<tr>
+<td>Metrics</td>
+<td>MSE, R², Pearson r, Spearman r</td>
+<td>Accuracy, macro/weighted F1, AUROC (binary), confusion matrix, per-class precision/recall</td>
+</tr>
+<tr>
+<td>Label scaling</td>
+<td>Mean/std normalization on train split (auto-inverted at predict time)</td>
+<td>LabelEncoder; mapping saved in checkpoint</td>
+</tr>
+</tbody>
+</table>
+<p><code>--&lt;model&gt;_finetune_task</code> accepts <code>auto</code>, <code>regression</code>, or <code>classification</code>. Auto-detection rules:</p>
+<ul>
+<li>All values parse as float and have &gt; 10 unique values → <strong>regression</strong></li>
+<li>Values are integer-valued with ≤ 10 unique values, <strong>or</strong> any string label → <strong>classification</strong></li>
+</ul>
+<h2 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h2>
+<p>Whichever path and head type you pick, the output directory schema is the same:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>results/&lt;model&gt;_finetune/&lt;model&gt;_finetune_out/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── predictions.tsv      # per-row predictions
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── metrics.json         # split metrics (overall / train / val)
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>└── best_head.{pt,ubj}   # torch state_dict (linear/mlp) or XGBoost UBJSON
+</code></pre></div>
+<p>For XGBoost there's also <code>best_head_config.json</code> with the head config (head type, task, embed dim, class names) so the model can be reloaded standalone.</p>
+<p><code>predictions.tsv</code> columns:</p>
+<ul>
+<li><strong>Regression:</strong> <code>name</code>, <code>true</code>, <code>predicted</code>, <code>split</code></li>
+<li><strong>Classification:</strong> <code>name</code>, <code>true</code>, <code>predicted</code>, <code>prob_&lt;class_0&gt;</code>, …, <code>prob_&lt;class_K-1&gt;</code>, <code>split</code></li>
+</ul>
+<p><code>split</code> is <code>train</code> or <code>val</code> per the deterministic 80/20 split (<code>--&lt;model&gt;_finetune_val_frac</code> to adjust).</p>
+<h2 id="worked-example-mrna-stability-bin-classification">Worked example: mRNA stability bin classification<a class="headerlink" href="#worked-example-mrna-stability-bin-classification" title="Permanent link">&para;</a></h2>
+<p>Realistic scenario: you have a wet-lab dataset of mRNAs with measured half-lives and want a binary high-vs-low stability classifier for screening new designs. Bin classification is more robust than continuous regression on noisy stability proxies.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 1. (One-time) Compute embeddings via the inference workflow</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-profile<span class="w"> </span>docker,cpu<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>--mrnabert_input<span class="w"> </span>my_seqs.fa<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>--outdir<span class="w"> </span>results_emb
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># 2. labels TSV: name + sequence + binary &quot;stability&quot; column</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># name      sequence    stability</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># tx_001    AUGCC...    high</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># tx_002    AUGGG...    low</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># ...</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1"># 3. Fine-tune an XGBoost classifier on the cached embeddings</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-profile<span class="w"> </span>docker,cpu<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">  </span>--mrnabert_finetune_input<span class="w"> </span>my_labels.tsv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">  </span>--mrnabert_finetune_label<span class="w"> </span>stability<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">  </span>--mrnabert_finetune_embeddings<span class="w"> </span>results_emb/mrnabert/mrnabert_out/sequence_embeddings.npy<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">  </span>--mrnabert_finetune_head_type<span class="w"> </span>xgboost<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">  </span>--mrnabert_finetune_task<span class="w"> </span>classification
+</code></pre></div>
+<p>Result: <code>results/mrnabert_finetune/mrnabert_finetune_out/</code> with <code>best_head.ubj</code>, <code>predictions.tsv</code> (per-row class + probabilities), <code>metrics.json</code> (accuracy, macro F1, AUROC, confusion matrix).</p>
+<h2 id="other-classification-tasks-well-suited-to-rnazoo">Other classification tasks well-suited to RNAZoo<a class="headerlink" href="#other-classification-tasks-well-suited-to-rnazoo" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>ncRNA type</strong> (multi-class: miRNA / snoRNA / lncRNA / tRNA / rRNA / snRNA) — standard rep-quality benchmark in foundation-model papers; lets users reproduce paper-style numbers on their own data.</li>
+<li><strong>Coding vs. non-coding</strong> (binary) — de novo annotation; the LncRNA-BERT motivation.</li>
+<li><strong>mRNA subcellular localization</strong> (multi-class) — cytoplasm / nucleus / ER / mitochondria.</li>
+<li><strong>TE tertile (high / mid / low)</strong> — more robust than continuous TE prediction on sparse ribo-seq data.</li>
+</ul>
+<h2 id="common-parameters">Common parameters<a class="headerlink" href="#common-parameters" title="Permanent link">&para;</a></h2>
+<p>Each foundation model uses the same set of flags, with a per-model prefix. For RNA-FM the flags are <code>--rnafm_finetune_*</code>; substitute the prefix for any other model.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--&lt;model&gt;_finetune_input</code></td>
+<td><code>null</code></td>
+<td>TSV/CSV with <code>name</code>, <code>sequence</code> (optional under Path B), <code>&lt;label_col&gt;</code></td>
+</tr>
+<tr>
+<td><code>--&lt;model&gt;_finetune_label</code></td>
+<td><code>null</code> (required)</td>
+<td>Column name with target values</td>
+</tr>
+<tr>
+<td><code>--&lt;model&gt;_finetune_embeddings</code></td>
+<td><code>null</code></td>
+<td>Path to precomputed <code>(N, D)</code> <code>.npy</code>; switches to Path B</td>
+</tr>
+<tr>
+<td><code>--&lt;model&gt;_finetune_head_type</code></td>
+<td><code>linear</code></td>
+<td><code>linear</code>, <code>mlp</code>, or <code>xgboost</code> (xgboost requires <code>_embeddings</code>)</td>
+</tr>
+<tr>
+<td><code>--&lt;model&gt;_finetune_task</code></td>
+<td><code>auto</code></td>
+<td><code>auto</code>, <code>regression</code>, or <code>classification</code></td>
+</tr>
+<tr>
+<td><code>--&lt;model&gt;_finetune_epochs</code></td>
+<td>20</td>
+<td>Max epochs for torch heads (early-stop patience 5; ignored by XGBoost)</td>
+</tr>
+<tr>
+<td><code>--&lt;model&gt;_finetune_lr</code></td>
+<td>1e-3</td>
+<td>Adam learning rate (torch) or XGBoost learning rate</td>
+</tr>
+<tr>
+<td><code>--&lt;model&gt;_finetune_outdir</code></td>
+<td><code>&lt;outdir&gt;/&lt;model&gt;_finetune</code></td>
+<td>Output directory override</td>
+</tr>
+</tbody>
+</table>
+<p>For each foundation model's specific flag names, see its model page (linked at the top).</p>
+<h2 id="opt-in-test-profiles">Opt-in test profiles<a class="headerlink" href="#opt-in-test-profiles" title="Permanent link">&para;</a></h2>
+<p>Three test profiles exercise the head trainer end-to-end on a 30-sequence GC-correlated fixture:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># All 9 models, full chain (Path A), linear head, regression</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>nextflow<span class="w"> </span>run<span class="w"> </span>.<span class="w"> </span>-profile<span class="w"> </span>test_finetune,docker,cpu
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># All 9 models, embeddings shortcut (Path B), linear head, regression</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Uses tests/data/foundation_finetune_emb.npy (random 30×256 fixture)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>nextflow<span class="w"> </span>run<span class="w"> </span>.<span class="w"> </span>-profile<span class="w"> </span>test_finetune_from_emb,docker,cpu
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># All 9 models, classification (Path B), linear head, 2-class GC bin labels</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>nextflow<span class="w"> </span>run<span class="w"> </span>.<span class="w"> </span>-profile<span class="w"> </span>test_finetune_classify,docker,cpu
+</code></pre></div>
+<p>The smokes verify wiring + finite metrics, not learning quality (the embeddings fixture is random, so val Pearson r / accuracy is meaningless).</p>
+<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Backbone fine-tuning is out of scope</strong> for the head trainer. Frozen-backbone only. UTR-LM is the one foundation-adjacent model with backbone fine-tuning exposed (separate workflow on its model page).</li>
+<li><strong>XGBoost full-chain is rejected</strong> — running XGBoost requires the <code>rnazoo-finetune-head</code> image, which doesn't ship the model backbones. If you set <code>--&lt;model&gt;_finetune_head_type xgboost</code> without <code>--&lt;model&gt;_finetune_embeddings</code>, the workflow errors and points you at Path B.</li>
+<li><strong>Multi-label classification not supported</strong> — single-label only (one class per row). Tasks like multi-label GO term prediction would need a separate code path.</li>
+<li><strong>No imbalanced-class handling</strong> — pre-balance your training data, or accept that <code>weighted_f1</code> will reflect the imbalance.</li>
+<li><strong>No hyperparameter sweeping</strong> — defaults only. Run multiple invocations with different <code>--&lt;model&gt;_finetune_lr</code> / <code>_epochs</code> for ad-hoc sweeps.</li>
+<li><strong>No embedding-dim validation</strong> — the head trainer adapts its input layer to whatever <code>(N, D)</code> shape it sees. If you accidentally feed a 640-dim file thinking it's RNA-FM's output but actually point at the RNAErnie alias (which expects 768-dim <em>from the model</em> — but the head doesn't know that), the head will train fine. The mismatch is harmless because the head only ever sees the cached <code>.npy</code>.</li>
+</ul>
+<h2 id="model-specific-fine-tuning-workflows-not-the-head-trainer">Model-specific fine-tuning workflows (not the head trainer)<a class="headerlink" href="#model-specific-fine-tuning-workflows-not-the-head-trainer" title="Permanent link">&para;</a></h2>
+<p>These three models have custom fine-tuning pipelines that don't use <code>bin/finetune_head.py</code>. They live on their respective model pages:</p>
+<ul>
+<li><strong><a href="../models/RiboNN/#fine-tuning-on-your-own-data">RiboNN</a></strong> — transfer learning for translation-efficiency prediction. Two-phase training (frozen conv layers → full model) with K-fold cross-validation. Inputs are 4-column UTR/CDS/UTR + target tables, not the unified TSV format.</li>
+<li><strong><a href="../models/UTRLM/#fine-tuning-on-your-own-data">UTR-LM</a></strong> — full ESM2 backbone fine-tuning on user MRL/TE/EL data. Saves a checkpoint that can be passed back into prediction via <code>--utrlm_checkpoint</code>.</li>
+<li><strong><a href="../models/RiboTIE/">RiboTIE</a></strong> — built-in: every prediction run automatically fine-tunes the pretrained transformer on the user's ribo-seq BAMs before scoring ORFs. Controlled via <code>--ribotie_max_epochs</code> and <code>--ribotie_patience</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

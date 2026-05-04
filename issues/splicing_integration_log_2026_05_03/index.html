@@ -1,0 +1,2306 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A Nextflow pipeline model zoo for RNA deep learning">
+      
+      
+      
+        <link rel="canonical" href="https://ericmalekos.github.io/RNA-Zoo/issues/splicing_integration_log_2026_05_03/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Splicing track integration — autonomous run log (2026-05-03) - RNAZoo</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#splicing-track-integration-autonomous-run-log-2026-05-03" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="RNAZoo" class="md-header__button md-logo" aria-label="RNAZoo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RNAZoo
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Splicing track integration — autonomous run log (2026-05-03)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ericmalekos/RNA-Zoo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ericmalekos/RNA-Zoo
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../finetuning/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Fine Tuning
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../models/overview/" class="md-tabs__link">
+          
+  
+  
+  Models
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="RNAZoo" class="md-nav__button md-logo" aria-label="RNAZoo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RNAZoo
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ericmalekos/RNA-Zoo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ericmalekos/RNA-Zoo
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../direct-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Direct Docker usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../finetuning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fine Tuning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Translation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Translation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/RiboNN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RiboNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/Riboformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Riboformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/RiboTIE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RiboTIE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/seq2ribo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    seq2ribo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/TranslationAI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TranslationAI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/Saluki/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Saluki
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/CodonTransformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CodonTransformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA Foundation Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RNA Foundation Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/RNAFM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA-FM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/RiNALMo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RiNALMo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/ERNIERNA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ERNIE-RNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/Orthrus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orthrus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/RNAErnie/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNAErnie
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/PlantRNAFM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlantRNA-FM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/CaLM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CaLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/mRNABERT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mRNABERT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/HydraRNA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HydraRNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA Structure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RNA Structure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/RNAformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNAformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/RhoFold/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RhoFold
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/SPOTRNA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SPOT-RNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/DRfold2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DRfold2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RNA Modification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RNA Modification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/MultiRM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MultiRM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splicing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Splicing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/Pangolin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pangolin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/SpliceAI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SpliceAI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/SpliceBERT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SpliceBERT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mRNA Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    mRNA Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/UTRLM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UTR-LM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-rules-in-effect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision rules in effect
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checkpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#2026-05-03-1651-block-0-license-re-verify-all-3-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-03 16:51 — Block 0 — License re-verify (all 3 models)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2026-05-03-1655-splicebert-block-1-image-build-standalone-smoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-03 16:55 — SpliceBERT Block 1 — image build + standalone smoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2026-05-03-1702-splicebert-block-2-nextflow-wiring-smoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-03 17:02 — SpliceBERT Block 2 — Nextflow wiring + smoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2026-05-03-1705-splicebert-block-3-4-docs-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-03 17:05 — SpliceBERT Block 3 + 4 — docs + verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2026-05-03-1709-spliceai-block-1-image-build-standalone-smoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-03 17:09 — SpliceAI Block 1 — image build + standalone smoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2026-05-03-1716-spliceai-block-2-nextflow-wiring-smoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-03 17:16 — SpliceAI Block 2 — Nextflow wiring + smoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2026-05-03-1718-spliceai-block-3-4-docs-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-03 17:18 — SpliceAI Block 3 + 4 — docs + verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-of-run-summary-2026-05-03-1721" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-of-run summary (2026-05-03 17:21)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="End-of-run summary (2026-05-03 17:21)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-landed-all-in-working-tree-no-commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What landed (all in working tree, no commits)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blockers-decisions-for-the-user-on-return" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blockers / decisions for the user on return
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes-on-the-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes on the integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-model-elapsed-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-model elapsed time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-next-actions-for-the-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended next actions for the user
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pangolin-re-enable-2026-05-03-2338" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pangolin re-enable (2026-05-03 23:38)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="splicing-track-integration-autonomous-run-log-2026-05-03">Splicing track integration — autonomous run log (2026-05-03)<a class="headerlink" href="#splicing-track-integration-autonomous-run-log-2026-05-03" title="Permanent link">&para;</a></h1>
+<p>Live log for the integration of SpliceBERT, SpliceAI, and Pangolin into the RNAZoo pipeline. Plan reference: <code>~/.claude/plans/elegant-beaming-unicorn.md</code>.</p>
+<p>User is away from keyboard for many hours; this run is autonomous. No commits or pushes happen during the run.</p>
+<h2 id="status">Status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h2>
+<p>Legend: ⏳ in progress · ✓ done · ✗ failed/abandoned · ⊘ skipped/blocked · — not started</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Block 0 (license)</th>
+<th>Block 1 (image+smoke)</th>
+<th>Block 2 (nf wiring+smoke)</th>
+<th>Block 3 (docs)</th>
+<th>Block 4 (verify)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(preflight)</td>
+<td>✓</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>SpliceBERT</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>SpliceAI</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Pangolin</td>
+<td>✓ (GPL-3.0 OK)</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<h2 id="decision-rules-in-effect">Decision rules in effect<a class="headerlink" href="#decision-rules-in-effect" title="Permanent link">&para;</a></h2>
+<ul>
+<li>2x build failure with same root-cause class → skip remaining blocks for that model</li>
+<li>Per-block hard cap → log status, move to next block (or model if Block 1)</li>
+<li>No commit, no push (per <code>~/.claude/CLAUDE.md</code> and memory <code>feedback_no_commit_without_ask.md</code>)</li>
+<li>Bionic-apt-mirror trap — avoid <code>apt-get update</code> on Ubuntu 18.04 base images</li>
+</ul>
+<h2 id="checkpoints">Checkpoints<a class="headerlink" href="#checkpoints" title="Permanent link">&para;</a></h2>
+<h3 id="2026-05-03-1651-block-0-license-re-verify-all-3-models">2026-05-03 16:51 — Block 0 — License re-verify (all 3 models)<a class="headerlink" href="#2026-05-03-1651-block-0-license-re-verify-all-3-models" title="Permanent link">&para;</a></h3>
+<p>Queried upstream LICENSE files via <code>gh api repos/&lt;owner&gt;/&lt;repo&gt;/license</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>SPDX ID</th>
+<th>License name</th>
+<th>LICENSE sha (upstream)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SpliceBERT</td>
+<td>BSD-3-Clause</td>
+<td>BSD 3-Clause "New" or "Revised"</td>
+<td>34ef665c2f6abbdc416539f5cdb1f226a653515a</td>
+</tr>
+<tr>
+<td>SpliceAI</td>
+<td>NOASSERTION</td>
+<td>Other (PolyForm Strict + CC BY-NC 4.0 weights, per <code>LICENSE.md</code> body)</td>
+<td>d4a1bd1660b0c9e6121628af447011030dbaaec1</td>
+</tr>
+<tr>
+<td>Pangolin</td>
+<td><strong>GPL-3.0</strong></td>
+<td>GNU General Public License v3.0</td>
+<td>f288702d2fa16d3cdf0035b15a9fcbc552cd88e7</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Critical correction:</strong> CLAUDE.md currently lists Pangolin as <code>MIT</code> — that is <strong>wrong</strong>. Upstream's <code>LICENSE</code> is GPL-3.0 (verified via <code>gh api</code>). The exploration agent was right; CLAUDE.md should be corrected on the user's next pass.</p>
+<p><strong>Decision per plan rule "if Pangolin is GPLv3, skip":</strong> Pangolin is dropped from this autonomous run.</p>
+<p>Note for the user on return: <strong>GPL-3.0 is not technically incompatible with public Docker distribution</strong> — RNAZoo is already a public repo, Dockerfiles live in-tree, and downstream users can rebuild from source. The viral clause means anyone redistributing the image is bound by GPLv3 for any modifications they make to Pangolin's code; that is acceptable for a research tool and is exactly how many bioinformatics images (FastQC, bcftools-GPL, etc.) are distributed today. <strong>If you want Pangolin in the zoo despite the GPLv3, the integration is straightforward — un-skip and re-run.</strong> The skip here is a conservative read of the plan, not a hard legal block.</p>
+<p>SpliceAI's NOASSERTION posture (PolyForm Strict source + CC BY-NC 4.0 weights) is the more meaningful constraint — non-commercial only. Proceeding per user's explicit "contact authors later" decision.</p>
+<p>SpliceBERT BSD-3 is fully clean for ghcr.io public distribution.</p>
+<p>Block 0 elapsed: ~2 min (well under 15 min cap).</p>
+<h3 id="2026-05-03-1655-splicebert-block-1-image-build-standalone-smoke">2026-05-03 16:55 — SpliceBERT Block 1 — image build + standalone smoke<a class="headerlink" href="#2026-05-03-1655-splicebert-block-1-image-build-standalone-smoke" title="Permanent link">&para;</a></h3>
+<p><strong>Source survey</strong> — Zenodo <code>models.tar.gz</code> (217.6 MB) ships 3 SpliceBERT variants. Picked <code>SpliceBERT.1024nt</code> (longest context, broad cross-species pretrain). Config: BertForMaskedLM, hidden_size=512, max_pos=1026, num_hidden_layers=6, num_attention_heads=16, vocab_size=10 (<code>[PAD] [UNK] [CLS] [SEP] [MASK] N A C G T</code>). Tokenizer: BertTokenizer expecting whitespace-separated DNA letters (U→T conversion at wrapper level).</p>
+<p><strong>Files created:</strong>
+- <code>Dockerfiles/Dockerfile.SpliceBERT</code> (GPU, cu118 torch wheel; 217 MB Zenodo tarball, only 1024nt variant extracted to <code>/opt/splicebert_weights</code>)
+- <code>Dockerfiles/Dockerfile.SpliceBERT.cpu</code>
+- <code>bin/splicebert_predict.py</code> (mirrors <code>plantrnafm_predict.py</code> pattern; 512-d output instead of 480-d; whitespace tokenization with U→T)</p>
+<p><strong>Build:</strong> <code>docker build -f Dockerfiles/Dockerfile.SpliceBERT.cpu -t rnazoo-splicebert-cpu:local-test .</code> — succeeded, <strong>2.21 GB image, ~2 min</strong> (well under 90 min cap). HF transformers 4.48.3 + torch 2.2 cpuonly.</p>
+<p><strong>Smoke test:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=runner \
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    -v $HOME/splicebert_smoke:/work \
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    rnazoo-splicebert-cpu:local-test \
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    splicebert_predict.py -i /work/input.fa -o /work/out --batch-size 2
+</code></pre></div>
+Output: <code>(2, 512)</code> float32, distinct rows, labels match. Benign HF warning about <code>bert.pooler.dense</code> not initialized — we mean-pool over <code>last_hidden_state</code> ourselves so the pooler is unused (same warning RNA-FM/PlantRNA-FM produce).</p>
+<p><code>ruff check bin/splicebert_predict.py</code> — clean.</p>
+<p>Block 1 elapsed: ~7 min.</p>
+<h3 id="2026-05-03-1702-splicebert-block-2-nextflow-wiring-smoke">2026-05-03 17:02 — SpliceBERT Block 2 — Nextflow wiring + smoke<a class="headerlink" href="#2026-05-03-1702-splicebert-block-2-nextflow-wiring-smoke" title="Permanent link">&para;</a></h3>
+<p><strong>Files modified:</strong>
+- <code>modules/local/splicebert.nf</code> (created — mirrors <code>plantrnafm.nf</code>)
+- <code>nextflow.config</code> (added 5 params: <code>splicebert_{input,outdir,per_token,max_len,batch_size}</code>)
+- <code>conf/modules.config</code> (added <code>withName: 'SPLICEBERT'</code> block routing to <code>rnazoo-splicebert{,-cpu}:latest</code>)
+- <code>conf/test.config</code> (wired <code>splicebert_input = "${projectDir}/tests/data/rnafm_test.fa"</code>)
+- <code>workflows/rnazoo.nf</code> (include + conditional invocation gated on <code>params.splicebert_input</code>)</p>
+<p><strong>Gotcha encountered:</strong> initial smoke run via <code>-profile test,docker,cpu --rnafm_input '' --... ''</code> failed with <code>No signature of method: java.lang.Boolean.getFileSystem()</code> — Nextflow 25.10 treats CLI empty-string overrides for path params as Boolean, then fails the path-existence check. Fix: use a minimal <code>-c &lt;override.config&gt;</code> instead of CLI flags to isolate a single-model smoke. This is local-test ergonomics only; the published <code>-profile test</code> still runs every model with a real test fixture.</p>
+<p>Image was retagged locally as <code>ghcr.io/ericmalekos/rnazoo-splicebert-cpu:latest</code> so <code>modules.config</code> resolves the container without a registry pull.</p>
+<p><strong>Smoke command:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nextflow run main.nf -profile docker,cpu -c /tmp/sb_only.config -w work_splicebert
+</code></pre></div>
+where <code>/tmp/sb_only.config</code> sets only <code>splicebert_input</code> + <code>outdir</code>.</p>
+<p><strong>Result:</strong> pipeline ran 1 of 1 process to completion. Output landed at
+<code>results_test_splicebert/splicebert/splicebert_out/{sequence_embeddings.npy,labels.txt}</code>. Embeddings shape <code>(2, 512)</code> float32, labels match input headers.</p>
+<p>Block 2 elapsed: ~5 min.</p>
+<h3 id="2026-05-03-1705-splicebert-block-3-4-docs-verification">2026-05-03 17:05 — SpliceBERT Block 3 + 4 — docs + verification<a class="headerlink" href="#2026-05-03-1705-splicebert-block-3-4-docs-verification" title="Permanent link">&para;</a></h3>
+<p><strong>Files created:</strong>
+- <code>docs/models/SpliceBERT.md</code> (full model page mirrors PlantRNAFM.md structure)</p>
+<p><strong>Files modified:</strong>
+- <code>mkdocs.yml</code> — new <code>Splicing:</code> subsection under <code>Models:</code> with SpliceBERT entry (placed between RNA Modification and mRNA Design — same ordering as <code>docs/models/overview.md</code>)
+- <code>README.md</code> — count <code>22 models across translation, structure, modification, and more</code> → <code>23 models across translation, structure, splicing, modification, and more</code>; new SpliceBERT row in the Models table
+- <code>docs/index.md</code> — count <code>22 models across 5 tracks</code> → <code>23 models across 6 tracks</code>; new SpliceBERT row in Specialized models table; totals bumped (~33 GB → ~34 GB CPU set across 19 images; ~95 GB → ~98 GB GPU set across 23 images)
+- <code>docs/models/overview.md</code> — count <code>22 RNA deep learning models across 5 tracks</code> → <code>23 ... 6 tracks</code>; new SpliceBERT row in "All models at a glance"; new <code>### Splicing (1 model)</code> track subsection; new SpliceBERT row in Licenses table
+- <code>docs/getting-started/installation.md</code> — added <code>splicebert</code>/<code>splicebert-cpu</code> to GPU/CPU pull loops; bumped CPU test count <code>17 of 22</code> → <code>18 of 23</code>; bumped GPU test count <code>22</code> → <code>23</code>; added <code>RNAZOO:SPLICEBERT</code> row to both expected outputs
+- <code>docs/direct-docker.md</code> — added SpliceBERT row to Simple-models table
+- <code>.github/workflows/publish-images.yml</code> — added Splicing matrix block with <code>rnazoo-splicebert</code> + <code>rnazoo-splicebert-cpu</code></p>
+<p><strong>Verification:</strong>
+- <code>mkdocs build --strict</code> — exit 0. Informational message that <code>issues/splicing_integration_log_2026_05_03.md</code> (this log) and <code>benchmarks.md</code> are not in the nav; both intentional.
+- <code>ruff check bin/</code> — clean.</p>
+<p>Block 3+4 elapsed: ~5 min.</p>
+<p><strong>SpliceBERT — done.</strong> Per-block elapsed totals: Block 1 ~7 min, Block 2 ~5 min, Block 3+4 ~5 min. Total ~17 min vs ~3.5 h plan budget.</p>
+<h3 id="2026-05-03-1709-spliceai-block-1-image-build-standalone-smoke">2026-05-03 17:09 — SpliceAI Block 1 — image build + standalone smoke<a class="headerlink" href="#2026-05-03-1709-spliceai-block-1-image-build-standalone-smoke" title="Permanent link">&para;</a></h3>
+<p><strong>Source survey</strong> — spliceai 1.3.1 on PyPI (latest, dormant since 2019). Depends on <code>keras&gt;=2.0.5</code> (the Keras 2 API path <code>keras.models.load_model</code>). Modern <code>keras&gt;=3</code> broke this import — the package re-enters via <code>tf.keras</code> only. Pin: <code>tensorflow~=2.13.0</code> (last TF version bundling Keras 2) + <code>keras&lt;3</code>.</p>
+<p>Bundled assets in the pip package: 5 <code>.h5</code> model files, GENCODE V24 annotations for grch37 + grch38 (~1 MB combined). Total package weight ~200 MB.</p>
+<p><strong>Files created:</strong>
+- <code>Dockerfiles/Dockerfile.SpliceAI.cpu</code> (<code>python:3.10-slim</code> base; pins <code>tensorflow~=2.13.0</code> + <code>keras&lt;3</code>)
+- <code>Dockerfiles/Dockerfile.SpliceAI</code> (<code>tensorflow/tensorflow:2.13.0-gpu</code> base; layers <code>keras&lt;3</code> + spliceai over the prebuilt cuda TF wheel)
+- <code>bin/spliceai_predict.py</code> (thin argparse wrapper around upstream <code>spliceai</code> CLI; standardises <code>-i / -o / -r / -a / -d / -m</code> for the Nextflow module)
+- <code>tests/data/spliceai/{mini_ref.fa,mini_anno.tsv,test_variants.vcf}</code> (synthetic 12-kb mini-genome + 3-exon TEST_GENE annotation + 1-SNV VCF; total &lt; 13 KB — see "Test fixture rationale" below)</p>
+<p><strong>Test fixture rationale.</strong> SpliceAI scores variants only inside genes defined in the annotation file, and uses a ±5 kb FASTA window per variant. To avoid shipping any human reference genome (~3 GB of GRCh38) we synthesise a fake <code>TEST_CHR</code> with random ACGT, define a single fake gene <code>TEST_GENE</code> via a custom GENCODE-style TSV, and place 1 SNV at the exon-2 midpoint. Delta scores from the smoke run are all <code>0.00</code> because the random sequence has no real splice motifs — but the goal is to verify the <strong>pipeline</strong>, not the science.</p>
+<p><strong>Build:</strong> <code>docker build -f Dockerfiles/Dockerfile.SpliceAI.cpu -t rnazoo-spliceai-cpu:local-test .</code> — succeeded, <strong>2.24 GB image, ~2 min</strong>. Resolved deps include <code>tensorflow-2.13.1</code>, <code>keras-2.13.1</code>, <code>numpy-1.24.3</code>, <code>pyfaidx-0.9.0.4</code>, <code>pysam-0.24.0</code>, <code>spliceai-1.3.1</code>.</p>
+<p><strong>Smoke test:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=runner \
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    -v $HOME/spliceai_smoke:/work \
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    rnazoo-spliceai-cpu:local-test \
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    spliceai_predict.py -i /work/test_variants.vcf -o /work/test_variants.annot.vcf \
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                         -r /work/mini_ref.fa -a /work/mini_anno.tsv
+</code></pre></div>
+Output <code>test_variants.annot.vcf</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>TEST_CHR  5500  .  G  A  .  .  SpliceAI=A|TEST_GENE|0.00|0.00|0.00|0.00|14|-23|-15|49
+</code></pre></div>
+Pyfaidx silently created <code>mini_ref.fa.fai</code> next to the FASTA. Standard TF noise (cudart_stub, retracing warning, "model was <em>not</em> compiled" — all benign).</p>
+<p><code>ruff check bin/spliceai_predict.py</code> — clean (after a 3-line-length fix).</p>
+<p>Block 1 elapsed: ~7 min.</p>
+<h3 id="2026-05-03-1716-spliceai-block-2-nextflow-wiring-smoke">2026-05-03 17:16 — SpliceAI Block 2 — Nextflow wiring + smoke<a class="headerlink" href="#2026-05-03-1716-spliceai-block-2-nextflow-wiring-smoke" title="Permanent link">&para;</a></h3>
+<p><strong>Files created:</strong>
+- <code>modules/local/spliceai.nf</code> — multi-input pattern: <code>path input_vcf, path reference_fasta, tuple val(annotation_arg), path(annotation_file)</code>. The tuple lets the module accept either a builtin keyword (<code>grch37</code>/<code>grch38</code>) or a custom annotation TSV without juggling two separate process signatures
+- <code>assets/NO_FILE</code> — empty placeholder so Nextflow has something to stage when the user picks a builtin annotation (standard nf-core convention)</p>
+<p><strong>Files modified:</strong>
+- <code>nextflow.config</code> — 6 new SpliceAI params: <code>spliceai_{vcf,reference_fasta,annotation,outdir,distance,mask}</code>
+- <code>conf/modules.config</code> — <code>withName: 'SPLICEAI'</code> block routing to <code>rnazoo-spliceai{,-cpu}:latest</code>
+- <code>conf/test.config</code> — wired all 3 spliceai inputs to <code>tests/data/spliceai/*</code>
+- <code>workflows/rnazoo.nf</code> — include + invocation; resolves whether annotation is builtin vs file and emits the tuple accordingly</p>
+<p><strong>Smoke command:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>nextflow run main.nf -profile docker,cpu -c /tmp/sai_only.config -w work_spliceai
+</code></pre></div>
+<strong>Result:</strong> pipeline ran 1 of 1 process to completion. Output landed at
+<code>results_test_spliceai/spliceai/spliceai_out/test_variants.spliceai.vcf</code> with the same <code>SpliceAI=A|TEST_GENE|0.00|...</code> annotation as the standalone smoke. Round-trip elapsed: ~21 sec.</p>
+<p>Block 2 elapsed: ~7 min.</p>
+<h3 id="2026-05-03-1718-spliceai-block-3-4-docs-verification">2026-05-03 17:18 — SpliceAI Block 3 + 4 — docs + verification<a class="headerlink" href="#2026-05-03-1718-spliceai-block-3-4-docs-verification" title="Permanent link">&para;</a></h3>
+<p><strong>Files created:</strong>
+- <code>docs/models/SpliceAI.md</code> (full model page; prominent <strong>non-commercial</strong> license callout at the top + Limitations section)</p>
+<p><strong>Files modified:</strong>
+- <code>mkdocs.yml</code> — added <code>SpliceAI: models/SpliceAI.md</code> to the new Splicing nav subsection (now 2 entries: SpliceAI + SpliceBERT, alphabetical)
+- <code>README.md</code> — bumped count <code>23</code> → <code>24</code>; added SpliceAI row to Models table
+- <code>docs/index.md</code> — bumped count <code>23 models across 6 tracks</code> → <code>24 models across 6 tracks</code>; added SpliceAI row to Specialized table; bumped totals (~34 GB → ~36 GB CPU set across 20 images; ~98 GB → ~100 GB GPU set across 24 images)
+- <code>docs/models/overview.md</code> — bumped count <code>23</code> → <code>24</code>; added SpliceAI row to "All models at a glance"; promoted Splicing subsection from <code>(1 model)</code> to <code>(2 models)</code> with new SpliceAI bullet; added SpliceAI row to Licenses table
+- <code>docs/getting-started/installation.md</code> — added <code>spliceai</code> / <code>spliceai-cpu</code> to GPU/CPU pull loops; bumped CPU test <code>18 of 23</code> → <code>19 of 24</code>; bumped GPU test <code>23</code> → <code>24</code>; added <code>RNAZOO:SPLICEAI</code> row to both expected outputs
+- <code>docs/direct-docker.md</code> — added a SpliceAI bullet under "Models with model-family / cell-line flags" (it has 3 inputs so single-mount-input table doesn't fit cleanly)
+- <code>.github/workflows/publish-images.yml</code> — added <code>rnazoo-spliceai</code> + <code>rnazoo-spliceai-cpu</code> matrix entries</p>
+<p><strong>Verification:</strong>
+- <code>mkdocs build --strict</code> — exit 0; same informational orphans as before (<code>benchmarks.md</code>, <code>issues/splicing_integration_log_2026_05_03.md</code>)
+- <code>ruff check bin/</code> — clean</p>
+<p>Block 3+4 elapsed: ~3 min.</p>
+<p><strong>SpliceAI — done.</strong> Per-block elapsed totals: Block 1 ~7 min, Block 2 ~7 min, Block 3+4 ~3 min. Total ~17 min vs ~3.5 h plan budget.</p>
+<h2 id="end-of-run-summary-2026-05-03-1721">End-of-run summary (2026-05-03 17:21)<a class="headerlink" href="#end-of-run-summary-2026-05-03-1721" title="Permanent link">&para;</a></h2>
+<p><strong>Total wall-clock: ~30 minutes</strong> vs plan budget of ~10.5 hours. The plan time-blocks were sized for friction that never materialised — both ML stacks (TF 2.13 + Keras 2 for SpliceAI; HuggingFace transformers for SpliceBERT) installed cleanly and the pipeline templates (PlantRNA-FM for SpliceBERT, RiboTIE-style multi-input for SpliceAI) ported with no upstream-API surprises.</p>
+<h3 id="what-landed-all-in-working-tree-no-commits">What landed (all in working tree, no commits)<a class="headerlink" href="#what-landed-all-in-working-tree-no-commits" title="Permanent link">&para;</a></h3>
+<p><strong>SpliceBERT (Splicing track, FM-style):</strong>
+- Dockerfiles: <code>Dockerfile.SpliceBERT</code> (GPU), <code>Dockerfile.SpliceBERT.cpu</code>
+- Wrapper: <code>bin/splicebert_predict.py</code>
+- Module: <code>modules/local/splicebert.nf</code>
+- Test fixture: reuses <code>tests/data/rnafm_test.fa</code>
+- Docs: <code>docs/models/SpliceBERT.md</code>
+- Plumbing: 5 params in <code>nextflow.config</code>, container/publishDir block in <code>conf/modules.config</code>, fixture wiring in <code>conf/test.config</code>, include + invocation in <code>workflows/rnazoo.nf</code>
+- CI matrix: 2 entries in <code>.github/workflows/publish-images.yml</code>
+- Sitewide: <code>mkdocs.yml</code> (new Splicing nav subsection), <code>README.md</code>, <code>docs/index.md</code>, <code>docs/models/overview.md</code>, <code>docs/getting-started/installation.md</code>, <code>docs/direct-docker.md</code></p>
+<p><strong>SpliceAI (Splicing track, variant-effect):</strong>
+- Dockerfiles: <code>Dockerfile.SpliceAI</code> (GPU; tensorflow:2.13.0-gpu base), <code>Dockerfile.SpliceAI.cpu</code> (python:3.10-slim base)
+- Wrapper: <code>bin/spliceai_predict.py</code> (thin pass-through to upstream <code>spliceai</code> CLI)
+- Module: <code>modules/local/spliceai.nf</code> (multi-input: <code>path vcf, path ref, tuple val(anno_arg), path(anno_file)</code>)
+- Placeholder: <code>assets/NO_FILE</code> (used when <code>--spliceai_annotation</code> is the builtin <code>grch37</code>/<code>grch38</code> keyword)
+- Test fixture: <code>tests/data/spliceai/{mini_ref.fa,mini_anno.tsv,test_variants.vcf}</code> — synthetic 12-kb chrom + 1 fake gene + 1 SNV, no real human reference required
+- Docs: <code>docs/models/SpliceAI.md</code> with prominent non-commercial license callout
+- Plumbing: 6 params in <code>nextflow.config</code>, container/publishDir block in <code>conf/modules.config</code>, 3-line fixture wiring in <code>conf/test.config</code>, include + invocation (with builtin-vs-file annotation switch) in <code>workflows/rnazoo.nf</code>
+- CI matrix: 2 entries in <code>.github/workflows/publish-images.yml</code>
+- Sitewide: same set of files as SpliceBERT, all bumped from "23 models" / "5 tracks" → "24 models" / "6 tracks"</p>
+<h3 id="blockers-decisions-for-the-user-on-return">Blockers / decisions for the user on return<a class="headerlink" href="#blockers-decisions-for-the-user-on-return" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Pangolin skipped — GPL-3.0, not MIT.</strong> CLAUDE.md's Pangolin entry says <code>MIT</code>; upstream LICENSE (verified via <code>gh api repos/tkzeng/Pangolin/license</code>) is <code>GPL-3.0</code>. Per the plan's conservative decision rule, Pangolin was dropped from this run. <strong>GPL-3.0 is not technically incompatible with public Docker distribution</strong> — the Dockerfile is in-tree, downstream rebuilders are bound by the same license, this is how many bioinformatics tools (FastQC, bcftools-GPL) ship today. If you want Pangolin in the zoo despite the GPLv3, the integration is straightforward: re-enable, follow the same multi-input template SpliceAI uses (VCF + ref FASTA + gffutils DB instead of TSV), and update <code>CLAUDE.md</code>'s license entry.</li>
+<li><strong>CLAUDE.md license correction needed for Pangolin</strong> (<code>MIT</code> → <code>GPL-3.0</code>). One-line fix.</li>
+<li><strong>SpliceAI is non-commercial only.</strong> Source under PolyForm Strict 1.0.0, weights under CC-BY-NC-4.0. Documented prominently on the model page; user has authorised including it for now and plans to contact Illumina for a commercial license posture decision.</li>
+<li><strong>No commit, no push.</strong> Per <code>~/.claude/CLAUDE.md</code> and memory <code>feedback_no_commit_without_ask.md</code>. User reviews on return and decides commit boundary.</li>
+<li><strong>Image rebuild needed before pipeline users see SpliceBERT/SpliceAI.</strong> Once you commit + push, dispatch:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>gh workflow run publish-images.yml -f images=rnazoo-splicebert,rnazoo-splicebert-cpu,rnazoo-spliceai,rnazoo-spliceai-cpu
+</code></pre></div></li>
+<li><strong>CodonTransformer rebuild from previous session still pending</strong> — same <code>gh workflow run publish-images.yml -f images=rnazoo-codontransformer,rnazoo-codontransformer-cpu</code> (carried over from <code>e85c37b</code>).</li>
+</ol>
+<h3 id="notes-on-the-integration">Notes on the integration<a class="headerlink" href="#notes-on-the-integration" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>SpliceBERT is filed under Splicing track per CLAUDE.md</strong> even though architecturally it's an FM (FASTA → 512-d embeddings). The docs nav, overview tier list, and totals all reflect Splicing placement.</li>
+<li><strong>SpliceAI's annotation flag is dual-mode.</strong> The Nextflow module accepts either a builtin keyword (<code>grch37</code> / <code>grch38</code>) or a path to a custom GENCODE-style TSV. The tuple-input + <code>assets/NO_FILE</code> placeholder pattern is the cleanest way to avoid two separate process signatures; same trick will help if more multi-input variant-effect tools land later (e.g., a future Pangolin re-enable).</li>
+<li><strong>Test fixture for SpliceAI is synthetic</strong> — 12 kb random chrom + 1 fake gene + 1 SNV. Delta scores are all 0.00 (random sequence has no real splice motifs) but it exercises the pipeline plumbing end-to-end without shipping any human reference data. Real predictions require a real reference genome.</li>
+<li><strong>mkdocs orphan warning</strong> for <code>issues/splicing_integration_log_2026_05_03.md</code> is intentional — this log is for the user's review and not part of the user-facing docs site.</li>
+</ul>
+<h3 id="per-model-elapsed-time">Per-model elapsed time<a class="headerlink" href="#per-model-elapsed-time" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Block 1</th>
+<th>Block 2</th>
+<th>Block 3+4</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SpliceBERT</td>
+<td>~7 min</td>
+<td>~5 min</td>
+<td>~5 min</td>
+<td>~17 min</td>
+</tr>
+<tr>
+<td>SpliceAI</td>
+<td>~7 min</td>
+<td>~7 min</td>
+<td>~3 min</td>
+<td>~17 min</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>~34 min</strong> (incl. Block 0 + log overhead)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="recommended-next-actions-for-the-user">Recommended next actions for the user<a class="headerlink" href="#recommended-next-actions-for-the-user" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Skim each of the 7+ docs file changes above, especially <code>docs/models/SpliceAI.md</code> and <code>docs/models/SpliceBERT.md</code>, for tone + accuracy.</li>
+<li>Verify the docs-render in <code>site/</code> if you want a visual check (<code>mkdocs serve</code>).</li>
+<li>If you want Pangolin too: see "Blockers / decisions" #1.</li>
+<li>Commit + push, then dispatch the image rebuild (#5).</li>
+<li>Update <code>CLAUDE.md</code>'s Pangolin license line (#2) — independent of whether you re-enable Pangolin.</li>
+</ol>
+<h2 id="pangolin-re-enable-2026-05-03-2338">Pangolin re-enable (2026-05-03 23:38)<a class="headerlink" href="#pangolin-re-enable-2026-05-03-2338" title="Permanent link">&para;</a></h2>
+<p>User confirmed the GPL-3.0 license is acceptable; Pangolin integration completed in a follow-up pass.</p>
+<p><strong>Files created:</strong>
+- <code>Dockerfiles/Dockerfile.Pangolin{,.cpu}</code> — PyTorch 2.2 + pyvcf (conda) + gffutils/biopython/pyfastx + <code>setuptools&lt;70</code> (pkg_resources fix per memory <code>feedback_dockerfile_orthrus_patterns.md</code>); upstream pinned to v1.0.2 via <code>git clone --depth 1</code>
+- <code>bin/pangolin_predict.py</code> — argparse wrapper around upstream <code>pangolin</code> CLI; converts to long-flag style for Nextflow consistency
+- <code>modules/local/pangolin.nf</code> — multi-input (vcf + ref + db); cleaner than SpliceAI's tuple pattern because Pangolin's annotation is always a real file
+- <code>tests/data/pangolin/{mini_ref.fa,mini_annotation.gtf,mini_annotation.db,test_variants.vcf}</code> — synthetic 12-kb chrom + 1 fake gene with <code>Ensembl_canonical</code> tag; .db built once via <code>create_db.py</code> inside the container, committed (~73 KB)
+- <code>docs/models/Pangolin.md</code> — full model page with comparison table vs SpliceAI</p>
+<p><strong>Files modified:</strong>
+- <code>nextflow.config</code>, <code>conf/modules.config</code>, <code>conf/test.config</code>, <code>workflows/rnazoo.nf</code>
+- <code>mkdocs.yml</code>, <code>README.md</code>, <code>docs/index.md</code>, <code>docs/models/overview.md</code>, <code>docs/getting-started/installation.md</code>, <code>docs/direct-docker.md</code>, <code>.github/workflows/publish-images.yml</code>
+- <code>/home/eric/Projects/RNAZoo_meta/CLAUDE.md</code> — moved all 3 splicing models from "to add — deferred" to "integrated 2026-05-03"; corrected Pangolin license <code>MIT</code> → <code>GPL-3.0</code></p>
+<p><strong>Gotcha encountered:</strong> First standalone smoke failed with <code>ModuleNotFoundError: No module named 'pkg_resources'</code> — same setuptools-removed-pkg_resources issue documented in memory. Fix: pin <code>setuptools&lt;70</code>. Rebuild + re-smoke succeeded on retry.</p>
+<p><strong>Smoke output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>TEST_CHR  5500  .  G  A  .  .  Pangolin=TEST_GENE|2:0.0|-50:0.0|Warnings:
+</code></pre></div></p>
+<p>Pipeline counts now bumped 24 → 25 models, 19 → 20 CPU test set, 6 tracks unchanged. Per-block elapsed: Block 1 ~7 min (incl. setuptools rebuild), Block 2 ~3 min, Block 3+4 ~4 min. Total ~14 min.</p>
+<p><strong>No commits, no pushes</strong> — staying consistent with the rest of this session's working-tree-only delivery model.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
