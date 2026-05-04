@@ -72,6 +72,7 @@ Then: `run_rnazoo rnafm rnafm_predict.py -i /data/input.fa -o /out`, etc.
 | [PlantRNA-FM](models/PlantRNAFM.md) | `plantrnafm_predict.py -i /data/input.fa -o /out` |
 | [CaLM](models/CaLM.md) | `calm_predict.py -i /data/input.fa -o /out` |
 | [mRNABERT](models/mRNABERT.md) | `mrnabert_predict.py -i /data/input.fa -o /out` |
+| [SpliceBERT](models/SpliceBERT.md) | `splicebert_predict.py -i /data/input.fa -o /out` |
 | [RhoFold](models/RhoFold.md) | `rhofold_predict.py -i /data/input.fa -o /out` |
 | [SPOT-RNA](models/SPOTRNA.md) | `spotrna_predict.py -i /data/input.fa -o /out` |
 | [RNAformer](models/RNAformer.md) | `rnaformer_predict.py -i /data/input.fa -o /out` |
@@ -85,6 +86,8 @@ Same mount pattern as above, with an extra argument:
 - **Saluki** (half-life): `bash -c "saluki_predict_fasta.py -d 0 -o /out /opt/saluki_models /data/input.fa"` — `-d 0` is human, `-d 1` is mouse.
 - **RiboNN** (TE): the container expects its input staged into `/app/data/prediction_input1.txt`; easiest is `-v /path/to/input.txt:/app/data/prediction_input1.txt` and then `bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /app/data/prediction_input1.txt -o /out --species human"`.
 - **TranslationAI** (TIS/TTS/ORFs): `bash -c "translationai -i /data/input.fa -o /out"`.
+- **SpliceAI** (variant-effect): mount the dir containing the VCF + reference FASTA + (optional) custom annotation TSV, then `spliceai_predict.py -i /work/variants.vcf -o /work/variants.annot.vcf -r /work/genome.fa -a grch38`. Replace `grch38` with a path inside `/work` for a custom annotation.
+- **Pangolin** (tissue-specific variant-effect): mount the dir containing the VCF/CSV + reference FASTA + gffutils `.db`, then `pangolin_predict.py -i /work/variants.vcf -r /work/genome.fa -a /work/annotation.db -o /work/variants.pangolin`. Build the `.db` once via `python /opt/conda/envs/pangolin/bin/create_db.py your.gtf` inside the container.
 
 ### Multi-file inputs (ribo-seq)
 

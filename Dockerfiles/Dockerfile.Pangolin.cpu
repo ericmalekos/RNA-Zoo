@@ -1,0 +1,48 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://github.com/tkzeng/Pangolin"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
+LABEL org.opencontainers.image.title="pangolin-cpu"
+LABEL org.opencontainers.image.description="Pangolin variant-effect splicing predictor (Zeng & Li, Genome Biology 2022). Tissue-specific splice site strength deltas from sequence. CPU-only build."
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        wget \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# pyvcf is conda-only; the rest can come from pip alongside CPU-only torch.
+RUN mamba create -n pangolin -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        pyvcf \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/pangolin/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=pangolin
+
+RUN /opt/conda/envs/pangolin/bin/pip install --no-cache-dir \
+        "setuptools<70" \
+        gffutils \
+        biopython \
+        pandas \
+        pyfastx
+
+# Pangolin upstream is git-clone-and-pip-install. Pin to the v1.0.2 tagged
+# release so the image is reproducible; the package bundles its 5 model
+# checkpoints under pangolin/models/*.
+RUN cd /opt && \
+    git clone --depth 1 https://github.com/tkzeng/Pangolin.git && \
+    cd Pangolin && \
+    /opt/conda/envs/pangolin/bin/pip install --no-cache-dir .
+
+COPY bin/pangolin_predict.py /opt/bin/pangolin_predict.py
+RUN chmod +x /opt/bin/pangolin_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

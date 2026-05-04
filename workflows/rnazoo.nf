@@ -25,6 +25,9 @@ include { RNAERNIE         } from '../modules/local/rnaernie'
 include { RNAERNIE_FINETUNE } from '../modules/local/rnaernie_finetune'
 include { PLANTRNAFM       } from '../modules/local/plantrnafm'
 include { PLANTRNAFM_FINETUNE } from '../modules/local/plantrnafm_finetune'
+include { SPLICEBERT       } from '../modules/local/splicebert'
+include { SPLICEAI         } from '../modules/local/spliceai'
+include { PANGOLIN         } from '../modules/local/pangolin'
 include { CALM             } from '../modules/local/calm'
 include { CALM_FINETUNE    } from '../modules/local/calm_finetune'
 include { MRNABERT         } from '../modules/local/mrnabert'
@@ -274,6 +277,45 @@ workflow RNAZOO {
 
     if (params.plantrnafm_input) {
         PLANTRNAFM(Channel.fromPath(params.plantrnafm_input, checkIfExists: true))
+    }
+
+    if (params.splicebert_input) {
+        SPLICEBERT(Channel.fromPath(params.splicebert_input, checkIfExists: true))
+    }
+
+    if (params.pangolin_variants) {
+        if (!params.pangolin_reference_fasta) {
+            error "pangolin_reference_fasta is required when pangolin_variants is set"
+        }
+        if (!params.pangolin_annotation_db) {
+            error "pangolin_annotation_db is required when pangolin_variants is set " +
+                  "(build via upstream scripts/create_db.py from a GTF; see docs/models/Pangolin.md)"
+        }
+        PANGOLIN(
+            Channel.fromPath(params.pangolin_variants, checkIfExists: true),
+            Channel.fromPath(params.pangolin_reference_fasta, checkIfExists: true),
+            Channel.fromPath(params.pangolin_annotation_db, checkIfExists: true)
+        )
+    }
+
+    if (params.spliceai_vcf) {
+        if (!params.spliceai_reference_fasta) {
+            error "spliceai_reference_fasta is required when spliceai_vcf is set"
+        }
+        // SpliceAI's -A flag accepts a builtin keyword ('grch37'/'grch38') OR
+        // a path to a custom GENCODE-style TSV. We always pass a tuple of
+        // (keyword-or-path, staged-file). Custom file → real path; builtin →
+        // empty NO_FILE placeholder so Nextflow has something to stage.
+        def anno = params.spliceai_annotation ?: 'grch38'
+        def anno_is_builtin = anno == 'grch37' || anno == 'grch38'
+        def anno_file = anno_is_builtin
+            ? file("${projectDir}/assets/NO_FILE", checkIfExists: true)
+            : file(anno, checkIfExists: true)
+        SPLICEAI(
+            Channel.fromPath(params.spliceai_vcf, checkIfExists: true),
+            Channel.fromPath(params.spliceai_reference_fasta, checkIfExists: true),
+            Channel.value([anno, anno_file])
+        )
     }
 
     if (params.plantrnafm_finetune_input) {

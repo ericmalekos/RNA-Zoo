@@ -2,7 +2,7 @@
 
 Predict 12 RNA modification types from sequence.
 
-- **Paper:** [NAR 2021](https://doi.org/10.1093/nar/gkab507)
+- **Paper:** [Nat. Commun. 2021](https://doi.org/10.1038/s41467-021-24313-3)
 - **Upstream:** https://github.com/Tsedao/MultiRM
 - **License:** MIT
 - **Device:** CPU or GPU (lightweight LSTM, ~8MB weights). Two image variants:

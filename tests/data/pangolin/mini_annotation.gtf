@@ -1,0 +1,5 @@
+TEST_CHR	test	gene	1000	11000	.	+	.	gene_id "TEST_GENE"; gene_name "TEST_GENE";
+TEST_CHR	test	transcript	1000	11000	.	+	.	gene_id "TEST_GENE"; gene_name "TEST_GENE"; transcript_id "TEST_TX"; tag "Ensembl_canonical";
+TEST_CHR	test	exon	1000	2000	.	+	.	gene_id "TEST_GENE"; gene_name "TEST_GENE"; transcript_id "TEST_TX"; exon_number "1"; tag "Ensembl_canonical";
+TEST_CHR	test	exon	5000	6000	.	+	.	gene_id "TEST_GENE"; gene_name "TEST_GENE"; transcript_id "TEST_TX"; exon_number "2"; tag "Ensembl_canonical";
+TEST_CHR	test	exon	10000	11000	.	+	.	gene_id "TEST_GENE"; gene_name "TEST_GENE"; transcript_id "TEST_TX"; exon_number "3"; tag "Ensembl_canonical";

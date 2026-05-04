@@ -86,6 +86,19 @@ jobs:
           # Re-enable once weights are mirrored to HF or Zenodo. See docs/models/HydraRNA.md.
           # - name: rnazoo-hydrarna
           #   dockerfile: Dockerfiles/Dockerfile.HydraRNA
+          # Splicing
+          - name: rnazoo-splicebert
+            dockerfile: Dockerfiles/Dockerfile.SpliceBERT
+          - name: rnazoo-splicebert-cpu
+            dockerfile: Dockerfiles/Dockerfile.SpliceBERT.cpu
+          - name: rnazoo-spliceai
+            dockerfile: Dockerfiles/Dockerfile.SpliceAI
+          - name: rnazoo-spliceai-cpu
+            dockerfile: Dockerfiles/Dockerfile.SpliceAI.cpu
+          - name: rnazoo-pangolin
+            dockerfile: Dockerfiles/Dockerfile.Pangolin
+          - name: rnazoo-pangolin-cpu
+            dockerfile: Dockerfiles/Dockerfile.Pangolin.cpu
           # Structure
           - name: rnazoo-rnaformer
             dockerfile: Dockerfiles/Dockerfile.RNAformer

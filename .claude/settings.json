@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ruff check *)",
+      "Bash(nextflow config *)",
+      "Bash(docker run *)",
+      "Bash(docker build *)",
+      "Bash(docker tag *)",
+      "Bash(docker pull *)",
+      "Bash(docker manifest *)",
+      "Bash(mkdir *)",
+      "Bash(chmod +x *)",
+      "Bash(pip install *)",
+      "Bash(conda run *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(curl *)"
+    ]
+  }
+}

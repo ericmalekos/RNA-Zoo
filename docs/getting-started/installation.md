@@ -41,7 +41,7 @@ If you want to warm the cache up front, pick the loop that matches your hardware
 # are GPU-only by design (mamba-ssm requires CUDA at import time).
 for img in ribonn riboformer tristan seq2ribo saluki translationai \
            codontransformer rnafm rinalmo ernierna orthrus rnaernie \
-           plantrnafm calm mrnabert hydrarna rnaformer rhofold spotrna drfold2 multirm utrlm; do
+           plantrnafm calm mrnabert hydrarna splicebert spliceai pangolin rnaformer rhofold spotrna drfold2 multirm utrlm; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
@@ -59,7 +59,7 @@ done
 # orthrus are GPU-only and not in this list.
 for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu translationai-cpu \
            codontransformer-cpu rnafm-cpu rinalmo-cpu ernierna rnaernie-cpu \
-           plantrnafm-cpu calm-cpu mrnabert-cpu rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+           plantrnafm-cpu calm-cpu mrnabert-cpu splicebert-cpu spliceai-cpu pangolin-cpu rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
@@ -90,11 +90,11 @@ nextflow run . -profile test_gpu,docker,gpu
 If you have an NVIDIA GPU, run the GPU test suite — this is the canonical end-to-end check:
 
 ```bash
-# Run the GPU test suite (22 models, requires NVIDIA Container Toolkit)
+# Run the GPU test suite (25 models, requires NVIDIA Container Toolkit)
 nextflow run . -profile test_gpu,docker,gpu
 ```
 
-Expected output — all 22 models should pass:
+Expected output — all 25 models should pass:
 
 ```
 RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
@@ -112,6 +112,9 @@ RNAZOO:PLANTRNAFM (plantrnafm)                        | 1 of 1 ✔
 RNAZOO:CALM (calm)                                    | 1 of 1 ✔
 RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
 RNAZOO:HYDRARNA (hydrarna)                            | 1 of 1 ✔
+RNAZOO:SPLICEBERT (splicebert)                        | 1 of 1 ✔
+RNAZOO:SPLICEAI (spliceai)                            | 1 of 1 ✔
+RNAZOO:PANGOLIN (pangolin)                            | 1 of 1 ✔
 RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
 RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
 RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
@@ -119,21 +122,21 @@ RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
 RNAZOO:SEQ2RIBO (seq2ribo:te:hek293)                  | 1 of 1 ✔
 RNAZOO:RHOFOLD (rhofold)                              | 1 of 1 ✔
 RNAZOO:DRFOLD2 (drfold2)                              | 1 of 1 ✔
-Succeeded   : 22
+Succeeded   : 25
 ```
 
 Riboformer's bundled-dataset test runs faster on GPU (~1.5 min vs ~2.5 min on CPU). Models with both CPU and GPU image variants automatically use their GPU images under `-profile gpu`.
 
 ### CPU fallback
 
-If you don't have an NVIDIA GPU, the smaller `test` profile runs the 17 of 22 models that work on CPU in a reasonable time:
+If you don't have an NVIDIA GPU, the smaller `test` profile runs the 20 of 25 models that work on CPU in a reasonable time:
 
 ```bash
-# Run the CPU test suite (17 models on CPU, ~5 minutes)
+# Run the CPU test suite (20 models on CPU, ~5 minutes)
 nextflow run . -profile test,docker,cpu
 ```
 
-Expected output — all 17 should pass:
+Expected output — all 20 should pass:
 
 ```
 RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
@@ -149,14 +152,17 @@ RNAZOO:RNAERNIE (rnaernie)                            | 1 of 1 ✔
 RNAZOO:PLANTRNAFM (plantrnafm)                        | 1 of 1 ✔
 RNAZOO:CALM (calm)                                    | 1 of 1 ✔
 RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
+RNAZOO:SPLICEBERT (splicebert)                        | 1 of 1 ✔
+RNAZOO:SPLICEAI (spliceai)                            | 1 of 1 ✔
+RNAZOO:PANGOLIN (pangolin)                            | 1 of 1 ✔
 RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
 RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
 RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
 RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
-Succeeded   : 17
+Succeeded   : 20
 ```
 
-Five of the 22 models are excluded from the default CPU test:
+Five of the 25 models are excluded from the default CPU test:
 
 | Model | Reason | Covered by `test_gpu`? |
 |-------|--------|------------------------|

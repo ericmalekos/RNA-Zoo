@@ -1,0 +1,31 @@
+FROM tensorflow/tensorflow:2.13.0-gpu
+
+LABEL org.opencontainers.image.source="https://github.com/Illumina/SpliceAI"
+LABEL org.opencontainers.image.licenses="PolyForm-Strict-1.0.0 AND CC-BY-NC-4.0"
+LABEL org.opencontainers.image.title="spliceai"
+LABEL org.opencontainers.image.description="SpliceAI variant-effect splicing predictor (Jaganathan et al., Cell 2019). Non-commercial only — see LICENSE on the upstream repo. CUDA-enabled build."
+
+# Reuse python 3 from the base; add htslib build deps for pysam.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+        libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# `tensorflow~=2.13.0` is preinstalled in the base image. Pin keras<3 to
+# preserve the Keras 2 `keras.models.load_model` API SpliceAI imports.
+RUN pip install --no-cache-dir \
+        "keras<3" \
+        "numpy<2" \
+        "pyfaidx>=0.5.0" \
+        "pysam>=0.10.0" \
+        "pandas>=0.24.2" \
+        spliceai==1.3.1
+
+COPY bin/spliceai_predict.py /opt/bin/spliceai_predict.py
+RUN chmod +x /opt/bin/spliceai_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

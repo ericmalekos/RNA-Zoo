@@ -1,0 +1,147 @@
+# SpliceAI
+
+Predict the effect of genetic variants on RNA splicing.
+
+- **Paper:** [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) — Jaganathan et al., "Predicting Splicing from Primary Sequence with Deep Learning"
+- **Upstream:** [github.com/Illumina/SpliceAI](https://github.com/Illumina/SpliceAI)
+- **License:** **Non-commercial only.** Source under [PolyForm Strict 1.0.0](https://github.com/Illumina/SpliceAI/blob/master/LICENSE); bundled weights under CC-BY-NC-4.0. Commercial use requires a license from Illumina. RNAZoo distributes the upstream pip package in the image; downstream users are bound by the same terms.
+- **Device:** CPU or GPU. Two image variants:
+    - `rnazoo-spliceai:latest` — CUDA-enabled (default, used with `-profile gpu`)
+    - `rnazoo-spliceai-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+
+> **License heads-up:** SpliceAI is the only model in the zoo with non-commercial restrictions on both source and weights. If you are using RNAZoo in a commercial context (drug-development pipelines, paid clinical interpretation, etc.) you must either obtain a commercial license from Illumina or skip this model (don't pass `--spliceai_vcf`).
+
+## What it does
+
+SpliceAI is a 32-layer dilated convolutional neural network that takes a candidate variant (SNV or short indel) plus its surrounding ±5 kb of reference sequence and predicts the variant's effect on splicing. For each variant it emits four delta scores in [0, 1]:
+
+| Score  | Meaning |
+|--------|---------|
+| `DS_AG` | Acceptor-gain delta |
+| `DS_AL` | Acceptor-loss delta |
+| `DS_DG` | Donor-gain delta |
+| `DS_DL` | Donor-loss delta |
+
+…plus the relative position (`DP_*`) of each putative gain/loss event. The recommended **delta-score threshold for a splice-altering variant is 0.5**; the paper uses 0.2 (high recall) and 0.8 (high precision) as alternative cutoffs.
+
+The pipeline currently exposes only the inference path. Upstream's training scripts and supplementary analyses are not wired in.
+
+## Input format
+
+Three inputs are required:
+
+1. **VCF** — variants of interest, with `CHROM`, `POS`, `REF`, `ALT` columns. Multi-allele records are supported; complex SVs and indels longer than `2 × distance` are silently skipped.
+2. **Reference FASTA** — must contain every chromosome referenced in the VCF. A `.fai` sibling is created on the fly by pyfaidx if missing.
+3. **Annotation** — one of:
+    - `grch37` (bundled GENCODE V24lift37 canonical TSV)
+    - `grch38` (bundled GENCODE V24 canonical TSV)
+    - a path to a custom GENCODE-style TSV with columns `#NAME CHROM STRAND TX_START TX_END EXON_START EXON_END` (trailing-comma-separated exon coordinate lists)
+
+Variants outside any gene defined in the annotation are silently skipped — SpliceAI scores nothing for intergenic positions.
+
+Example VCF:
+
+```
+##fileformat=VCFv4.2
+##contig=<ID=chr19,length=58617616>
+#CHROM  POS       ID  REF  ALT  QUAL  FILTER  INFO
+chr19   38958362  .   C    T    .     .       .
+```
+
+## Output format
+
+An annotated VCF where each variant gains a `SpliceAI=...` field in the `INFO` column:
+
+```
+chr19  38958362  .  C  T  .  .  SpliceAI=T|RYR1|0.00|0.00|0.91|0.08|-28|-46|-2|-31
+```
+
+Format: `ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL`.
+
+## Run with Docker
+
+> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+
+```bash
+# CPU
+docker run --rm \
+  -v /path/to/inputs:/work \
+  ghcr.io/ericmalekos/rnazoo-spliceai-cpu:latest \
+  spliceai_predict.py \
+    -i /work/variants.vcf \
+    -o /work/variants.annot.vcf \
+    -r /work/genome.fa \
+    -a grch38
+
+# GPU
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
+  -v /path/to/inputs:/work \
+  ghcr.io/ericmalekos/rnazoo-spliceai:latest \
+  spliceai_predict.py \
+    -i /work/variants.vcf \
+    -o /work/variants.annot.vcf \
+    -r /work/genome.fa \
+    -a grch38
+```
+
+For a custom annotation TSV, replace `-a grch38` with `-a /work/my_annot.tsv` and bind-mount the file into `/work`.
+
+## Run with Nextflow
+
+```bash
+# CPU, builtin GRCh38 annotation
+nextflow run main.nf -profile docker,cpu \
+  --spliceai_vcf /path/to/variants.vcf \
+  --spliceai_reference_fasta /path/to/genome.fa \
+  --spliceai_annotation grch38
+
+# GPU, custom annotation TSV
+nextflow run main.nf -profile docker,gpu \
+  --spliceai_vcf /path/to/variants.vcf \
+  --spliceai_reference_fasta /path/to/genome.fa \
+  --spliceai_annotation /path/to/my_annot.tsv
+```
+
+Only models with input provided will run — no ignore flags needed.
+
+Results appear in `results/spliceai/spliceai_out/<basename>.spliceai.vcf`.
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--spliceai_vcf` | (required) | Input VCF with variants of interest |
+| `--spliceai_reference_fasta` | (required) | Reference FASTA matching the VCF coordinates; `.fai` autogenerated if absent |
+| `--spliceai_annotation` | `grch38` | `grch37`, `grch38`, or path to a custom GENCODE-style TSV |
+| `--spliceai_distance` | `50` | Maximum distance (bp) between the variant and any predicted gain/loss site |
+| `--spliceai_mask` | `0` | `0` = raw scores; `1` = mask annotated-acceptor/donor gain and unannotated loss (recommended for variant interpretation) |
+
+## Reading the output
+
+```python
+import pysam
+
+vcf = pysam.VariantFile("variants.annot.vcf")
+for rec in vcf:
+    info = rec.info.get("SpliceAI")
+    if not info:
+        continue
+    for entry in info:
+        allele, gene, ds_ag, ds_al, ds_dg, ds_dl, *_ = entry.split("|")
+        deltas = [float(x) for x in (ds_ag, ds_al, ds_dg, ds_dl)]
+        max_delta = max(deltas)
+        if max_delta >= 0.5:
+            print(f"{rec.chrom}:{rec.pos} {rec.ref}>{allele} ({gene}) — likely splice-altering ({max_delta:.2f})")
+```
+
+## Test fixture (synthetic mini-genome)
+
+The bundled smoke fixture under `tests/data/spliceai/` is a synthetic 12-kb chromosome (`TEST_CHR`) with random ACGT, a custom annotation defining a fake `TEST_GENE` with 3 exons, and a single SNV at the exon-2 midpoint. Delta scores from this fixture are all `0.00` — the random sequence has no real splice motifs — but the test verifies that the pipeline plumbing works end-to-end. **For real predictions, use a real reference genome** (GRCh38 from UCSC or Ensembl) and the bundled `grch38` annotation.
+
+## Limitations
+
+- **Non-commercial only.** See the License section above.
+- **Variants must be inside annotated genes.** Intergenic variants are silently skipped; if your VCF appears empty in the output, check that the variants overlap genes in your annotation.
+- **Variants close to chromosome ends are skipped** (within 5 kb of either end — the model's per-variant context window can't be filled).
+- **Indels longer than `2 × distance` are skipped.** Bump `--spliceai_distance` if you need to score larger indels (default 50 → indels up to 100 bp).
+- **Reference allele is checked.** If `REF` doesn't match the reference FASTA at `POS`, SpliceAI emits a warning and skips that record.

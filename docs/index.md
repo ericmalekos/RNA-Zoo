@@ -4,7 +4,7 @@
 
 ## What's included
 
-22 models across 5 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
+25 models across 6 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
 
 ### RNA Foundation Models
 
@@ -42,9 +42,12 @@ The remaining 12 models are task-specific predictors across translation, structu
 | [SPOT-RNA](models/SPOTRNA.md) | Structure | bpRNA + PDB + Rfam | FASTA RNA | `structures.txt` + per-seq `bpseq` / `ct` / `prob` | 2.7 GB | 0.6 GB |
 | [DRfold2](models/DRfold2.md) | Structure (Tier 2) | bpRNA + PDB single-seq | FASTA RNA | per-seq PDB | ~5 GB | — (GPU only) |
 | [MultiRM](models/MultiRM.md) | Modification | ~300K human modification sites | FASTA RNA | `modification_scores.tsv` + `predicted_sites.tsv` | 3.5 GB | 1.0 GB |
+| [Pangolin](models/Pangolin.md) | Splicing | 4-tissue (heart/liver/brain/testis) human + 3 species | VCF/CSV + ref FASTA + gffutils DB | annotated VCF/CSV | ~3 GB | ~3 GB |
+| [SpliceAI](models/SpliceAI.md) | Splicing | 1k human variants per gene (Cell 2019) | VCF + ref FASTA + annotation | annotated VCF (4-class delta) | ~2.3 GB | ~2.3 GB |
+| [SpliceBERT](models/SpliceBERT.md) | Splicing | 2M+ vertebrate primary RNAs (72 species) | FASTA RNA | NumPy (N x 512) | ~3 GB | ~1.2 GB |
 | [UTR-LM](models/UTRLM.md) | mRNA Design | 5'UTRs, 5 species + MPRA (MRL) | FASTA 5'UTR | `predictions.tsv` | 4.9 GB | 2.4 GB |
 
-**Totals:** CPU set is **~33 GB** across 18 images; GPU set is **~95 GB** across 22 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
+**Totals:** CPU set is **~39 GB** across 21 images; GPU set is **~103 GB** across 25 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
 
 ## Quick start
 

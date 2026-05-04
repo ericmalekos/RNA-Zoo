@@ -1,0 +1,40 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://github.com/biomed-AI/SpliceBERT"
+LABEL org.opencontainers.image.licenses="BSD-3-Clause"
+LABEL org.opencontainers.image.title="splicebert-cpu"
+LABEL org.opencontainers.image.description="SpliceBERT primary RNA sequence LM (Chen et al., Brief. Bioinform. 2024) — CPU-only build."
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget tar && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mamba create -n splicebert -c pytorch -c conda-forge -y \
+        python=3.10 \
+        pytorch=2.2 \
+        cpuonly \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/splicebert/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=splicebert
+
+RUN /opt/conda/envs/splicebert/bin/pip install --no-cache-dir \
+        "transformers<4.50" \
+        "huggingface_hub<0.25"
+
+RUN cd /tmp && \
+    wget -q -O splicebert_models.tar.gz "https://zenodo.org/records/7995778/files/models.tar.gz?download=1" && \
+    tar -xzf splicebert_models.tar.gz models/SpliceBERT.1024nt && \
+    mkdir -p /opt/splicebert_weights && \
+    cp -r models/SpliceBERT.1024nt/. /opt/splicebert_weights/ && \
+    rm -rf splicebert_models.tar.gz models
+
+COPY bin/splicebert_predict.py /opt/bin/splicebert_predict.py
+RUN chmod +x /opt/bin/splicebert_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+
+WORKDIR /opt

@@ -1,0 +1,47 @@
+FROM condaforge/miniforge3:latest
+
+LABEL org.opencontainers.image.source="https://github.com/tkzeng/Pangolin"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
+LABEL org.opencontainers.image.title="pangolin"
+LABEL org.opencontainers.image.description="Pangolin variant-effect splicing predictor (Zeng & Li, Genome Biology 2022). Tissue-specific splice site strength deltas from sequence. CUDA-enabled build."
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        wget \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# pyvcf is conda-only; mix conda (pyvcf) with pip (CUDA torch wheel + bio deps).
+RUN mamba create -n pangolin -c conda-forge -y \
+        python=3.10 \
+        pyvcf \
+        "numpy<2" \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/pangolin/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=pangolin
+
+# CUDA-enabled PyTorch 2.2 (cu118 wheel includes the CUDA runtime libs).
+RUN /opt/conda/envs/pangolin/bin/pip install --no-cache-dir \
+        torch==2.2.0 --index-url https://download.pytorch.org/whl/cu118
+
+RUN /opt/conda/envs/pangolin/bin/pip install --no-cache-dir \
+        "setuptools<70" \
+        gffutils \
+        biopython \
+        pandas \
+        pyfastx
+
+RUN cd /opt && \
+    git clone --depth 1 https://github.com/tkzeng/Pangolin.git && \
+    cd Pangolin && \
+    /opt/conda/envs/pangolin/bin/pip install --no-cache-dir .
+
+COPY bin/pangolin_predict.py /opt/bin/pangolin_predict.py
+RUN chmod +x /opt/bin/pangolin_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+WORKDIR /opt

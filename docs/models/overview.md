@@ -1,6 +1,6 @@
 # Model Overview
 
-RNAZoo includes 22 RNA deep learning models across 5 tracks. Each model runs in its own Docker container with baked-in weights.
+RNAZoo includes 25 RNA deep learning models across 6 tracks. Each model runs in its own Docker container with baked-in weights.
 
 ## All models at a glance
 
@@ -26,6 +26,9 @@ RNAZoo includes 22 RNA deep learning models across 5 tracks. Each model runs in 
 | [RhoFold](RhoFold.md) | Structure | 3D structure prediction | FASTA (RNA) | PDB + CT | CPU/GPU | Apache 2.0 |
 | [SPOT-RNA](SPOTRNA.md) | Structure | 2D structure + pseudoknots | FASTA (RNA) | bpseq + CT + prob + dot-bracket | CPU/GPU | MPL-2.0 |
 | [DRfold2](DRfold2.md) | Structure (Tier 2) | Single-seq ab initio 3D | FASTA (RNA) | PDB | **GPU only** | MIT |
+| [Pangolin](Pangolin.md) | Splicing | Tissue-specific variant-effect splice scores | VCF/CSV + reference FASTA + gffutils DB | Annotated VCF/CSV | CPU/GPU | GPL-3.0 |
+| [SpliceAI](SpliceAI.md) | Splicing | Variant-effect splicing predictions | VCF + reference FASTA + annotation | Annotated VCF (4-class delta) | CPU/GPU | PolyForm Strict + CC BY-NC 4.0 |
+| [SpliceBERT](SpliceBERT.md) | Splicing | Vertebrate primary-RNA embeddings (512-d) | FASTA (RNA) | NumPy (N x 512) | CPU/GPU | BSD-3-Clause |
 | [MultiRM](MultiRM.md) | Modification | 12 RNA modification types | FASTA (RNA, min 51 nt) | TSV (probabilities + p-values) | CPU/GPU | MIT |
 | [UTR-LM](UTRLM.md) | mRNA Design | MRL / TE / expression level | FASTA (5'UTR DNA) | TSV (predictions) | CPU/GPU | GPL-3.0 |
 
@@ -65,6 +68,12 @@ Secondary and 3D structure prediction from sequence.
 - **[RhoFold](RhoFold.md)** — Full-atom 3D structure prediction (PDB output), single-sequence mode
 - **[SPOT-RNA](SPOTRNA.md)** — 2D structure with pseudoknots, 5-model TF ensemble
 - **[DRfold2](DRfold2.md)** — Single-sequence ab initio 3D prediction with composite language model + denoised end-to-end learning, 4-model ensemble + IPA optimization + Arena refinement, **GPU only**
+
+### Splicing (3 models)
+
+- **[Pangolin](Pangolin.md)** — Variant-effect splicing predictor trained on 4 tissues (heart/liver/brain/testis) across human + mouse + rhesus + rat; complements SpliceAI with tissue-aware scores (GPL-3.0)
+- **[SpliceAI](SpliceAI.md)** — 32-layer dilated CNN, ±5 kb context per variant; 4-class delta scores (acceptor/donor gain/loss) on annotated genes (PolyForm Strict + CC BY-NC 4.0; **non-commercial only**)
+- **[SpliceBERT](SpliceBERT.md)** — 6-layer/512-d BERT pretrained on 2M+ vertebrate primary RNAs (72 species), 1024 nt context (BSD-3-Clause)
 
 ### RNA Modification (1 model)
 
@@ -110,4 +119,7 @@ Some models can be fine-tuned on your own data. The 9 foundation models share a 
 | RhoFold | Apache 2.0 | [ml4bio/RhoFold](https://github.com/ml4bio/RhoFold) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) |
 | SPOT-RNA | MPL-2.0 | [jaswindersingh2/SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9) |
 | MultiRM | MIT | [Tsedao/MultiRM](https://github.com/Tsedao/MultiRM) | [NAR 2021](https://doi.org/10.1093/nar/gkab507) |
+| Pangolin | GPL-3.0 | [tkzeng/Pangolin](https://github.com/tkzeng/Pangolin) | [Genome Biology 2022](https://doi.org/10.1186/s13059-022-02664-4) |
+| SpliceAI | PolyForm Strict 1.0.0 (code) + CC-BY-NC-4.0 (weights) — **non-commercial** | [Illumina/SpliceAI](https://github.com/Illumina/SpliceAI) | [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) |
+| SpliceBERT | BSD-3-Clause (code) + CC-BY-4.0 (Zenodo weights) | [biomed-AI/SpliceBERT](https://github.com/biomed-AI/SpliceBERT) | [Briefings in Bioinformatics 2024](https://doi.org/10.1093/bib/bbae163) |
 | UTR-LM | GPL-3.0 | [a96123155/UTR-LM](https://github.com/a96123155/UTR-LM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00823-9) |

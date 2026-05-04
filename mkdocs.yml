@@ -80,5 +80,9 @@ nav:
       - DRfold2: models/DRfold2.md
     - RNA Modification:
       - MultiRM: models/MultiRM.md
+    - Splicing:
+      - Pangolin: models/Pangolin.md
+      - SpliceAI: models/SpliceAI.md
+      - SpliceBERT: models/SpliceBERT.md
     - mRNA Design:
       - UTR-LM: models/UTRLM.md
