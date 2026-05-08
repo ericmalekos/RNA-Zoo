@@ -39,6 +39,7 @@ jobs:
           for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu \
                      translationai-cpu codontransformer-cpu rnafm-cpu rinalmo-cpu \
                      ernierna rnaernie-cpu plantrnafm-cpu calm-cpu mrnabert-cpu \
+                     splicebert-cpu spliceai-cpu pangolin-cpu \
                      rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
             name="ghcr.io-ericmalekos-rnazoo-${img}-latest.img"
             echo "--- Pulling $img ---"
@@ -70,7 +71,10 @@ jobs:
           test -f results_test/riboformer/model_prediction.txt
           ls results_test/translationai/*_predTIS_*.txt
           ls results_test/ribotie/ribotie_out/out/ribotie_SRR000001.gtf
-          echo "Singularity run OK."
+          test -f results_test/splicebert/splicebert_out/sequence_embeddings.npy
+          ls results_test/spliceai/spliceai_out/*.spliceai.vcf
+          ls results_test/pangolin/pangolin_out/
+          echo "Singularity run OK (20 models)."
 
       - name: Upload test results
         uses: actions/upload-artifact@v5

@@ -11,6 +11,12 @@ WORKDIR /opt/Riboformer
 # Install the conda environment defined by the upstream repo (TF 2.8, Python 3.9.7)
 RUN mamba env create -f env.yml -y && mamba clean -afy
 
+# The upstream env.yml bundles TF 2.8 for data_processing.py but the PyTorch
+# build it includes is GPU-only and silently absent in a CPU-only runner.
+# Install CPU wheels explicitly so transfer.py (inference) can import torch.
+RUN /opt/conda/envs/riboformer/bin/pip install --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
 # Make datasets/ writable so the container can run as a non-root user
 # (Nextflow passes -u $(id -u):$(id -g)). Riboformer writes its predictions
 # into datasets/<input_folder>/model_prediction.txt, so that dir must be

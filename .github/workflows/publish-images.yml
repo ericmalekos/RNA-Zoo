@@ -2,6 +2,7 @@ name: Publish Docker images
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
     inputs:
@@ -20,9 +21,15 @@ jobs:
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
       - id: set
         env:
           IMAGES: ${{ inputs.images || 'all' }}
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
           MATRIX_YAML=$(cat <<'YAML'
           # Translation
@@ -129,17 +136,34 @@ jobs:
           YAML
           )
           FULL=$(yq -o=json <<<"$MATRIX_YAML")
-          if [ "$IMAGES" = "all" ] || [ -z "$IMAGES" ]; then
-            FILTERED="$FULL"
-          else
+
+          if [[ "$EVENT" == "push" && "$REF" != refs/tags/* ]]; then
+            # Branch push: build only images whose Dockerfile changed.
+            CHANGED=$(git diff --name-only HEAD~1 HEAD -- Dockerfiles/ 2>/dev/null || true)
+            if [[ -z "$CHANGED" ]]; then
+              echo "No Dockerfiles changed; nothing to build."
+              echo "matrix=[]" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Changed Dockerfiles:"; echo "$CHANGED" | sed 's/^/  /'
+            CHANGED_JSON=$(echo "$CHANGED" | jq -R . | jq -sc .)
+            FILTERED=$(jq -c --argjson c "$CHANGED_JSON" \
+              'map(select(.dockerfile as $d | $c | index($d)))' \
+              <<<"$FULL")
+          elif [[ "$EVENT" == "workflow_dispatch" && "$IMAGES" != "all" && -n "$IMAGES" ]]; then
+            # Manual dispatch with a specific image list.
             FILTERED=$(jq -c --arg names "$IMAGES" \
               '($names | split(",")) as $a | map(select(.name as $n | $a | index($n)))' \
               <<<"$FULL")
+          else
+            # Tag push or workflow_dispatch "all": build everything.
+            FILTERED="$FULL"
           fi
+
           COUNT=$(jq 'length' <<<"$FILTERED")
-          echo "Selected $COUNT image(s) from input '$IMAGES'"
+          echo "Selected $COUNT image(s)"
           jq -r '.[].name' <<<"$FILTERED" | sed 's/^/  - /'
-          if [ "$COUNT" -eq 0 ]; then
+          if [ "$COUNT" -eq 0 ] && [[ "$EVENT" == "workflow_dispatch" ]]; then
             echo "::error::No matrix entries match: $IMAGES"
             exit 1
           fi
@@ -147,6 +171,7 @@ jobs:
 
   build-and-push:
     needs: setup
+    if: ${{ needs.setup.outputs.matrix != '' && needs.setup.outputs.matrix != '[]' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

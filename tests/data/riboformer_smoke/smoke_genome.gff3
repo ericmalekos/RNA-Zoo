@@ -1,0 +1,22 @@
+##gff-version 3
+##sequence-region NC_smoke.1 1 10000
+NC_smoke.1	synthetic	gene	201	737	.	+	.	ID=gene-gene01;Name=gene01;gbkey=Gene;gene=gene01;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	201	737	.	+	0	ID=cds-gene01;Parent=gene-gene01;gbkey=CDS;gene=gene01;transl_table=11
+NC_smoke.1	synthetic	gene	937	1497	.	-	.	ID=gene-gene02;Name=gene02;gbkey=Gene;gene=gene02;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	937	1497	.	-	0	ID=cds-gene02;Parent=gene-gene02;gbkey=CDS;gene=gene02;transl_table=11
+NC_smoke.1	synthetic	gene	1697	1963	.	+	.	ID=gene-gene03;Name=gene03;gbkey=Gene;gene=gene03;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	1697	1963	.	+	0	ID=cds-gene03;Parent=gene-gene03;gbkey=CDS;gene=gene03;transl_table=11
+NC_smoke.1	synthetic	gene	2163	2588	.	-	.	ID=gene-gene04;Name=gene04;gbkey=Gene;gene=gene04;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	2163	2588	.	-	0	ID=cds-gene04;Parent=gene-gene04;gbkey=CDS;gene=gene04;transl_table=11
+NC_smoke.1	synthetic	gene	2788	3072	.	+	.	ID=gene-gene05;Name=gene05;gbkey=Gene;gene=gene05;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	2788	3072	.	+	0	ID=cds-gene05;Parent=gene-gene05;gbkey=CDS;gene=gene05;transl_table=11
+NC_smoke.1	synthetic	gene	3272	3733	.	-	.	ID=gene-gene06;Name=gene06;gbkey=Gene;gene=gene06;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	3272	3733	.	-	0	ID=cds-gene06;Parent=gene-gene06;gbkey=CDS;gene=gene06;transl_table=11
+NC_smoke.1	synthetic	gene	3933	4487	.	+	.	ID=gene-gene07;Name=gene07;gbkey=Gene;gene=gene07;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	3933	4487	.	+	0	ID=cds-gene07;Parent=gene-gene07;gbkey=CDS;gene=gene07;transl_table=11
+NC_smoke.1	synthetic	gene	4687	5247	.	-	.	ID=gene-gene08;Name=gene08;gbkey=Gene;gene=gene08;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	4687	5247	.	-	0	ID=cds-gene08;Parent=gene-gene08;gbkey=CDS;gene=gene08;transl_table=11
+NC_smoke.1	synthetic	gene	5447	5737	.	+	.	ID=gene-gene09;Name=gene09;gbkey=Gene;gene=gene09;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	5447	5737	.	+	0	ID=cds-gene09;Parent=gene-gene09;gbkey=CDS;gene=gene09;transl_table=11
+NC_smoke.1	synthetic	gene	5937	6467	.	-	.	ID=gene-gene10;Name=gene10;gbkey=Gene;gene=gene10;gene_biotype=protein_coding
+NC_smoke.1	synthetic	CDS	5937	6467	.	-	0	ID=cds-gene10;Parent=gene-gene10;gbkey=CDS;gene=gene10;transl_table=11

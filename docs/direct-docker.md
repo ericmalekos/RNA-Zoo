@@ -121,6 +121,29 @@ docker run --rm \
              cp /opt/Riboformer/datasets/GSE119104_Mg_buffer/model_prediction.txt /out/"
 ```
 
+```bash
+# Minimal external dataset (tests/data/riboformer_smoke/ from the repo —
+# synthetic 10-gene genome, ~170 KB total, correct for wsize=40 / bacteria_cm_mg).
+# IMPORTANT: always use -w 40 to match the model's training window size.
+DATA=/path/to/RNA-Zoo/tests/data/riboformer_smoke
+docker run --rm \
+    -u $(id -u):$(id -g) \
+    -e HOME=/tmp -e USER=$(whoami) \
+    -v "$DATA":/smoke_data:ro \
+    -v "$PWD/out":/out \
+    ghcr.io/ericmalekos/rnazoo-riboformer-cpu:latest \
+    bash -c "
+      cd /opt/Riboformer/Riboformer
+      mkdir -p ../datasets/smoke_test
+      cp /smoke_data/* ../datasets/smoke_test/
+      python data_processing.py -d smoke_test \
+          -r smoke_ref_ctrl -t smoke_tgt_ctrl \
+          -p 14 -w 40 -th 25
+      python transfer.py -i smoke_test -m bacteria_cm_mg
+      cp ../datasets/smoke_test/model_prediction.txt /out/
+    "
+```
+
 ### GPU-only models
 
 Both **seq2ribo** and **Orthrus** require CUDA at import time (mamba-ssm); they cannot run on CPU.

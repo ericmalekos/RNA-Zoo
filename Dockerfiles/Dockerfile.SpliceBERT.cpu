@@ -8,16 +8,21 @@ LABEL org.opencontainers.image.description="SpliceBERT primary RNA sequence LM (
 RUN apt-get update && apt-get install -y --no-install-recommends wget tar && \
     rm -rf /var/lib/apt/lists/*
 
-RUN mamba create -n splicebert -c pytorch -c conda-forge -y \
+RUN mamba create -n splicebert -c conda-forge -y \
         python=3.10 \
-        pytorch=2.2 \
-        cpuonly \
         "numpy<2" \
         pip \
     && mamba clean -afy
 
 ENV PATH="/opt/conda/envs/splicebert/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=splicebert
+
+# Install PyTorch CPU wheels via pip (same pattern as the GPU image but with
+# the cpu index) so conda never pulls in an old huggingface_hub as a transitive
+# dependency, which would silently satisfy the <0.25 pin but miss
+# split_torch_state_dict_into_shards (added in huggingface_hub 0.17).
+RUN /opt/conda/envs/splicebert/bin/pip install --no-cache-dir \
+        torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu
 
 RUN /opt/conda/envs/splicebert/bin/pip install --no-cache-dir \
         "transformers<4.50" \
