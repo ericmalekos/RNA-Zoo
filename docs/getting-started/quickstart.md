@@ -1,6 +1,6 @@
 # Quick Start
 
-> Examples below use `-profile docker,gpu`. Swap `gpu` → `cpu` if you don't have an NVIDIA GPU; foundation/structure models will still run on CPU, just slower (~30–60 s per inference call vs sub-second on GPU). seq2ribo and Orthrus are GPU-only and auto-skip under `cpu`.
+> Examples below use `-profile docker,gpu`. Swap `gpu` → `cpu` if you don't have an NVIDIA GPU; foundation/structure models will still run on CPU, just slower (~30–60 s per inference call vs sub-second on GPU). Orthrus is GPU-only and auto-skips under `cpu`.
 
 ## How it works
 

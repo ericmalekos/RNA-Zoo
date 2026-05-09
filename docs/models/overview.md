@@ -1,6 +1,6 @@
 # Model Overview
 
-RNAZoo includes 25 RNA deep learning models across 6 tracks. Each model runs in its own Docker container with baked-in weights.
+RNAZoo includes 22 RNA deep learning models across 6 tracks. Each model runs in its own Docker container with baked-in weights.
 
 ## All models at a glance
 
@@ -9,7 +9,6 @@ RNAZoo includes 25 RNA deep learning models across 6 tracks. Each model runs in 
 | [RiboNN](RiboNN.md) | Translation | TE prediction (82 cell types) | Tab-separated (UTR+CDS) | TSV with TE per cell type | CPU/GPU | Apache 2.0 |
 | [Riboformer](Riboformer.md) | Translation | Codon-level ribosome density | WIG + FASTA + GFF3 | Density predictions | CPU/GPU | Upstream |
 | [RiboTIE](RiboTIE.md) | Translation | ORF detection from ribo-seq | FASTA + GTF + BAM | GTF + CSV | CPU/GPU | Upstream |
-| [seq2ribo](seq2ribo.md) | Translation | Riboseq/TE/protein from sequence | FASTA (CDS) | JSON | **GPU only** | CMU Non-Commercial |
 | [TranslationAI](TranslationAI.md) | Translation | TIS/TTS/ORF prediction | FASTA (mRNA) | TIS/TTS/ORF text files | CPU/GPU | AGPL-3.0 + CC BY-NC 4.0 |
 | [Saluki](Saluki.md) | Translation | mRNA half-life | FASTA (case=UTR/CDS) | NumPy array | CPU/GPU | Apache 2.0 |
 | [CodonTransformer](CodonTransformer.md) | Translation | Codon optimization | FASTA (protein) | FASTA (DNA) | CPU/GPU | Apache 2.0 |
@@ -21,11 +20,9 @@ RNAZoo includes 25 RNA deep learning models across 6 tracks. Each model runs in 
 | [PlantRNA-FM](PlantRNAFM.md) | Foundation | Plant-only RNA embeddings (480-d) | FASTA (RNA) | NumPy (N x 480) | CPU/GPU | MIT |
 | [CaLM](CaLM.md) | Foundation | Codon-level RNA embeddings (768-d) | FASTA (CDS, codon-aligned) | NumPy (N x 768) | CPU/GPU | BSD-3-Clause |
 | [mRNABERT](mRNABERT.md) | Foundation | Hybrid UTR/CDS mRNA embeddings (768-d) | FASTA (mRNA, auto-ORF) | NumPy (N x 768) | CPU/GPU | Apache-2.0 |
-| [HydraRNA](HydraRNA.md) | Foundation | Full-length RNA embeddings (1024-d, ≤10K nt) | FASTA (RNA) | NumPy (N x 1024) | **GPU only** | MIT |
 | [RNAformer](RNAformer.md) | Structure | 2D structure (base-pair matrix) | FASTA (RNA) | Dot-bracket + prob matrix | CPU/GPU | Apache 2.0 |
 | [RhoFold](RhoFold.md) | Structure | 3D structure prediction | FASTA (RNA) | PDB + CT | CPU/GPU | Apache 2.0 |
 | [SPOT-RNA](SPOTRNA.md) | Structure | 2D structure + pseudoknots | FASTA (RNA) | bpseq + CT + prob + dot-bracket | CPU/GPU | MPL-2.0 |
-| [DRfold2](DRfold2.md) | Structure (Tier 2) | Single-seq ab initio 3D | FASTA (RNA) | PDB | **GPU only** | MIT |
 | [Pangolin](Pangolin.md) | Splicing | Tissue-specific variant-effect splice scores | VCF/CSV + reference FASTA + gffutils DB | Annotated VCF/CSV | CPU/GPU | GPL-3.0 |
 | [SpliceAI](SpliceAI.md) | Splicing | Variant-effect splicing predictions | VCF + reference FASTA + annotation | Annotated VCF (4-class delta) | CPU/GPU | PolyForm Strict + CC BY-NC 4.0 |
 | [SpliceBERT](SpliceBERT.md) | Splicing | Vertebrate primary-RNA embeddings (512-d) | FASTA (RNA) | NumPy (N x 512) | CPU/GPU | BSD-3-Clause |
@@ -34,19 +31,18 @@ RNAZoo includes 25 RNA deep learning models across 6 tracks. Each model runs in 
 
 ## By track
 
-### Translation (7 models)
+### Translation (6 models)
 
 Models for predicting translation efficiency, ribosome profiling, ORF detection, mRNA stability, and codon optimization.
 
 - **[RiboNN](RiboNN.md)** — Multi-task TE prediction across 82 human cell types from mRNA sequence
 - **[Riboformer](Riboformer.md)** — Refine codon-level ribosome densities from ribo-seq data
 - **[RiboTIE](RiboTIE.md)** — Detect translated ORFs from ribo-seq + genomic sequence
-- **[seq2ribo](seq2ribo.md)** — Predict ribosome profiles/TE/protein from mRNA sequence (GPU only)
 - **[TranslationAI](TranslationAI.md)** — Identify translation initiation/termination sites and ORFs
 - **[Saluki](Saluki.md)** — Predict mRNA half-life from sequence (50-model ensemble)
 - **[CodonTransformer](CodonTransformer.md)** — Optimize codon usage for 164 organisms
 
-### RNA Foundation Models (9 models)
+### RNA Foundation Models (8 models)
 
 General-purpose RNA language models that produce embeddings for downstream tasks.
 
@@ -58,16 +54,14 @@ General-purpose RNA language models that produce embeddings for downstream tasks
 - **[PlantRNA-FM](PlantRNAFM.md)** — 35M-param ESM transformer, 480-d embeddings, plant-only training (1124 species), max 1024 nt (MIT)
 - **[CaLM](CaLM.md)** — 12-layer codon-level transformer (~86M params), 768-d embeddings, max 1024 codons (~3 kb) (BSD-3-Clause)
 - **[mRNABERT](mRNABERT.md)** — 12-layer MosaicBERT (~86M params) with hybrid UTR/CDS tokenization + ALiBi extrapolation, 768-d embeddings, max 1024 tokens (Apache-2.0)
-- **[HydraRNA](HydraRNA.md)** — 12-layer hybrid Hydra-SSM (~84M params) with 2 attention layers, 1024-d embeddings, supports up to 10K nt at inference, **GPU only** (MIT)
 
-### RNA Structure (4 models)
+### RNA Structure (3 models)
 
 Secondary and 3D structure prediction from sequence.
 
 - **[RNAformer](RNAformer.md)** — 2D base-pair matrix with recycling, pseudoknot-aware
 - **[RhoFold](RhoFold.md)** — Full-atom 3D structure prediction (PDB output), single-sequence mode
 - **[SPOT-RNA](SPOTRNA.md)** — 2D structure with pseudoknots, 5-model TF ensemble
-- **[DRfold2](DRfold2.md)** — Single-sequence ab initio 3D prediction with composite language model + denoised end-to-end learning, 4-model ensemble + IPA optimization + Arena refinement, **GPU only**
 
 ### Splicing (3 models)
 
@@ -101,7 +95,6 @@ Some models can be fine-tuned on your own data. The 9 foundation models share a 
 | RiboNN | Apache 2.0 | [Sanofi-Public/RiboNN](https://github.com/Sanofi-Public/RiboNN) | [Nature Biotechnology 2025](https://www.nature.com/articles/s41587-025-02712-x) |
 | Riboformer | MIT | [lingxusb/Riboformer](https://github.com/lingxusb/Riboformer) | [Nature Communications 2024](https://www.nature.com/articles/s41467-024-46241-8) |
 | RiboTIE | MIT | [TRISTAN-ORF/TRISTAN](https://github.com/TRISTAN-ORF/TRISTAN) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-56543-0) |
-| seq2ribo | CMU Non-Commercial | [Kingsford-Group/seq2ribo](https://github.com/Kingsford-Group/seq2ribo) | [bioRxiv 2026](https://www.biorxiv.org/content/10.64898/2026.02.08.700508v1) |
 | TranslationAI | AGPL-3.0 + CC BY-NC 4.0 | [rnasys/TranslationAI](https://github.com/rnasys/TranslationAI) | [NAR 2025](https://academic.oup.com/nar/article/53/7/gkaf277/8112693) |
 | Saluki | Apache 2.0 | [calico/basenji](https://github.com/calico/basenji) | [Genome Biology 2022](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02811-x) |
 | CodonTransformer | Apache 2.0 | [Adibvafa/CodonTransformer](https://github.com/Adibvafa/CodonTransformer) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-58588-7) |
@@ -113,8 +106,6 @@ Some models can be fine-tuned on your own data. The 9 foundation models share a 
 | PlantRNA-FM | MIT | [yangheng/PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00946-z) |
 | CaLM | BSD-3-Clause | [oxpig/CaLM](https://github.com/oxpig/CaLM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00791-0) |
 | mRNABERT | Apache-2.0 | [yyly6/mRNABERT](https://github.com/yyly6/mRNABERT) | [Nature Communications 2025](https://doi.org/10.1038/s41467-025-65340-8) |
-| DRfold2 | MIT | [leeyang/DRfold2](https://github.com/leeyang/DRfold2) | [Li et al. 2025](https://github.com/leeyang/DRfold2) |
-| HydraRNA | MIT | [GuipengLi/HydraRNA](https://github.com/GuipengLi/HydraRNA) | [Genome Biology 2025](https://doi.org/10.1186/s13059-025-03853-7) |
 | RNAformer | Apache 2.0 | [automl/RNAformer](https://github.com/automl/RNAformer) | [ICLR 2024](https://openreview.net/forum?id=RNAformer) |
 | RhoFold | Apache 2.0 | [ml4bio/RhoFold](https://github.com/ml4bio/RhoFold) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) |
 | SPOT-RNA | MPL-2.0 | [jaswindersingh2/SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9) |

@@ -146,18 +146,9 @@ docker run --rm \
 
 ### GPU-only models
 
-Both **seq2ribo** and **Orthrus** require CUDA at import time (mamba-ssm); they cannot run on CPU.
+**Orthrus** requires CUDA at import time (mamba-ssm); it cannot run on CPU.
 
 ```bash
-# seq2ribo (riboseq / TE / protein)
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v /path/to/input.fa:/data/input.fa \
-    -v /path/to/output:/out \
-    ghcr.io/ericmalekos/rnazoo-seq2ribo:latest \
-    /opt/seq2ribo/scripts/run_inference.py -i /data/input.fa -o /out --task te --cell_line hek293
-
 # Orthrus (mature-mRNA embeddings, 4-track 512-d)
 docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
     -u $(id -u):$(id -g) \
@@ -166,26 +157,6 @@ docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
     -v /path/to/output:/out \
     ghcr.io/ericmalekos/rnazoo-orthrus:latest \
     orthrus_predict.py -i /data/input.fa -o /out
-
-# DRfold2 (single-sequence ab initio 3D structure)
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v /path/to/input.fa:/data/input.fa \
-    -v /path/to/output:/out \
-    ghcr.io/ericmalekos/rnazoo-drfold2:latest \
-    drfold2_predict.py -i /data/input.fa -o /out
-
-# HydraRNA (full-length RNA embeddings, 1024-d, supports up to 10K nt)
-# Note: rnazoo-hydrarna:latest is not yet on ghcr.io — weights are
-# Google-Drive-only and must be locally baked. See docs/models/HydraRNA.md.
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v /path/to/input.fa:/data/input.fa \
-    -v /path/to/output:/out \
-    rnazoo-hydrarna:local-test \
-    hydrarna_predict.py -i /data/input.fa -o /out
 ```
 
 ## Help text

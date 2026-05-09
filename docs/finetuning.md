@@ -16,7 +16,6 @@ Three model-specific fine-tunes — [RiboNN](models/RiboNN.md#fine-tuning-on-you
 | [PlantRNA-FM](models/PlantRNAFM.md) | 480 | yes |
 | [CaLM](models/CaLM.md) | 768 | yes |
 | [mRNABERT](models/mRNABERT.md) | 768 | yes |
-| [HydraRNA](models/HydraRNA.md) | 1024 | GPU-only inference; CPU fine-tune via embeddings shortcut |
 
 ## Quick start
 
@@ -32,7 +31,7 @@ Outputs in `results/rnafm_finetune/rnafm_finetune_out/`:
 - `predictions.tsv` — per-row predictions (train/val split annotated)
 - `metrics.json` — MSE, R², Pearson r, Spearman r (regression) or accuracy / F1 / AUROC / confusion matrix (classification)
 
-Replace `rnafm` with any other foundation-model prefix (`rinalmo`, `ernierna`, `orthrus`, `rnaernie`, `plantrnafm`, `calm`, `mrnabert`, `hydrarna`) — the rest of the interface is identical.
+Replace `rnafm` with any other foundation-model prefix (`rinalmo`, `ernierna`, `orthrus`, `rnaernie`, `plantrnafm`, `calm`, `mrnabert`) — the rest of the interface is identical.
 
 ## Input format
 
@@ -85,7 +84,7 @@ nextflow run main.nf -profile docker,cpu \
 
 When `--<model>_finetune_embeddings` is set, the workflow skips `<model>_predict.py` and runs head training in the dedicated `rnazoo-finetune-head` image (CPU, ~1.9 GB). Supports all three head types.
 
-Side benefit: Orthrus and HydraRNA fine-tunes via Path B no longer require a GPU — head training is CPU and the dedicated image doesn't need the model's CUDA stack.
+Side benefit: Orthrus fine-tunes via Path B no longer require a GPU — head training is CPU and the dedicated image doesn't need the model's CUDA stack.
 
 Embedding row order **must** match TSV row order. The head trainer exits with an error if shapes disagree. The `sequence` column in the TSV is optional and ignored when `_embeddings` is set.
 
