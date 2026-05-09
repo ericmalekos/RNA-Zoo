@@ -12,6 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Free disk space
+        # GHA ubuntu-latest has ~14 GB usable; removing unused pre-installed
+        # toolchains frees ~10 GB so all 5 SIF images fit comfortably.
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          df -h
+
       - name: Install Apptainer (Singularity-compatible)
         # Apptainer is the open-source fork of Singularity. Nextflow's
         # `singularity` profile talks to whichever of the two is in PATH.
@@ -26,55 +34,34 @@ jobs:
           sudo mv nextflow /usr/local/bin/
 
       - name: Pre-pull Singularity images (serial, avoids parallel GHCR races)
-        # Nextflow would otherwise fire all 13 `singularity pull` commands in
-        # parallel; on GHA runners that saturates I/O and occasionally trips
-        # GHCR manifest-fetch races ("conveyor failed to get: unexpected end
-        # of JSON input"). Pulling serially into a shared cache directory
-        # sidesteps both: Nextflow finds images already cached and skips its
-        # own pull step entirely.
+        # 5 representative images across 5 tracks (~7.5 GB total compressed).
+        # Pulling serially into a shared cache so Nextflow finds them already
+        # converted and skips its own pull step.
         run: |
           export NXF_SINGULARITY_CACHEDIR="$PWD/.singularity_cache"
           mkdir -p "$NXF_SINGULARITY_CACHEDIR"
           echo "NXF_SINGULARITY_CACHEDIR=$NXF_SINGULARITY_CACHEDIR" >> "$GITHUB_ENV"
-          for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu \
-                     translationai-cpu codontransformer-cpu rnafm-cpu rinalmo-cpu \
-                     ernierna rnaernie-cpu plantrnafm-cpu calm-cpu mrnabert-cpu \
-                     splicebert-cpu spliceai-cpu pangolin-cpu \
-                     rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+          for img in ribonn-cpu rnafm-cpu splicebert-cpu multirm-cpu utrlm-cpu; do
             name="ghcr.io-ericmalekos-rnazoo-${img}-latest.img"
             echo "--- Pulling $img ---"
             singularity pull --name "$NXF_SINGULARITY_CACHEDIR/$name" \
                 "docker://ghcr.io/ericmalekos/rnazoo-${img}:latest"
           done
-          ls -la "$NXF_SINGULARITY_CACHEDIR"
+          df -h
+          ls -lh "$NXF_SINGULARITY_CACHEDIR"
 
       - name: Run test suite under singularity profile
-        run: nextflow run . -profile test,singularity,cpu
+        run: nextflow run . -profile test_singularity,singularity,cpu
 
       - name: Verify outputs
         run: |
           echo "--- Checking model outputs under singularity ---"
           test -f results_test/ribonn/ribonn_out/prediction_output.txt
           test -f results_test/rnafm/rnafm_out/sequence_embeddings.npy
-          test -f results_test/rinalmo/rinalmo_out/sequence_embeddings.npy
-          test -f results_test/ernierna/ernierna_out/sequence_embeddings.npy
-          test -f results_test/rnaernie/rnaernie_out/sequence_embeddings.npy
-          test -f results_test/plantrnafm/plantrnafm_out/sequence_embeddings.npy
-          test -f results_test/calm/calm_out/sequence_embeddings.npy
-          test -f results_test/mrnabert/mrnabert_out/sequence_embeddings.npy
-          test -f results_test/codontransformer/optimized_codons.fa
-          test -f results_test/saluki/preds.npy
-          test -f results_test/rnaformer/rnaformer_out/structures.txt
-          test -f results_test/spotrna/spotrna_out/structures.txt
+          test -f results_test/splicebert/splicebert_out/sequence_embeddings.npy
           test -f results_test/multirm/multirm_out/predicted_sites.tsv
           test -f results_test/utrlm/utrlm_out/predictions.tsv
-          test -f results_test/riboformer/model_prediction.txt
-          ls results_test/translationai/*_predTIS_*.txt
-          ls results_test/ribotie/ribotie_out/out/ribotie_SRR000001.gtf
-          test -f results_test/splicebert/splicebert_out/sequence_embeddings.npy
-          ls results_test/spliceai/spliceai_out/*.spliceai.vcf
-          ls results_test/pangolin/pangolin_out/
-          echo "Singularity run OK (20 models)."
+          echo "Singularity run OK (5 models)."
 
       - name: Upload test results
         uses: actions/upload-artifact@v5
