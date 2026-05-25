@@ -72,9 +72,9 @@ nav:
       - CaLM: models/CaLM.md
       - mRNABERT: models/mRNABERT.md
     - RNA Structure:
-      - RNAformer: models/RNAformer.md
       - RhoFold: models/RhoFold.md
       - SPOT-RNA: models/SPOTRNA.md
+      - DRfold2: models/DRfold2.md
     - RNA Modification:
       - MultiRM: models/MultiRM.md
     - Splicing:

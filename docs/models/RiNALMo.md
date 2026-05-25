@@ -2,7 +2,7 @@
 
 Extract RNA embeddings from a 650M-parameter RNA language model.
 
-- **Paper:** [NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/RiNALMo)
+- **Paper:** [Nat. Commun. 2025](https://www.nature.com/articles/s41467-025-60872-5) — Penić et al., "RiNALMo: General-purpose RNA language models can generalize well on structure prediction tasks"
 - **Upstream:** https://github.com/lbcb-sci/RiNALMo
 - **License:** Apache 2.0 (code), CC BY 4.0 (weights)
 - **Device:** CPU or GPU (650M params — GPU strongly recommended). Two image variants:

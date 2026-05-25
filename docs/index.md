@@ -35,16 +35,16 @@ The remaining 12 models are task-specific predictors across translation, structu
 | [TranslationAI](models/TranslationAI.md) | Translation | 47K human RefSeq mRNAs | FASTA mRNA | `*_predTIS` / `*_predTTS` / `*_predORFs.txt` | 1.9 GB | 0.6 GB |
 | [Saluki](models/Saluki.md) | Translation | 66 mRNA-decay datasets (human + mouse) | FASTA (UTR lowercase, CDS UPPERCASE) | `preds.npy` | 4.2 GB | 1.4 GB |
 | [CodonTransformer](models/CodonTransformer.md) | Translation | 1M genes across 164 organisms | FASTA protein | optimized DNA FASTA | 3.7 GB | 1.2 GB |
-| [RNAformer](models/RNAformer.md) | Structure | bpRNA + PDB (LoRA-finetuned) | FASTA RNA | `structures.txt` (dot-bracket) | 3.8 GB | — (single image) |
 | [RhoFold](models/RhoFold.md) | Structure | PDB + bpRNA self-distillation | FASTA RNA | PDB + `ss.ct` + `results.npz` | 4.2 GB | 1.7 GB |
 | [SPOT-RNA](models/SPOTRNA.md) | Structure | bpRNA + PDB + Rfam | FASTA RNA | `structures.txt` + per-seq `bpseq` / `ct` / `prob` | 2.7 GB | 0.6 GB |
+| [DRfold2](models/DRfold2.md) | Structure (Tier 2) | bpRNA + PDB single-seq | FASTA RNA | per-seq PDB | ~5 GB | — (GPU only) |
 | [MultiRM](models/MultiRM.md) | Modification | ~300K human modification sites | FASTA RNA | `modification_scores.tsv` + `predicted_sites.tsv` | 3.5 GB | 1.0 GB |
 | [Pangolin](models/Pangolin.md) | Splicing | 4-tissue (heart/liver/brain/testis) human + 3 species | VCF/CSV + ref FASTA + gffutils DB | annotated VCF/CSV | ~3 GB | ~3 GB |
 | [SpliceAI](models/SpliceAI.md) | Splicing | 1k human variants per gene (Cell 2019) | VCF + ref FASTA + annotation | annotated VCF (4-class delta) | ~2.3 GB | ~2.3 GB |
 | [SpliceBERT](models/SpliceBERT.md) | Splicing | 2M+ vertebrate primary RNAs (72 species) | FASTA RNA | NumPy (N x 512) | ~3 GB | ~1.2 GB |
 | [UTR-LM](models/UTRLM.md) | mRNA Design | 5'UTRs, 5 species + MPRA (MRL) | FASTA 5'UTR | `predictions.tsv` | 4.9 GB | 2.4 GB |
 
-**Totals:** CPU set is **~39 GB** across 21 images; GPU set is **~81 GB** across 22 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
+**Totals:** CPU set is **~39 GB** across 21 images; GPU set is **~82 GB** across 22 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
 
 ## Quick start
 
@@ -60,7 +60,7 @@ nextflow run . -profile docker,cpu --rnafm_input my_sequences.fa
 # Run multiple models in parallel
 nextflow run . -profile docker,cpu \
   --rnafm_input seqs.fa \
-  --rnaformer_input seqs.fa \
+  --spotrna_input seqs.fa \
   --multirm_input seqs.fa
 
 # Use a YAML params file for complex runs
@@ -84,7 +84,7 @@ See the [Direct Docker guide](direct-docker.md) for invocations of every model.
 
 - **One Docker image per model** — weights baked in at build time, no runtime downloads
 - **GPU by default** — the test suite and per-model docs assume `--profile gpu`; foundation and structure models are 30–60× faster on GPU than CPU
-- **CPU supported for small runs** — most models also ship a `-cpu` image; pick `--profile cpu` for laptop / no-GPU use, with the caveat that GPU-only models (Orthrus) auto-skip with a warning
+- **CPU supported for small runs** — most models also ship a `-cpu` image; pick `--profile cpu` for laptop / no-GPU use, with the caveat that GPU-only models (Orthrus, DRfold2) auto-skip with a warning
 - **Portable** — runs anywhere with Docker or Singularity + Nextflow
 
 ## License

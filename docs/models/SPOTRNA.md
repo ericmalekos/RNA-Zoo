@@ -111,18 +111,6 @@ GGCAGAUCUGAGCCUGGGAGCUCUCUGCC
 
 This structure shows a stem-loop with nested base pairs and no pseudoknots for this particular sequence. When pseudoknots are present, they are denoted with `[]` and `{}` bracket types.
 
-## Comparison with RNAformer
-
-| Feature | SPOT-RNA | RNAformer |
-|---------|----------|-----------|
-| Framework | TensorFlow 2.x | PyTorch |
-| Architecture | 5-model ensemble | Single model with recycling |
-| Pseudoknots | Yes | Yes |
-| Non-canonical pairs | Yes | Yes |
-| Output formats | bpseq + ct + prob + dot-bracket | dot-bracket + optional prob matrix |
-| Pretrained on | bpRNA + PDB + Rfam | bpRNA + PDB |
-| License | MPL-2.0 | Apache 2.0 |
-
 ## Technical notes
 
 - Uses TensorFlow 2.15 with `tf.compat.v1` (originally TF 1.14, updated for modern TF)

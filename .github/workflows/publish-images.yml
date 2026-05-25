@@ -45,8 +45,6 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.TRISTAN
           - name: rnazoo-tristan-cpu
             dockerfile: Dockerfiles/Dockerfile.TRISTAN.cpu
-          - name: rnazoo-seq2ribo
-            dockerfile: Dockerfiles/Dockerfile.seq2ribo
           - name: rnazoo-saluki
             dockerfile: Dockerfiles/Dockerfile.Saluki
           - name: rnazoo-saluki-cpu
@@ -88,11 +86,6 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.mRNABERT
           - name: rnazoo-mrnabert-cpu
             dockerfile: Dockerfiles/Dockerfile.mRNABERT.cpu
-          # HydraRNA: weights are Google-Drive-only; the GH-hosted runner cannot
-          # access /home/eric/hydrarna_weights_local/HydraRNA_model.pt at build time.
-          # Re-enable once weights are mirrored to HF or Zenodo. See docs/models/HydraRNA.md.
-          # - name: rnazoo-hydrarna
-          #   dockerfile: Dockerfiles/Dockerfile.HydraRNA
           # Splicing
           - name: rnazoo-splicebert
             dockerfile: Dockerfiles/Dockerfile.SpliceBERT
@@ -107,8 +100,6 @@ jobs:
           - name: rnazoo-pangolin-cpu
             dockerfile: Dockerfiles/Dockerfile.Pangolin.cpu
           # Structure
-          - name: rnazoo-rnaformer
-            dockerfile: Dockerfiles/Dockerfile.RNAformer
           - name: rnazoo-rhofold
             dockerfile: Dockerfiles/Dockerfile.RhoFold
           - name: rnazoo-rhofold-cpu

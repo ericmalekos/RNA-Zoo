@@ -20,9 +20,9 @@ RNAZoo includes 22 RNA deep learning models across 6 tracks. Each model runs in 
 | [PlantRNA-FM](PlantRNAFM.md) | Foundation | Plant-only RNA embeddings (480-d) | FASTA (RNA) | NumPy (N x 480) | CPU/GPU | MIT |
 | [CaLM](CaLM.md) | Foundation | Codon-level RNA embeddings (768-d) | FASTA (CDS, codon-aligned) | NumPy (N x 768) | CPU/GPU | BSD-3-Clause |
 | [mRNABERT](mRNABERT.md) | Foundation | Hybrid UTR/CDS mRNA embeddings (768-d) | FASTA (mRNA, auto-ORF) | NumPy (N x 768) | CPU/GPU | Apache-2.0 |
-| [RNAformer](RNAformer.md) | Structure | 2D structure (base-pair matrix) | FASTA (RNA) | Dot-bracket + prob matrix | CPU/GPU | Apache 2.0 |
 | [RhoFold](RhoFold.md) | Structure | 3D structure prediction | FASTA (RNA) | PDB + CT | CPU/GPU | Apache 2.0 |
 | [SPOT-RNA](SPOTRNA.md) | Structure | 2D structure + pseudoknots | FASTA (RNA) | bpseq + CT + prob + dot-bracket | CPU/GPU | MPL-2.0 |
+| [DRfold2](DRfold2.md) | Structure (Tier 2) | Single-seq ab initio 3D | FASTA (RNA) | PDB | **GPU only** | MIT |
 | [Pangolin](Pangolin.md) | Splicing | Tissue-specific variant-effect splice scores | VCF/CSV + reference FASTA + gffutils DB | Annotated VCF/CSV | CPU/GPU | GPL-3.0 |
 | [SpliceAI](SpliceAI.md) | Splicing | Variant-effect splicing predictions | VCF + reference FASTA + annotation | Annotated VCF (4-class delta) | CPU/GPU | PolyForm Strict + CC BY-NC 4.0 |
 | [SpliceBERT](SpliceBERT.md) | Splicing | Vertebrate primary-RNA embeddings (512-d) | FASTA (RNA) | NumPy (N x 512) | CPU/GPU | BSD-3-Clause |
@@ -59,9 +59,9 @@ General-purpose RNA language models that produce embeddings for downstream tasks
 
 Secondary and 3D structure prediction from sequence.
 
-- **[RNAformer](RNAformer.md)** — 2D base-pair matrix with recycling, pseudoknot-aware
 - **[RhoFold](RhoFold.md)** — Full-atom 3D structure prediction (PDB output), single-sequence mode
 - **[SPOT-RNA](SPOTRNA.md)** — 2D structure with pseudoknots, 5-model TF ensemble
+- **[DRfold2](DRfold2.md)** — Single-seq ab initio 3D (Tier 2), composite LM + 4-model ensemble + Arena refinement; novel-fold wins vs RhoFold/RoseTTAFoldNA, **GPU only**
 
 ### Splicing (3 models)
 
@@ -99,17 +99,17 @@ Some models can be fine-tuned on your own data. The 9 foundation models share a 
 | Saluki | Apache 2.0 | [calico/basenji](https://github.com/calico/basenji) | [Genome Biology 2022](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02811-x) |
 | CodonTransformer | Apache 2.0 | [Adibvafa/CodonTransformer](https://github.com/Adibvafa/CodonTransformer) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-58588-7) |
 | RNA-FM | MIT | [ml4bio/RNA-FM](https://github.com/ml4bio/RNA-FM) | [arXiv 2022](https://arxiv.org/abs/2204.00300) |
-| RiNALMo | Apache 2.0 (code) + CC BY 4.0 (weights) | [lbcb-sci/RiNALMo](https://github.com/lbcb-sci/RiNALMo) | [NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/RiNALMo) |
+| RiNALMo | Apache 2.0 (code) + CC BY 4.0 (weights) | [lbcb-sci/RiNALMo](https://github.com/lbcb-sci/RiNALMo) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-60872-5) |
 | ERNIE-RNA | MIT | [Bruce-ywj/ERNIE-RNA](https://github.com/Bruce-ywj/ERNIE-RNA) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-64972-0) |
 | Orthrus | MIT | [bowang-lab/Orthrus](https://github.com/bowang-lab/Orthrus) | [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3) |
 | RNAErnie | MIT (code) + Apache-2.0 (LLM-EDA HF port weights) | [CatIIIIIIII/RNAErnie](https://github.com/CatIIIIIIII/RNAErnie) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00836-4) |
 | PlantRNA-FM | MIT | [yangheng/PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00946-z) |
 | CaLM | BSD-3-Clause | [oxpig/CaLM](https://github.com/oxpig/CaLM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00791-0) |
 | mRNABERT | Apache-2.0 | [yyly6/mRNABERT](https://github.com/yyly6/mRNABERT) | [Nature Communications 2025](https://doi.org/10.1038/s41467-025-65340-8) |
-| RNAformer | Apache 2.0 | [automl/RNAformer](https://github.com/automl/RNAformer) | [ICLR 2024](https://openreview.net/forum?id=RNAformer) |
 | RhoFold | Apache 2.0 | [ml4bio/RhoFold](https://github.com/ml4bio/RhoFold) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) |
 | SPOT-RNA | MPL-2.0 | [jaswindersingh2/SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9) |
-| MultiRM | MIT | [Tsedao/MultiRM](https://github.com/Tsedao/MultiRM) | [NAR 2021](https://doi.org/10.1093/nar/gkab507) |
+| DRfold2 | MIT (README-declared; no LICENSE file) | [leeyang/DRfold2](https://github.com/leeyang/DRfold2) | [PLOS Biology 2026](https://doi.org/10.1371/journal.pbio.3003659) |
+| MultiRM | MIT | [Tsedao/MultiRM](https://github.com/Tsedao/MultiRM) | [Nature Communications 2021](https://doi.org/10.1038/s41467-021-24313-3) |
 | Pangolin | GPL-3.0 | [tkzeng/Pangolin](https://github.com/tkzeng/Pangolin) | [Genome Biology 2022](https://doi.org/10.1186/s13059-022-02664-4) |
 | SpliceAI | PolyForm Strict 1.0.0 (code) + CC-BY-NC-4.0 (weights) — **non-commercial** | [Illumina/SpliceAI](https://github.com/Illumina/SpliceAI) | [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) |
 | SpliceBERT | BSD-3-Clause (code) + CC-BY-4.0 (Zenodo weights) | [biomed-AI/SpliceBERT](https://github.com/biomed-AI/SpliceBERT) | [Briefings in Bioinformatics 2024](https://doi.org/10.1093/bib/bbae163) |

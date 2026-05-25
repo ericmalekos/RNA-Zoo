@@ -27,13 +27,6 @@ nextflow run . -profile docker,gpu \
   --ribonn_input my_transcripts.txt
 ```
 
-### RNA secondary structure (RNAformer)
-
-```bash
-nextflow run . -profile docker,gpu \
-  --rnaformer_input my_rna_sequences.fa
-```
-
 ### RNA 3D structure (RhoFold)
 
 ```bash
@@ -55,7 +48,6 @@ Provide inputs for multiple models and they run simultaneously:
 ```bash
 nextflow run . -profile docker,cpu \
   --rnafm_input sequences.fa \
-  --rnaformer_input sequences.fa \
   --spotrna_input sequences.fa \
   --multirm_input sequences.fa
 ```
@@ -93,9 +85,6 @@ outdir: my_results
 
 rnafm_input: data/rna_sequences.fa
 rnafm_per_token: true
-
-rnaformer_input: data/rna_sequences.fa
-rnaformer_cycling: 6
 
 multirm_input: data/rna_sequences.fa
 multirm_alpha: 0.01
@@ -159,8 +148,8 @@ results/
     rnafm_out/
       sequence_embeddings.npy
       labels.txt
-  rnaformer/
-    rnaformer_out/
+  spotrna/
+    spotrna_out/
       structures.txt
   ...
 ```

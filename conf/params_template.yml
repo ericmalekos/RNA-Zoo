@@ -58,16 +58,6 @@ ribotie_max_epochs: null       # optional: max training epochs
 ribotie_patience: null         # optional: early stopping patience
 ribotie_checkpoint: null       # example: results/ribotie/ribotie_out/out/ribotie_sampleA_f0.rt.ckpt
 
-# seq2ribo — ribosome profiling / TE / protein from mRNA sequence (GPU only)
-# License: CMU Academic/Non-Commercial only
-# Input: FASTA of mRNA CDS sequences
-# Output: JSON with predictions
-seq2ribo_input: null           # example: data/seq2ribo/mrna.fa
-seq2ribo_outdir: null          # default: <outdir>/seq2ribo
-seq2ribo_task: te              # riboseq, te, or protein
-seq2ribo_cell_line: hek293     # hek293, lcl, rpe, or ipsc
-seq2ribo_use_utr: false        # include UTR regions
-
 # TranslationAI — TIS/TTS/ORF prediction from mRNA sequence
 # License: AGPL-3.0 source + CC BY-NC 4.0 weights
 # Input: FASTA of mRNA sequences
@@ -131,25 +121,9 @@ mrnabert_input: null           # example: data/mrnabert/transcripts.fa
 mrnabert_outdir: null          # default: <outdir>/mrnabert
 mrnabert_per_token: false      # also save per-token (T x 768) .npy files
 
-# HydraRNA — full-length RNA embeddings (1024-d, ≤10K nt, GPU-only)
-# Input: FASTA of RNA sequences (auto-skipped under -profile cpu; long sequences are auto-chunked)
-# Output: sequence_embeddings.npy (N x 1024), labels.txt
-hydrarna_input: null           # example: data/hydrarna/transcripts.fa
-hydrarna_outdir: null          # default: <outdir>/hydrarna
-hydrarna_per_token: false      # also save per-token (N+2 x 1024) .npy files
-
 # ============================================================================
 # RNA STRUCTURE
 # ============================================================================
-
-# RNAformer — 2D secondary structure (base-pair matrix)
-# Input: FASTA of RNA sequences (max ~500 nt)
-# Output: structures.txt (dot-bracket), optional probability matrices
-rnaformer_input: null          # example: data/rnaformer/sequences.fa
-rnaformer_outdir: null         # default: <outdir>/rnaformer
-rnaformer_cycling: 6           # recycling steps (6=best, 0=disable)
-rnaformer_save_matrix: false   # save L x L base-pair probability .npy
-rnaformer_plot: false          # generate contact map heatmap PNGs
 
 # RhoFold — RNA 3D structure prediction (single-sequence mode)
 # Input: FASTA of RNA sequences (max ~1022 nt)

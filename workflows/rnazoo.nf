@@ -9,7 +9,6 @@ include { RIBONN           } from '../modules/local/ribonn'
 include { RIBONN_FINETUNE  } from '../modules/local/ribonn_finetune'
 include { RIBOFORMER       } from '../modules/local/riboformer'
 include { RIBOTIE          } from '../modules/local/ribotie'
-include { SEQ2RIBO         } from '../modules/local/seq2ribo'
 include { SALUKI           } from '../modules/local/saluki'
 include { TRANSLATIONAI    } from '../modules/local/translationai'
 include { CODONTRANSFORMER } from '../modules/local/codontransformer'
@@ -32,9 +31,6 @@ include { CALM             } from '../modules/local/calm'
 include { CALM_FINETUNE    } from '../modules/local/calm_finetune'
 include { MRNABERT         } from '../modules/local/mrnabert'
 include { MRNABERT_FINETUNE } from '../modules/local/mrnabert_finetune'
-include { HYDRARNA         } from '../modules/local/hydrarna'
-include { HYDRARNA_FINETUNE } from '../modules/local/hydrarna_finetune'
-include { RNAFORMER        } from '../modules/local/rnaformer'
 include { RHOFOLD          } from '../modules/local/rhofold'
 include { SPOTRNA          } from '../modules/local/spotrna'
 include { DRFOLD2          } from '../modules/local/drfold2'
@@ -54,7 +50,6 @@ include { FINETUNE_HEAD_ONLY as RNAERNIE_FINETUNE_FROM_EMB   } from '../modules/
 include { FINETUNE_HEAD_ONLY as PLANTRNAFM_FINETUNE_FROM_EMB } from '../modules/local/finetune_head_only'
 include { FINETUNE_HEAD_ONLY as CALM_FINETUNE_FROM_EMB       } from '../modules/local/finetune_head_only'
 include { FINETUNE_HEAD_ONLY as MRNABERT_FINETUNE_FROM_EMB   } from '../modules/local/finetune_head_only'
-include { FINETUNE_HEAD_ONLY as HYDRARNA_FINETUNE_FROM_EMB   } from '../modules/local/finetune_head_only'
 
 workflow RNAZOO {
     main:
@@ -98,18 +93,6 @@ workflow RNAZOO {
             Channel.fromPath(params.ribotie_input,  type: 'dir',  checkIfExists: true),
             Channel.fromPath(params.ribotie_config, type: 'file', checkIfExists: true)
         )
-    }
-
-    if (params.seq2ribo_input) {
-        if (params.device == 'cpu') {
-            log.warn "seq2ribo requires a GPU — skipping under CPU mode"
-        } else {
-            SEQ2RIBO(
-                Channel.fromPath(params.seq2ribo_input, checkIfExists: true),
-                params.seq2ribo_task,
-                params.seq2ribo_cell_line
-            )
-        }
     }
 
     if (params.translationai_input) {
@@ -395,46 +378,7 @@ workflow RNAZOO {
         }
     }
 
-    if (params.hydrarna_input) {
-        if (params.device == 'cpu') {
-            log.warn "HydraRNA requires a GPU — skipping under CPU mode"
-        } else {
-            HYDRARNA(Channel.fromPath(params.hydrarna_input, checkIfExists: true))
-        }
-    }
-
-    if (params.hydrarna_finetune_input) {
-        if (!params.hydrarna_finetune_label) {
-            error "hydrarna_finetune_label is required when hydrarna_finetune_input is set"
-        }
-        if (params.hydrarna_finetune_embeddings) {
-            // Embeddings shortcut runs in the CPU-only finetune-head image,
-            // so it works under both -profile cpu and gpu.
-            HYDRARNA_FINETUNE_FROM_EMB(
-                Channel.of(tuple(
-                    [name: 'hydrarna', label_col: params.hydrarna_finetune_label,
-                     epochs: params.hydrarna_finetune_epochs, lr: params.hydrarna_finetune_lr,
-                     head_type: params.hydrarna_finetune_head_type,
-                     task: params.hydrarna_finetune_task],
-                    file(params.hydrarna_finetune_input, checkIfExists: true),
-                    file(params.hydrarna_finetune_embeddings, checkIfExists: true)
-                ))
-            )
-        } else if (params.device == 'cpu') {
-            log.warn "HydraRNA fine-tune requires a GPU — skipping under CPU mode"
-        } else {
-            if (params.hydrarna_finetune_head_type == 'xgboost') {
-                error "XGBoost head requires precomputed embeddings — set --hydrarna_finetune_embeddings to use the FINETUNE_HEAD_ONLY path"
-            }
-            HYDRARNA_FINETUNE(Channel.fromPath(params.hydrarna_finetune_input, checkIfExists: true))
-        }
-    }
-
     // ----- RNA Structure -----
-
-    if (params.rnaformer_input) {
-        RNAFORMER(Channel.fromPath(params.rnaformer_input, checkIfExists: true))
-    }
 
     if (params.rhofold_input) {
         RHOFOLD(Channel.fromPath(params.rhofold_input, checkIfExists: true))

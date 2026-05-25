@@ -75,7 +75,6 @@ Then: `run_rnazoo rnafm rnafm_predict.py -i /data/input.fa -o /out`, etc.
 | [SpliceBERT](models/SpliceBERT.md) | `splicebert_predict.py -i /data/input.fa -o /out` |
 | [RhoFold](models/RhoFold.md) | `rhofold_predict.py -i /data/input.fa -o /out` |
 | [SPOT-RNA](models/SPOTRNA.md) | `spotrna_predict.py -i /data/input.fa -o /out` |
-| [RNAformer](models/RNAformer.md) | `rnaformer_predict.py -i /data/input.fa -o /out` |
 | [MultiRM](models/MultiRM.md) | `multirm_predict.py -i /data/input.fa -o /out` |
 | [CodonTransformer](models/CodonTransformer.md) | `codon_transformer_predict.py -i /data/input.fa -o /out/optimized_codons.fa --organism "Homo sapiens"` |
 

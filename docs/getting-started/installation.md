@@ -41,20 +41,20 @@ If you want to warm the cache up front, pick the loop that matches your hardware
 # design (mamba-ssm requires CUDA at import time).
 for img in ribonn riboformer tristan saluki translationai \
            codontransformer rnafm rinalmo ernierna orthrus rnaernie \
-           plantrnafm calm mrnabert splicebert spliceai pangolin rnaformer rhofold spotrna multirm utrlm; do
+           plantrnafm calm mrnabert splicebert spliceai pangolin rhofold spotrna multirm utrlm; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
 
 ```bash
 # --- CPU-only setup (~31 GB total compressed download)
-# Selects the smaller -cpu variants where they exist. ernierna and
-# rnaformer only ship a single image (built with CUDA-enabled framework
-# but runs on CPU too) — included here for completeness. Orthrus is
+# Selects the smaller -cpu variants where they exist. ernierna only
+# ships a single image (built with CUDA-enabled framework but runs on
+# CPU too) — included here for completeness. Orthrus and DRfold2 are
 # GPU-only and not in this list.
 for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu translationai-cpu \
            codontransformer-cpu rnafm-cpu rinalmo-cpu ernierna rnaernie-cpu \
-           plantrnafm-cpu calm-cpu mrnabert-cpu splicebert-cpu spliceai-cpu pangolin-cpu rnaformer rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+           plantrnafm-cpu calm-cpu mrnabert-cpu splicebert-cpu spliceai-cpu pangolin-cpu rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
@@ -109,26 +109,25 @@ RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
 RNAZOO:SPLICEBERT (splicebert)                        | 1 of 1 ✔
 RNAZOO:SPLICEAI (spliceai)                            | 1 of 1 ✔
 RNAZOO:PANGOLIN (pangolin)                            | 1 of 1 ✔
-RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
 RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
 RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
 RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
 RNAZOO:RHOFOLD (rhofold)                              | 1 of 1 ✔
-Succeeded   : 22
+Succeeded   : 21
 ```
 
 Riboformer's bundled-dataset test runs faster on GPU (~1.5 min vs ~2.5 min on CPU). Models with both CPU and GPU image variants automatically use their GPU images under `-profile gpu`.
 
 ### CPU fallback
 
-If you don't have an NVIDIA GPU, the smaller `test` profile runs the 20 of 22 models that work on CPU in a reasonable time:
+If you don't have an NVIDIA GPU, the smaller `test` profile runs the 19 of 22 models that work on CPU in a reasonable time:
 
 ```bash
-# Run the CPU test suite (20 models on CPU, ~5 minutes)
+# Run the CPU test suite (19 models on CPU, ~5 minutes)
 nextflow run . -profile test,docker,cpu
 ```
 
-Expected output — all 20 should pass:
+Expected output — all 19 should pass:
 
 ```
 RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
@@ -147,11 +146,10 @@ RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
 RNAZOO:SPLICEBERT (splicebert)                        | 1 of 1 ✔
 RNAZOO:SPLICEAI (spliceai)                            | 1 of 1 ✔
 RNAZOO:PANGOLIN (pangolin)                            | 1 of 1 ✔
-RNAZOO:RNAFORMER (rnaformer)                          | 1 of 1 ✔
 RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
 RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
 RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
-Succeeded   : 20
+Succeeded   : 19
 ```
 
 Two models are excluded from the CPU test:

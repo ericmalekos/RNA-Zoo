@@ -44,7 +44,6 @@ jobs:
           test -f results_test/mrnabert/mrnabert_out/sequence_embeddings.npy
           test -f results_test/codontransformer/optimized_codons.fa
           test -f results_test/saluki/preds.npy
-          test -f results_test/rnaformer/rnaformer_out/structures.txt
           test -f results_test/spotrna/spotrna_out/structures.txt
           test -f results_test/multirm/multirm_out/predicted_sites.tsv
           test -f results_test/utrlm/utrlm_out/predictions.tsv

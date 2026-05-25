@@ -17,18 +17,18 @@ A Nextflow pipeline model zoo for RNA deep learning — 22 models across transla
 | [Saluki](https://github.com/calico/basenji) | Translation | mRNA half-life | [Genome Biology 2022](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02811-x) | Apache 2.0 |
 | [CodonTransformer](https://github.com/Adibvafa/CodonTransformer) | Translation | Codon optimization (164 organisms) | [Nature Comms 2025](https://www.nature.com/articles/s41467-025-58588-7) | Apache 2.0 |
 | [RNA-FM](https://github.com/ml4bio/RNA-FM) | Foundation | RNA embeddings (640-d) | [arXiv 2022](https://arxiv.org/abs/2204.00300) | MIT |
-| [RiNALMo](https://github.com/lbcb-sci/RiNALMo) | Foundation | RNA embeddings (1280-d) | [NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/RiNALMo) | Apache 2.0 |
+| [RiNALMo](https://github.com/lbcb-sci/RiNALMo) | Foundation | RNA embeddings (1280-d) | [Nat. Commun. 2025](https://www.nature.com/articles/s41467-025-60872-5) | Apache 2.0 |
 | [ERNIE-RNA](https://github.com/Bruce-ywj/ERNIE-RNA) | Foundation | Structure-aware embeddings (768-d) | [Nature Comms 2025](https://www.nature.com/articles/s41467-025-64972-0) | MIT |
 | [Orthrus](https://github.com/bowang-lab/Orthrus) | Foundation | Mamba mRNA embeddings (4-track, 512-d, GPU) | [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3) | MIT |
 | [RNAErnie](https://github.com/CatIIIIIIII/RNAErnie) | Foundation | Motif-aware RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00836-4) | Apache-2.0 |
 | [PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | Foundation | Plant-only RNA embeddings (480-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00946-z) | MIT |
 | [CaLM](https://github.com/oxpig/CaLM) | Foundation | Codon-level RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00791-0) | BSD-3-Clause |
 | [mRNABERT](https://huggingface.co/YYLY66/mRNABERT) | Foundation | Hybrid UTR/CDS mRNA embeddings (768-d) | [Nature Comms 2025](https://doi.org/10.1038/s41467-025-65340-8) | Apache-2.0 |
-| [RNAformer](https://github.com/automl/RNAformer) | Structure | 2D base-pair prediction | [ICLR 2024](https://openreview.net/forum?id=RNAformer) | Apache 2.0 |
 | [RhoFold](https://github.com/ml4bio/RhoFold) | Structure | 3D structure (PDB output) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) | Apache 2.0 |
 | [SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | Structure | 2D structure + pseudoknots | [Nature Comms 2019](https://doi.org/10.1038/s41467-019-13395-9) | MPL-2.0 |
+| [DRfold2](https://github.com/leeyang/DRfold2) | Structure | Single-seq ab initio 3D (GPU) | [PLOS Biology 2026](https://doi.org/10.1371/journal.pbio.3003659) | MIT |
 | [Pangolin](https://github.com/tkzeng/Pangolin) | Splicing | Tissue-specific variant-effect splice scores | [Genome Biology 2022](https://doi.org/10.1186/s13059-022-02664-4) | GPL-3.0 |
 | [SpliceAI](https://github.com/Illumina/SpliceAI) | Splicing | Variant-effect splicing scores (4-class delta) | [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) | PolyForm Strict + CC BY-NC 4.0 |
 | [SpliceBERT](https://github.com/biomed-AI/SpliceBERT) | Splicing | Vertebrate primary-RNA embeddings (512-d) | [Brief. Bioinform. 2024](https://doi.org/10.1093/bib/bbae163) | BSD-3-Clause |
-| [MultiRM](https://github.com/Tsedao/MultiRM) | Modification | 12 RNA modification types | [NAR 2021](https://doi.org/10.1093/nar/gkab507) | MIT |
+| [MultiRM](https://github.com/Tsedao/MultiRM) | Modification | 12 RNA modification types | [Nat. Commun. 2021](https://doi.org/10.1038/s41467-021-24313-3) | MIT |
 | [UTR-LM](https://github.com/a96123155/UTR-LM) | mRNA Design | 5'UTR MRL / TE / expression | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00823-9) | GPL-3.0 |
