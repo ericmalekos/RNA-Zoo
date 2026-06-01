@@ -72,6 +72,7 @@ def main():
     args = parser.parse_args()
 
     os.makedirs(args.output, exist_ok=True)
+    args.output = os.path.abspath(args.output)
 
     sequences = []
     for header, seq in parse_fasta(args.input):

@@ -1,0 +1,80 @@
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+LABEL org.opencontainers.image.source="https://github.com/GuipengLi/HydraRNA"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.title="hydrarna"
+LABEL org.opencontainers.image.description="Hybrid Hydra-SSM + MHA full-length RNA language model (≤10K nt, 1024-d embeddings, GPU-only)."
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git build-essential wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Miniforge → Python 3.10 (fairseq 0.12 is compatible; cp310 has wider wheel support)
+RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh \
+        -O /tmp/miniforge.sh && \
+    bash /tmp/miniforge.sh -b -p /opt/conda && \
+    rm /tmp/miniforge.sh
+ENV PATH="/opt/conda/bin:$PATH"
+
+RUN mamba create -n hydrarna -c conda-forge -y \
+        python=3.10 \
+        "numpy<2" \
+        pandas \
+        "setuptools<70" \
+        ninja \
+        pip \
+    && mamba clean -afy
+
+ENV PATH="/opt/conda/envs/hydrarna/bin:/usr/local/cuda/bin:$PATH"
+ENV CONDA_DEFAULT_ENV=hydrarna
+
+# PyTorch 2.3.1 + cu118 (matches upstream install.sh pin)
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
+        "torch==2.3.1" \
+        --index-url https://download.pytorch.org/whl/cu118
+
+# causal-conv1d 1.4.0 and mamba-ssm 2.2.2: compile from source against the
+# installed CUDA 11.8 toolkit. --no-build-isolation is required because
+# setup.py needs torch at build time (upstream install.sh does the same).
+# Build time: ~5-10 min each.
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir --no-build-isolation \
+        "causal-conv1d==1.4.0"
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir --no-build-isolation \
+        "mamba-ssm==2.2.2"
+
+# flash-attn 2.6.3: compile from source (builds fused-dense-lib automatically).
+# Build time: ~20-30 min.
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir --no-build-isolation \
+        "flash-attn==2.6.3"
+
+# Clone HydraRNA and install its vendored fairseq fork (fairseq/ subdir).
+# The repo is kept at /opt/hydrarna_repo; fairseq tasks + dict are loaded from
+# here at inference time.
+RUN git clone --depth 1 https://github.com/GuipengLi/HydraRNA.git /opt/hydrarna_repo && \
+    cd /opt/hydrarna_repo/fairseq && \
+    /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir --editable .
+
+# Runtime deps not pulled in by fairseq/mamba-ssm
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
+        "transformers==4.44.0" \
+        tqdm tensorboardX pysam packaging
+
+# Download base-model weights (336 MB) from Zenodo; copy dict/ alongside so the
+# wrapper can reference both from /opt/hydrarna_weights/. No runtime fetch needed.
+RUN mkdir -p /opt/hydrarna_weights && \
+    wget -q -O /opt/hydrarna_weights/HydraRNA_model.pt \
+        "https://zenodo.org/records/20481998/files/HydraRNA_model.pt" && \
+    cp -r /opt/hydrarna_repo/dict /opt/hydrarna_weights/dict
+
+# Copy CLI wrapper
+COPY bin/hydrarna_predict.py /opt/bin/hydrarna_predict.py
+RUN chmod +x /opt/bin/hydrarna_predict.py
+ENV PATH="/opt/bin:$PATH"
+
+ENV HF_HOME=/tmp/hf_cache
+ENV HF_HUB_OFFLINE=1
+# fairseq tasks/modules must be importable via the editable install
+ENV PYTHONPATH="/opt/hydrarna_repo:$PYTHONPATH"
+
+WORKDIR /opt/hydrarna_repo

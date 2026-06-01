@@ -20,6 +20,8 @@ include { ERNIERNA         } from '../modules/local/ernierna'
 include { ERNIERNA_FINETUNE } from '../modules/local/ernierna_finetune'
 include { ORTHRUS          } from '../modules/local/orthrus'
 include { ORTHRUS_FINETUNE } from '../modules/local/orthrus_finetune'
+include { HYDRARNA         } from '../modules/local/hydrarna'
+include { HYDRARNA_FINETUNE } from '../modules/local/hydrarna_finetune'
 include { RNAERNIE         } from '../modules/local/rnaernie'
 include { RNAERNIE_FINETUNE } from '../modules/local/rnaernie_finetune'
 include { PLANTRNAFM       } from '../modules/local/plantrnafm'
@@ -46,6 +48,7 @@ include { FINETUNE_HEAD_ONLY as RNAFM_FINETUNE_FROM_EMB      } from '../modules/
 include { FINETUNE_HEAD_ONLY as RINALMO_FINETUNE_FROM_EMB    } from '../modules/local/finetune_head_only'
 include { FINETUNE_HEAD_ONLY as ERNIERNA_FINETUNE_FROM_EMB   } from '../modules/local/finetune_head_only'
 include { FINETUNE_HEAD_ONLY as ORTHRUS_FINETUNE_FROM_EMB    } from '../modules/local/finetune_head_only'
+include { FINETUNE_HEAD_ONLY as HYDRARNA_FINETUNE_FROM_EMB  } from '../modules/local/finetune_head_only'
 include { FINETUNE_HEAD_ONLY as RNAERNIE_FINETUNE_FROM_EMB   } from '../modules/local/finetune_head_only'
 include { FINETUNE_HEAD_ONLY as PLANTRNAFM_FINETUNE_FROM_EMB } from '../modules/local/finetune_head_only'
 include { FINETUNE_HEAD_ONLY as CALM_FINETUNE_FROM_EMB       } from '../modules/local/finetune_head_only'
@@ -228,6 +231,39 @@ workflow RNAZOO {
                 error "XGBoost head requires precomputed embeddings — set --orthrus_finetune_embeddings to use the FINETUNE_HEAD_ONLY path"
             }
             ORTHRUS_FINETUNE(Channel.fromPath(params.orthrus_finetune_input, checkIfExists: true))
+        }
+    }
+
+    if (params.hydrarna_input) {
+        if (params.device == 'cpu') {
+            log.warn "HydraRNA requires a GPU — skipping under CPU mode"
+        } else {
+            HYDRARNA(Channel.fromPath(params.hydrarna_input, checkIfExists: true))
+        }
+    }
+
+    if (params.hydrarna_finetune_input) {
+        if (!params.hydrarna_finetune_label) {
+            error "hydrarna_finetune_label is required when hydrarna_finetune_input is set"
+        }
+        if (params.hydrarna_finetune_embeddings) {
+            HYDRARNA_FINETUNE_FROM_EMB(
+                Channel.of(tuple(
+                    [name: 'hydrarna', label_col: params.hydrarna_finetune_label,
+                     epochs: params.hydrarna_finetune_epochs, lr: params.hydrarna_finetune_lr,
+                     head_type: params.hydrarna_finetune_head_type,
+                     task: params.hydrarna_finetune_task],
+                    file(params.hydrarna_finetune_input, checkIfExists: true),
+                    file(params.hydrarna_finetune_embeddings, checkIfExists: true)
+                ))
+            )
+        } else if (params.device == 'cpu') {
+            log.warn "HydraRNA fine-tune requires a GPU — skipping under CPU mode"
+        } else {
+            if (params.hydrarna_finetune_head_type == 'xgboost') {
+                error "XGBoost head requires precomputed embeddings — set --hydrarna_finetune_embeddings to use the FINETUNE_HEAD_ONLY path"
+            }
+            HYDRARNA_FINETUNE(Channel.fromPath(params.hydrarna_finetune_input, checkIfExists: true))
         }
     }
 

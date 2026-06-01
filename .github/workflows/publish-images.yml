@@ -70,6 +70,8 @@ jobs:
             dockerfile: Dockerfiles/Dockerfile.ERNIERNA
           - name: rnazoo-orthrus
             dockerfile: Dockerfiles/Dockerfile.Orthrus
+          - name: rnazoo-hydrarna
+            dockerfile: Dockerfiles/Dockerfile.HydraRNA
           - name: rnazoo-rnaernie
             dockerfile: Dockerfiles/Dockerfile.RNAErnie
           - name: rnazoo-rnaernie-cpu
