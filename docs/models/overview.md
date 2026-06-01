@@ -1,6 +1,6 @@
 # Model Overview
 
-RNAZoo includes 22 RNA deep learning models across 6 tracks. Each model runs in its own Docker container with baked-in weights.
+RNAZoo includes 23 RNA deep learning models across 6 tracks. Each model runs in its own Docker container with baked-in weights.
 
 ## All models at a glance
 
@@ -15,7 +15,8 @@ RNAZoo includes 22 RNA deep learning models across 6 tracks. Each model runs in 
 | [RNA-FM](RNAFM.md) | Foundation | RNA embeddings (640-d) | FASTA (RNA) | NumPy (N x 640) | CPU/GPU | MIT |
 | [RiNALMo](RiNALMo.md) | Foundation | RNA embeddings (1280-d) | FASTA (RNA) | NumPy (N x 1280) | CPU/GPU | Apache 2.0 |
 | [ERNIE-RNA](ERNIERNA.md) | Foundation | Structure-aware embeddings (768-d) | FASTA (RNA) | NumPy (N x 768) | CPU/GPU | MIT |
-| [Orthrus](Orthrus.md) | Foundation | Mamba mRNA embeddings (4-track, 512-d) | FASTA (RNA) | NumPy (N x 512) | **GPU only** | MIT |
+| [Orthrus](Orthrus.md) | Foundation | Mamba mRNA embeddings (3 variants: 256–512-d) | FASTA (RNA) | NumPy (N x D) | **GPU only** | MIT |
+| [HydraRNA](HydraRNA.md) | Foundation | Hybrid Hydra-SSM + MHA full-length RNA embeddings (1024-d) | FASTA (RNA, ≤10K nt) | NumPy (N x 1024) | **GPU only** | MIT |
 | [RNAErnie](RNAErnie.md) | Foundation | Motif-aware RNA embeddings (768-d) | FASTA (RNA) | NumPy (N x 768) | CPU/GPU | Apache-2.0 (HF port) |
 | [PlantRNA-FM](PlantRNAFM.md) | Foundation | Plant-only RNA embeddings (480-d) | FASTA (RNA) | NumPy (N x 480) | CPU/GPU | MIT |
 | [CaLM](CaLM.md) | Foundation | Codon-level RNA embeddings (768-d) | FASTA (CDS, codon-aligned) | NumPy (N x 768) | CPU/GPU | BSD-3-Clause |
@@ -42,14 +43,15 @@ Models for predicting translation efficiency, ribosome profiling, ORF detection,
 - **[Saluki](Saluki.md)** — Predict mRNA half-life from sequence (50-model ensemble)
 - **[CodonTransformer](CodonTransformer.md)** — Optimize codon usage for 164 organisms
 
-### RNA Foundation Models (8 models)
+### RNA Foundation Models (9 models)
 
 General-purpose RNA language models that produce embeddings for downstream tasks.
 
 - **[RNA-FM](RNAFM.md)** — 99M params, 640-d embeddings, max 1022 nt (MIT)
 - **[RiNALMo](RiNALMo.md)** — 650M params, 1280-d embeddings, no hard length limit (Apache 2.0)
 - **[ERNIE-RNA](ERNIERNA.md)** — 86M params, 768-d embeddings, structure-aware attention (MIT)
-- **[Orthrus](Orthrus.md)** — Mamba SSM (~10M params), 512-d embeddings, unbounded input (linear memory), **GPU only** (MIT)
+- **[Orthrus](Orthrus.md)** — Mamba SSM (~10M params), 256–512-d embeddings (3 4-track variants), unbounded input (linear memory), **GPU only** (MIT)
+- **[HydraRNA](HydraRNA.md)** — Hybrid Hydra-SSM + MHA (~84M params), 1024-d embeddings, ≤10K nt, **GPU only** (MIT)
 - **[RNAErnie](RNAErnie.md)** — 12-layer transformer, 768-d embeddings, motif-aware MLM, max 2046 nt (Apache-2.0 HF port)
 - **[PlantRNA-FM](PlantRNAFM.md)** — 35M-param ESM transformer, 480-d embeddings, plant-only training (1124 species), max 1024 nt (MIT)
 - **[CaLM](CaLM.md)** — 12-layer codon-level transformer (~86M params), 768-d embeddings, max 1024 codons (~3 kb) (BSD-3-Clause)
@@ -83,7 +85,7 @@ Some models can be fine-tuned on your own data. The 9 foundation models share a 
 
 | Model | Fine-tuning | Details |
 |-------|-------------|---------|
-| [9 foundation models](../finetuning.md) | Generic head trainer | Frozen backbone + linear / MLP / XGBoost head on user `(sequence, label)` data. Regression or classification (auto-detected). Optional precomputed-embeddings shortcut. See the [Fine Tuning guide](../finetuning.md). |
+| [10 foundation models](../finetuning.md) | Generic head trainer | Frozen backbone + linear / MLP / XGBoost head on user `(sequence, label)` data. Regression or classification (auto-detected). Optional precomputed-embeddings shortcut. See the [Fine Tuning guide](../finetuning.md). |
 | [RiboNN](RiboNN.md#fine-tuning-on-your-own-data) | Transfer learning | Freeze pretrained conv layers, train head on user TE data; use saved checkpoint via `--ribonn_checkpoint` |
 | [UTR-LM](UTRLM.md#fine-tuning-on-your-own-data) | Full backbone | Train ESM2 backbone + head on user MRL/TE/EL data; use saved checkpoint for prediction |
 | [RiboTIE](RiboTIE.md) | Built-in | Automatically fine-tunes on user ribo-seq BAMs before ORF prediction |
@@ -102,6 +104,7 @@ Some models can be fine-tuned on your own data. The 9 foundation models share a 
 | RiNALMo | Apache 2.0 (code) + CC BY 4.0 (weights) | [lbcb-sci/RiNALMo](https://github.com/lbcb-sci/RiNALMo) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-60872-5) |
 | ERNIE-RNA | MIT | [Bruce-ywj/ERNIE-RNA](https://github.com/Bruce-ywj/ERNIE-RNA) | [Nature Communications 2025](https://www.nature.com/articles/s41467-025-64972-0) |
 | Orthrus | MIT | [bowang-lab/Orthrus](https://github.com/bowang-lab/Orthrus) | [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3) |
+| HydraRNA | MIT | [GuipengLi/HydraRNA](https://github.com/GuipengLi/HydraRNA) | [Genome Biology 2025](https://doi.org/10.1186/s13059-025-03853-7) |
 | RNAErnie | MIT (code) + Apache-2.0 (LLM-EDA HF port weights) | [CatIIIIIIII/RNAErnie](https://github.com/CatIIIIIIII/RNAErnie) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00836-4) |
 | PlantRNA-FM | MIT | [yangheng/PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00946-z) |
 | CaLM | BSD-3-Clause | [oxpig/CaLM](https://github.com/oxpig/CaLM) | [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00791-0) |

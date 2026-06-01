@@ -67,6 +67,7 @@ nav:
       - RiNALMo: models/RiNALMo.md
       - ERNIE-RNA: models/ERNIERNA.md
       - Orthrus: models/Orthrus.md
+      - HydraRNA: models/HydraRNA.md
       - RNAErnie: models/RNAErnie.md
       - PlantRNA-FM: models/PlantRNAFM.md
       - CaLM: models/CaLM.md
