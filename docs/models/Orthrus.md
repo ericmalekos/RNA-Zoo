@@ -1,27 +1,41 @@
 # Orthrus
 
-Mamba-based mature mRNA foundation model. Produces 512-dimensional global embeddings from full mRNA sequences for downstream property prediction (half-life, ribosome load, localization, RBP interaction, isoform function).
+Mamba-based mature mRNA foundation model. Produces 256-d or 512-d global embeddings from full mRNA sequences for downstream property prediction (half-life, ribosome load, localization, RBP interaction, isoform function).
 
 - **Paper:** [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3)
 - **Upstream:** https://github.com/bowang-lab/Orthrus
 - **License:** MIT (code + weights)
 - **Device:** GPU only — Mamba's selective-scan kernel is CUDA-only in the bundled `mamba_ssm` wheel. Skipped under `-profile cpu` with a warning. Single image variant:
-    - `rnazoo-orthrus:latest`
+    - `rnazoo-orthrus:latest` (bundles all three 4-track checkpoints, ~390 MB weights)
 
 ## What it does
 
 Orthrus is a self-supervised foundation model trained on **32.7 million transcripts** from GENCODE, RefSeq, and Zoonomia ortholog alignments (10 model organisms, 400+ mammalian species), using contrastive learning over splice-isoform pairs and orthologous transcript pairs. The encoder is a Mamba state-space model — unlike transformer-based foundation models (RNA-FM, RiNALMo, ERNIE-RNA) which scale O(L²) in attention memory, Mamba scales linearly in sequence length, so Orthrus handles long mRNAs (>10 kb) without OOM.
 
-## Why only 4-track?
+## Available variants
 
-Orthrus has two upstream variants and this module ships **only the 4-track v1 model** (`orthrus_v1_4_track`, 512-d output):
+The image bundles all three 4-track standardized checkpoints. Select with `--orthrus_variant`:
 
-| Variant | Channels | Output | What's needed at inference |
-|---------|----------|--------|----------------------------|
-| **4-track** (bundled) | A, C, G, U one-hot (4) | 512-d | A FASTA. That's it. |
-| 6-track | nucleotides (4) + CDS-mask + splice-junction-mask | 512-d | The mature spliced sequence **and** per-position CDS bounds **and** exon-junction positions. Upstream uses GenomeKit, which precompiles a GTF/GFF annotation together with a 2bit reference genome (~1 GB per assembly). |
+| Variant flag | HuggingFace repo | Embed dim | Notes |
+|---|---|---|---|
+| `4track` *(default)* | `antichronology/orthrus-4-track` | 512-d | Canonical sequence-only model |
+| `large-4track` | `quietflamingo/orthrus-large-4-track` | 512-d | Alternative 512-d checkpoint |
+| `base-4track` | `quietflamingo/orthrus-base-4-track` | 256-d | Smaller/faster; half the embedding size |
 
-The 6-track model produces better embeddings on downstream property tasks because it gets told upfront where the protein-coding region is and where introns were spliced out. But the input contract is much heavier: users would need to provide either (a) transcript IDs + a bundled reference genome + annotation, or (b) a custom format that pre-encodes the two extra channels. The 4-track FASTA-in path matches how the rest of the model zoo works (RNA-FM, RiNALMo, ERNIE-RNA all take plain FASTA), so we ship that and revisit 6-track if a user needs it.
+All three use one-hot nucleotide encoding only (A/C/G/T, 4 channels) and take a plain FASTA — no annotation required.
+
+### Why no 6-track variants?
+
+The 6-track models add two annotation-derived channels per position:
+
+| Extra track | Content | Source |
+|---|---|---|
+| Track 5 — CDS | Binary: 1 at the first nucleotide of each codon | CDS start/end + reading frame |
+| Track 6 — Splice | Binary: 1 at 5′ splice sites | Intron/exon structure |
+
+These channels are **not derivable from sequence alone** and require per-transcript CDS coordinates and splice junction annotation. The upstream examples use GenomeKit, which precompiles a GTF/GFF annotation against a 2bit reference genome (~1 GB per assembly) into a queryable index. Wiring that into the zoo would require a new input contract (FASTA + GTF or pre-built 6-track arrays) that breaks the uniform FASTA-in interface shared by RNA-FM, RiNALMo, ERNIE-RNA, and RNAErnie.
+
+**Future work:** 6-track support is planned. The most practical path is accepting a second optional input — a TSV of `(transcript_id, cds_start, cds_end, splice_sites)` — that the wrapper uses to build the extra channels before encoding. If you need this, open an issue.
 
 ## Input format
 
@@ -35,12 +49,12 @@ Example (`tests/data/orthrus_test.fa`): two synthetic ~500 nt mature-mRNA-shaped
 
 A directory containing:
 
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 512)` — one 512-d embedding per input sequence (mean-pooled across non-padding positions by `model.representation()`)
+- **`sequence_embeddings.npy`**: NumPy array of shape `(N, D)` — one embedding per input sequence (mean-pooled across non-padding positions by `model.representation()`). `D=512` for `4track`/`large-4track`; `D=256` for `base-4track`.
 - **`labels.txt`**: one FASTA header per line, in the same order as the embedding rows
 
 With `--per-token`:
 
-- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L, 512)` — one 512-d embedding per nucleotide position
+- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L, D)` — one embedding per nucleotide position
 
 ## Run with Docker
 
@@ -68,8 +82,8 @@ Under `-profile cpu` the process logs a warning and skips. Results appear in `re
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--orthrus_variant` | `v1_4_track` | Model variant. Currently only `v1_4_track` is bundled. |
-| `--orthrus_per_token` | `false` | Also output per-token (L x 512) embeddings per sequence. |
+| `--orthrus_variant` | `4track` | Model variant: `4track` (512-d), `large-4track` (512-d), `base-4track` (256-d). |
+| `--orthrus_per_token` | `false` | Also output per-token (L x D) embeddings per sequence. |
 | `--orthrus_min_len` | `200` | Warn (don't refuse) when sequences are shorter than this — Orthrus is mature-mRNA only, fragments are out-of-distribution. |
 
 ## Reading the output
@@ -77,11 +91,11 @@ Under `-profile cpu` the process logs a warning and skips. Results appear in `re
 ```python
 import numpy as np
 
-embeddings = np.load("orthrus_out/sequence_embeddings.npy")  # (N, 512)
+embeddings = np.load("orthrus_out/sequence_embeddings.npy")  # (N, D)
 labels = open("orthrus_out/labels.txt").read().strip().split("\n")
 
 for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (512,)
+    print(f"{label}: {emb.shape}")  # (512,) or (256,) depending on variant
 ```
 
 ## Why Mamba (linear memory)
@@ -101,12 +115,12 @@ For mRNAs >5 kb, Orthrus is often the only foundation model in the zoo that fits
 
 - **Mature transcripts only.** Partial sequences are OOD.
 - **GPU required.** No CPU fallback in the bundled image.
-- **4-track only.** The 6-track variant (which adds CDS/splice tracks for slightly better embeddings) is not exposed; GenomeKit + reference genome staging would be needed to wire it in.
-- **Embedding dimension is 512** — smaller than RiNALMo (1280) and ERNIE-RNA (768), comparable to RNA-FM (640). This is the SSM hidden dim and is fixed by the architecture.
+- **4-track only.** The 6-track variants (which add CDS/splice tracks for slightly better embeddings) are not yet exposed — see the "Why no 6-track variants?" section above for the planned path.
+- **Embedding dimension is 512 or 256** depending on variant — 512-d is smaller than RiNALMo (1280) and ERNIE-RNA (768), comparable to RNA-FM (640). The SSM hidden dim is fixed by the architecture.
 
 ## Fine-tuning
 
-RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen 512-d Orthrus embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
+RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen Orthrus embeddings (512-d for `4track`/`large-4track`, 256-d for `base-4track`). See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
 
 The full-chain path is GPU-only here because Orthrus inference itself requires CUDA (Mamba SSM kernels). The **precomputed-embeddings path lifts that requirement** — once you have the `.npy`, head training runs on CPU in the dedicated `rnazoo-finetune-head` image.
 

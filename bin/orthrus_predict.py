@@ -2,7 +2,14 @@
 """
 CLI wrapper for Orthrus mature-mRNA embedding extraction.
 Takes a FASTA of mRNA sequences, outputs per-sequence (and optionally
-per-token) embeddings using the v1 4-track Mamba encoder.
+per-token) embeddings using one of the three bundled 4-track variants.
+
+Variants and their embedding dimensions:
+  4track       (antichronology/orthrus-4-track)      512-d  [default]
+  large-4track (quietflamingo/orthrus-large-4-track) 512-d
+  base-4track  (quietflamingo/orthrus-base-4-track)  256-d
+
+Uses the standardized AutoModel API (trust_remote_code=True).
 """
 
 import argparse
@@ -11,22 +18,33 @@ import sys
 
 import numpy as np
 import torch
-from orthrus.eval_utils import load_model
-from orthrus.gk_utils import seq_to_oh
+from transformers import AutoModel
 
 WEIGHTS_ROOT = "/opt/orthrus_weights"
-DEFAULT_VARIANT = "v1_4_track"
+DEFAULT_VARIANT = "4track"
 
 VARIANTS = {
+    "4track": {
+        "local_dir": "orthrus-4-track",
+        "embed_dim": 512,
+    },
+    "large-4track": {
+        "local_dir": "orthrus-large-4-track",
+        "embed_dim": 512,
+    },
+    "base-4track": {
+        "local_dir": "orthrus-base-4-track",
+        "embed_dim": 256,
+    },
+    # Legacy alias kept for backward compatibility with --orthrus_variant v1_4_track.
     "v1_4_track": {
-        "run_dir": "orthrus_v1_4_track",
-        "checkpoint": "epoch=6-step=20000.ckpt",
+        "local_dir": "orthrus-4-track",
+        "embed_dim": 512,
     },
 }
 
 
 def parse_fasta(path):
-    """Parse a FASTA file, yielding (header, sequence) tuples."""
     header, seq_parts = None, []
     with open(path) as f:
         for line in f:
@@ -40,13 +58,6 @@ def parse_fasta(path):
                 seq_parts.append(line)
     if header is not None:
         yield header, "".join(seq_parts)
-
-
-def encode_sequence(seq):
-    """U->T conversion + one-hot encode to (4, L) float32 tensor."""
-    seq_dna = seq.upper().replace("U", "T")
-    oh = seq_to_oh(seq_dna)  # (L, 4) int
-    return torch.tensor(oh.T, dtype=torch.float32)  # (4, L)
 
 
 def main():
@@ -63,11 +74,12 @@ def main():
     )
     parser.add_argument(
         "--variant", default=DEFAULT_VARIANT, choices=sorted(VARIANTS.keys()),
-        help=f"Model variant (default: {DEFAULT_VARIANT})",
+        help=f"Model variant (default: {DEFAULT_VARIANT}). "
+             "4track/large-4track → 512-d; base-4track → 256-d",
     )
     parser.add_argument(
         "--per-token", action="store_true",
-        help="Also save per-token embeddings (L x H .npy per sequence)",
+        help="Also save per-token embeddings (L x D .npy per sequence)",
     )
     parser.add_argument(
         "--min-len", type=int, default=200,
@@ -87,19 +99,19 @@ def main():
         )
 
     variant_cfg = VARIANTS[args.variant]
-    run_path = os.path.join(WEIGHTS_ROOT, variant_cfg["run_dir"])
-    print(
-        f"Loading Orthrus {args.variant} from {run_path}/{variant_cfg['checkpoint']}",
-        file=sys.stderr,
-    )
-    model = load_model(run_path, checkpoint_name=variant_cfg["checkpoint"])
-    model = model.to(device).eval()
+    weights_path = os.path.join(WEIGHTS_ROOT, variant_cfg["local_dir"])
+    print(f"Loading Orthrus variant '{args.variant}' from {weights_path}", file=sys.stderr)
+    model = AutoModel.from_pretrained(
+        weights_path,
+        trust_remote_code=True,
+    ).to(device).eval()
 
     os.makedirs(args.output, exist_ok=True)
 
     sequences = []
     short_count = 0
     for header, seq in parse_fasta(args.input):
+        seq = seq.upper().replace("U", "T")
         if not seq:
             print(f"Warning: {header} is empty, skipping", file=sys.stderr)
             continue
@@ -122,24 +134,25 @@ def main():
     all_labels = []
 
     for header, seq in sequences:
-        oh = encode_sequence(seq).unsqueeze(0).to(device)  # (1, 4, L)
-        lengths = torch.tensor([oh.shape[2]], device=device)
+        # seq_to_oh returns (L, 4); unsqueeze → (1, L, 4) for channel_last=True API
+        oh = model.seq_to_oh(seq).unsqueeze(0).to(device)
+        lengths = torch.tensor([oh.shape[1]], device=device)
 
         with torch.no_grad():
-            seq_emb = model.representation(oh, lengths).squeeze(0).cpu().numpy()  # (H,)
-
-        all_seq_embeddings.append(seq_emb)
+            seq_emb = model.representation(oh, lengths, channel_last=True)  # (1, D)
+        all_seq_embeddings.append(seq_emb.squeeze(0).cpu().numpy())
         all_labels.append(header)
 
         if args.per_token:
             with torch.no_grad():
-                # forward returns (B, L, H) by default (channel_last=False
-                # transposes from (B, C, L) input internally)
-                tokens = model.forward(oh).squeeze(0).cpu().numpy()  # (L, H)
+                tokens = model.representation_unpooled(oh, channel_last=True)  # (1, L, D)
             safe_name = header.replace("/", "_").replace(" ", "_")
-            np.save(os.path.join(args.output, f"{safe_name}_tokens.npy"), tokens)
+            np.save(
+                os.path.join(args.output, f"{safe_name}_tokens.npy"),
+                tokens.squeeze(0).cpu().numpy(),
+            )
 
-    seq_embeddings = np.stack(all_seq_embeddings)  # (N, H)
+    seq_embeddings = np.stack(all_seq_embeddings)  # (N, D)
     np.save(os.path.join(args.output, "sequence_embeddings.npy"), seq_embeddings)
 
     with open(os.path.join(args.output, "labels.txt"), "w") as f:
