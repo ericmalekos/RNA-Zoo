@@ -47,10 +47,13 @@ RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
 # (libbleu, libnat, etc.) that OOM/fail on GHA runners and are not needed for
 # HydraRNA's inference path (checkpoint loading + extract_features).
 # Instead, install only the Python-level deps fairseq requires.
-RUN git clone --depth 1 https://github.com/GuipengLi/HydraRNA.git /opt/hydrarna_repo && \
+RUN git clone --depth 1 https://github.com/GuipengLi/HydraRNA.git /opt/hydrarna_repo
+# pip >=24.1 rejects omegaconf 2.0.x as "invalid metadata", making hydra-core 1.0.7
+# (which requires omegaconf>=2.0.5,<2.1) unresolvable. Pin pip<24.1 for this layer.
+RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir "pip<24.1" && \
     /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
         "hydra-core>=1.0.7,<1.1" \
-        "omegaconf<2.1" \
+        "omegaconf>=2.0.5,<2.1" \
         cffi \
         regex \
         "sacrebleu>=1.4.12" \
