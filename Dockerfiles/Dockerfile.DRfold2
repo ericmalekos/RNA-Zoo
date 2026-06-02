@@ -48,7 +48,7 @@ RUN cd /opt/drfold2_repo && \
     cd Arena && \
     make Arena
 
-# Copy CLI wrapper
+# Copy CLI wrapper (updated 2026-06-02: fix abs-path bug for subprocess cwd)
 COPY bin/drfold2_predict.py /opt/bin/drfold2_predict.py
 RUN chmod +x /opt/bin/drfold2_predict.py
 ENV PATH="/opt/bin:$PATH"
