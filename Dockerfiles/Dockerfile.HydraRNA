@@ -48,6 +48,12 @@ RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
 # HydraRNA's inference path (checkpoint loading + extract_features).
 # Instead, install only the Python-level deps fairseq requires.
 RUN git clone --depth 1 https://github.com/GuipengLi/HydraRNA.git /opt/hydrarna_repo
+# fused_dense_lib (required by fused_bias_fc=True) is not shipped in prebuilt
+# flash-attn wheels — it would need full source compilation. Patch model.py to
+# use fused_bias_fc=False instead: falls back to standard nn.Linear, output is
+# identical, inference is ~5% slower. Weight files are unaffected.
+RUN sed -i 's/fused_bias_fc=True/fused_bias_fc=False/g' \
+        /opt/hydrarna_repo/fairseq/fairseq/models/hydraAttRNA/model.py
 # pip >=24.1 rejects omegaconf 2.0.x as "invalid metadata", making hydra-core 1.0.7
 # (which requires omegaconf>=2.0.5,<2.1) unresolvable. Pin pip<24.1 for this layer.
 RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir "pip<24.1" && \
