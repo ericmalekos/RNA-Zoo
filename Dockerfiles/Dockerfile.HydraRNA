@@ -42,13 +42,20 @@ RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
         "https://github.com/state-spaces/mamba/releases/download/v2.2.2/mamba_ssm-2.2.2+cu118torch2.3cxx11abiFALSE-cp310-cp310-linux_x86_64.whl" \
         "https://github.com/Dao-AILab/flash-attention/releases/download/v2.6.3/flash_attn-2.6.3+cu118torch2.3cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
 
-# Clone HydraRNA and install its vendored fairseq fork (fairseq/ subdir).
-# --no-build-isolation is required: fairseq's setup.py imports torch at build
-# time to check for C extensions; without it pip's isolated env lacks torch
-# and the install fails.
+# Clone HydraRNA repo (needed for dict/ and custom fairseq tasks).
+# We skip `pip install fairseq` entirely — setup.py compiles C++ extensions
+# (libbleu, libnat, etc.) that OOM/fail on GHA runners and are not needed for
+# HydraRNA's inference path (checkpoint loading + extract_features).
+# Instead, install only the Python-level deps fairseq requires.
 RUN git clone --depth 1 https://github.com/GuipengLi/HydraRNA.git /opt/hydrarna_repo && \
-    cd /opt/hydrarna_repo/fairseq && \
-    /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir --no-build-isolation --editable .
+    /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
+        "hydra-core>=1.0.7,<1.1" \
+        "omegaconf<2.1" \
+        cffi \
+        regex \
+        "sacrebleu>=1.4.12" \
+        bitarray \
+        scikit-learn
 
 # Runtime deps not pulled in by fairseq/mamba-ssm
 RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
@@ -69,7 +76,8 @@ ENV PATH="/opt/bin:$PATH"
 
 ENV HF_HOME=/tmp/hf_cache
 ENV HF_HUB_OFFLINE=1
-# fairseq tasks/modules must be importable via the editable install
-ENV PYTHONPATH="/opt/hydrarna_repo:$PYTHONPATH"
+# fairseq is importable directly from its source tree (no editable install).
+# /opt/hydrarna_repo/fairseq is the repo subdirectory containing the fairseq/ package.
+ENV PYTHONPATH="/opt/hydrarna_repo/fairseq:$PYTHONPATH"
 
 WORKDIR /opt/hydrarna_repo
