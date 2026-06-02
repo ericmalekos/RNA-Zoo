@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.description="Hybrid Hydra-SSM + MHA full-length R
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git build-essential wget ca-certificates && \
+        git build-essential wget ca-certificates procps && \
     rm -rf /var/lib/apt/lists/*
 
 # Miniforge → Python 3.10 (fairseq 0.12 is compatible; cp310 has wider wheel support)

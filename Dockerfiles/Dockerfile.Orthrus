@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.description="Mamba-based mature mRNA foundation m
 # extension (orthrus._sequence) compiled by setup.py.
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git build-essential wget ca-certificates zlib1g-dev && \
+        git build-essential wget ca-certificates zlib1g-dev procps && \
     rm -rf /var/lib/apt/lists/*
 
 # Miniforge → Python 3.10 environment (Orthrus pins min_python=3.10; the
