@@ -66,9 +66,13 @@ RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir "pip<24.1" && \
         bitarray \
         scikit-learn
 
-# Runtime deps not pulled in by fairseq/mamba-ssm
+# Runtime deps not pulled in by fairseq/mamba-ssm.
+# Pin triton==2.3.0 — the exact version torch 2.3.1 was built and tested with.
+# A newer triton (2.3.1) is pulled in transitively but can JIT-compile PTX that
+# the container's ptxas (CUDA 11.8) or a mismatched system ptxas cannot handle.
 RUN /opt/conda/envs/hydrarna/bin/pip install --no-cache-dir \
         "transformers==4.44.0" \
+        "triton==2.3.0" \
         tqdm tensorboardX pysam packaging
 
 # Download base-model weights (336 MB) from Zenodo; copy dict/ alongside so the
@@ -88,5 +92,10 @@ ENV HF_HUB_OFFLINE=1
 # fairseq is importable directly from its source tree (no editable install).
 # /opt/hydrarna_repo/fairseq is the repo subdirectory containing the fairseq/ package.
 ENV PYTHONPATH="/opt/hydrarna_repo/fairseq:$PYTHONPATH"
+# Force Triton to use the container's own ptxas (CUDA 11.8) rather than any
+# system ptxas that Singularity --nv may expose from the host. Without this,
+# a host with CUDA 12.x ptxas on PATH can produce PTX incompatible with the
+# container's 11.8 runtime, causing exit code 2 at first kernel JIT.
+ENV TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas
 
 WORKDIR /opt/hydrarna_repo
