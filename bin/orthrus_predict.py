@@ -125,7 +125,7 @@ def parse_annotation_tsv(path):
             if header is None:
                 header = [h.strip().lower() for h in fields]
                 continue
-            row = dict(zip(header, [v.strip() for v in fields]))
+            row = dict(zip(header, [v.strip() for v in fields], strict=False))
             name = row.get("name") or row.get("transcript_id") or row.get("id") or ""
             if not name:
                 continue
