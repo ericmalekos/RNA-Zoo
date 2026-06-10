@@ -203,7 +203,17 @@ workflow RNAZOO {
         if (params.device == 'cpu') {
             log.warn "Orthrus requires a GPU — skipping under CPU mode"
         } else {
-            ORTHRUS(Channel.fromPath(params.orthrus_input, checkIfExists: true))
+            def orthrus_annotation_ch = params.orthrus_annotation
+                ? Channel.fromPath(params.orthrus_annotation, checkIfExists: true)
+                : Channel.of(file('NO_FILE'))
+            def orthrus_gtf_ch = params.orthrus_gtf
+                ? Channel.fromPath(params.orthrus_gtf, checkIfExists: true)
+                : Channel.of(file('NO_FILE'))
+            ORTHRUS(
+                Channel.fromPath(params.orthrus_input, checkIfExists: true),
+                orthrus_annotation_ch,
+                orthrus_gtf_ch
+            )
         }
     }
 

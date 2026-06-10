@@ -59,9 +59,14 @@ RUN git clone --depth 1 https://github.com/bowang-lab/Orthrus.git /opt/orthrus_r
     /opt/conda/envs/orthrus/bin/pip install --no-cache-dir --no-build-isolation -e . --no-deps && \
     /opt/conda/envs/orthrus/bin/pip install --no-cache-dir wandb pyfaidx pytabix scikit-learn
 
-# Pre-download all three 4-track standardized model variants from HuggingFace.
-# Each ~130 MB; total ~390 MB. These are the AutoModel-compatible repos that
-# supersede the legacy antichronology/orthrus checkpoint layout.
+# Increase HF download timeout from the default 10s to 5 min for large safetensors.
+# Disable HF's XET (content-addressed) CDN which drops SSL connections mid-stream;
+# fall back to the classic HF CDN which is more reliable in Docker build contexts.
+ENV HF_HUB_DOWNLOAD_TIMEOUT=300
+ENV HF_HUB_DISABLE_XET=1
+
+# 4-track variants (sequence-only FASTA input) — separate RUN layer so the
+# cache survives if only the 6-track layer needs rebuilding.
 #   orthrus-4-track       (antichronology) — 512-d, canonical sequence-only model
 #   orthrus-base-4-track  (quietflamingo)  — 256-d, smaller/faster
 #   orthrus-large-4-track (quietflamingo)  — 512-d, alternative 512-d checkpoint
@@ -74,6 +79,23 @@ os.makedirs('/opt/orthrus_weights', exist_ok=True); \
    ('antichronology/orthrus-4-track',      'orthrus-4-track'), \
    ('quietflamingo/orthrus-base-4-track',  'orthrus-base-4-track'), \
    ('quietflamingo/orthrus-large-4-track', 'orthrus-large-4-track'), \
+]]"
+
+# 6-track variants (FASTA + CDS/splice annotation input) — separate layer so
+# the 4-track layer above is cached on re-build.
+#   orthrus-6-track       (antichronology) — 512-d, contrastive
+#   orthrus-small-6-track (antichronology) — 256-d, smaller/faster
+#   orthrus-mlm-6-track   (antichronology) — 512-d, contrastive + MLM
+#   orthrus-large-6-track (quietflamingo)  — 512-d, alternative 512-d checkpoint
+RUN /opt/conda/envs/orthrus/bin/python -c "\
+import os; \
+from huggingface_hub import snapshot_download; \
+[snapshot_download(repo_id=r, local_dir=f'/opt/orthrus_weights/{n}', local_dir_use_symlinks=False) \
+ for r, n in [ \
+   ('antichronology/orthrus-6-track',       'orthrus-6-track'), \
+   ('antichronology/orthrus-small-6-track', 'orthrus-small-6-track'), \
+   ('antichronology/orthrus-mlm-6-track',   'orthrus-mlm-6-track'), \
+   ('quietflamingo/orthrus-large-6-track',  'orthrus-large-6-track'), \
 ]]"
 
 # Copy CLI wrapper
