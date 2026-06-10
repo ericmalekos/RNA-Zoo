@@ -47,7 +47,7 @@ RUN /opt/conda/envs/orthrus/bin/pip install --no-cache-dir \
         "pytorch-lightning>=2.4" \
         triton \
         "transformers<4.45" \
-        "huggingface_hub<0.25" \
+        "huggingface_hub>=0.23.2,<0.24" \
         einops \
         packaging
 
@@ -60,10 +60,12 @@ RUN git clone --depth 1 https://github.com/bowang-lab/Orthrus.git /opt/orthrus_r
     /opt/conda/envs/orthrus/bin/pip install --no-cache-dir wandb pyfaidx pytabix scikit-learn
 
 # Increase HF download timeout from the default 10s to 5 min for large safetensors.
-# Disable HF's XET (content-addressed) CDN which drops SSL connections mid-stream;
-# fall back to the classic HF CDN which is more reliable in Docker build contexts.
+# huggingface_hub is pinned to <0.24 to avoid the XET content-addressed CDN
+# (us.aws.cdn.hf.co) which drops SSL connections mid-stream in Docker build
+# contexts. XET was introduced in 0.24.0; the disable env var HF_HUB_DISABLE_XET
+# was only added in 0.26.0 — so with <0.25 it has no effect. Pre-XET versions
+# use the classic HF CDN which is reliable.
 ENV HF_HUB_DOWNLOAD_TIMEOUT=300
-ENV HF_HUB_DISABLE_XET=1
 
 # 4-track variants (sequence-only FASTA input) — separate RUN layer so the
 # cache survives if only the 6-track layer needs rebuilding.
