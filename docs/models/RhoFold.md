@@ -1,101 +1,78 @@
 # RhoFold+
 
-Predict RNA 3D structure from sequence (single-sequence mode).
+Predict RNA 3D structure from a single sequence.
 
 - **Paper:** [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0)
 - **Upstream:** https://github.com/ml4bio/RhoFold
 - **License:** Apache 2.0
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-rhofold:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-rhofold-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Device:** CPU or GPU (images `rnazoo-rhofold-cpu` and `rnazoo-rhofold`).
 
 ## What it does
 
-RhoFold+ predicts full-atom RNA 3D structures from sequence, similar to AlphaFold for proteins. It combines an RNA language model (RNA-FM, embedded in the architecture) with an E2Eformer structure module and iterative refinement (10 recycling steps). It outputs PDB files with atomic coordinates and per-residue confidence scores (pLDDT).
+RhoFold+ predicts a full-atom 3D structure with a transformer and an invariant point attention
+structure module, fed by a built-in RNA-FM language model, over 10 recycling passes (126.9
+million parameters). RNA-Zoo runs the single-sequence mode: no MSA is built or read.
 
-This module runs in **single-sequence mode** (no MSA databases needed). For higher accuracy with MSA, users can provide a pre-computed A3M file via the upstream CLI.
+## Input
 
-## Input format
+FASTA. Letters are uppercased and T becomes U. Each sequence must be at most 1,022 nt, the limit
+of the built-in RNA-FM; the wrapper does not truncate.
 
-FASTA file of RNA sequences (A, C, G, U alphabet; T is auto-converted):
+Example (`tests/data/rhofold_test.fa`):
 
 ```
 >tRNA_fragment
 GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA
 ```
 
-**Maximum sequence length: ~1022 nt** (limited by the embedded RNA-FM positional embeddings).
+## Output
 
-## Output format
+One directory per sequence, named after the first word of its header (`/` and `:` become `_`):
 
-Per-sequence output directory containing:
+- `unrelaxed_model.pdb`: the 3D model, with pLDDT × 100 in the B-factor column
+- `ss.ct`: the secondary structure (pairs with probability above 0.5)
+- `results.npz`: distograms (`dist_n`, `dist_p`, `dist_c`), the base-pair probability map
+  (`ss_prob_map`) and per-residue pLDDT from 0 to 1 (`plddt`)
+- `log.txt`: the run log
 
-- **`unrelaxed_model.pdb`** — predicted 3D structure in PDB format. B-factor column contains pLDDT confidence scores (0-100).
-- **`ss.ct`** — predicted secondary structure in CT (connect table) format
-- **`results.npz`** — NumPy archive with distograms, SS probability maps, and pLDDT scores
-- **`log.txt`** — inference log with timing
+Example, for the input above:
+
+```python
+import numpy as np
+plddt = np.load("rhofold_out/tRNA_fragment/results.npz")["plddt"][0]  # one value per residue
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-rhofold-cpu:latest \
   rhofold_predict.py -i /data/input.fa -o /out
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-rhofold:latest \
-  rhofold_predict.py -i /data/input.fa -o /out
 ```
+
+For the GPU image, use `rnazoo-rhofold:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu --rhofold_input /path/to/input.fa
-
-# GPU (recommended for production)
-nextflow run main.nf -profile docker,gpu --rhofold_input /path/to/input.fa
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/rhofold/rhofold_out/<name>/`.
 
-Results appear in `results/rhofold/rhofold_out/<sequence_name>/`.
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--rhofold_relax_steps` | `0` | Amber energy-minimization steps after structure prediction. `0` disables relaxation (default). Set to `1000` to run Amber relaxation if OpenMM is installed in the image. |
+| `--rhofold_input` | `null` | FASTA file |
+| `--rhofold_relax_steps` | `0` | Amber relaxation steps; leave at `0` (see Limitations) |
 
-## Viewing the output
+## Limitations
 
-```bash
-# View in PyMOL, ChimeraX, or any PDB viewer
-pymol results/rhofold/rhofold_out/tRNA_fragment/unrelaxed_model.pdb
-
-# Read pLDDT scores from B-factor column
-grep "^ATOM" unrelaxed_model.pdb | awk '{print $6, $11}'
-```
-
-## Performance notes
-
-- **CPU:** ~5-15 minutes per sequence (76 nt tRNA). Very slow for long sequences.
-- **GPU:** ~1-3 minutes per sequence. Recommended for production use.
-- Memory scales quadratically with sequence length (pair representations are L x L x 128).
-- Amber energy relaxation is disabled by default. Enable via `--rhofold_relax_steps 1000` if OpenMM is installed in the image.
-
-## Technical notes
-
-- Runs in single-sequence mode by default — no external MSA databases needed
-- Weights (~508 MB) baked into Docker image from HuggingFace
-- The RNA-FM language model is embedded in the architecture (not a separate module)
-- 10 recycling iterations per prediction (each is a full forward pass)
-- OpenMM/Amber relaxation is not included in the Docker image to keep it small; the unrelaxed PDB is the primary output
+- No Amber relaxation: the images lack OpenMM, so `--rhofold_relax_steps` above 0 makes each
+  sequence fail after its unrelaxed outputs are written.
+- The PDB B-factors are shifted by one residue (upstream writes each pLDDT on the next residue,
+  the last on the first); read per-residue pLDDT from `results.npz`.
+- A failed sequence, for example one over 1,022 nt, gets a warning; the others still run.

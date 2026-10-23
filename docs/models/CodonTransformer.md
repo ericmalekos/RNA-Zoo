@@ -5,103 +5,70 @@ Optimize codon usage for protein sequences across 164 organisms.
 - **Paper:** [Nature Communications 2025](https://www.nature.com/articles/s41467-025-58588-7)
 - **Upstream:** https://github.com/Adibvafa/CodonTransformer
 - **License:** Apache 2.0
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-codontransformer:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-codontransformer-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Device:** CPU or GPU (images `rnazoo-codontransformer-cpu` and `rnazoo-codontransformer`).
 
 ## What it does
 
-CodonTransformer uses a BigBird transformer model to optimize codon usage for a given protein sequence and target organism. It takes amino acid sequences as input and outputs DNA coding sequences with optimized codons for expression in the target organism. Supports 164 organisms.
+A BigBird transformer writes a DNA coding sequence for each protein, with codons chosen for the
+target organism. The base model was trained on about 1 million genes from 164 organisms; the
+image holds the fine-tuned model (highly expressed genes of 13 organisms and two chloroplast
+genomes).
 
-## Input format
+## Input
 
-FASTA file of amino acid sequences:
+FASTA of protein sequences; proteins over 2,046 amino acids are truncated without a warning. The
+organism must be spelled as one of the 164 entries of `ORGANISM2ID` in upstream's
+[`CodonUtils.py`](https://github.com/Adibvafa/CodonTransformer/blob/v1.6.7/CodonTransformer/CodonUtils.py),
+for example `Homo sapiens`, `Mus musculus` or `Escherichia coli general`; other names stop the run.
 
 ```
 >test_protein_1
 MALWMRLLPLLALLALWGPDPAAAFVN
->test_protein_2
-MKWVTFISLLFLFSSAYS
 ```
 
-## Output format
+## Output
 
-FASTA file of optimized DNA coding sequences (includes start and stop codons):
+`optimized_codons.fa`: one DNA coding sequence per protein, under the same header, ending in a
+stop codon. Example (`tests/data/codontransformer_test.fa`, `Homo sapiens`, test profile):
 
 ```
 >test_protein_1
 ATGGCCCTGTGGATGAGGCTGCTGCCCCTGCTGGCCCTGCTGGCCCTGTGGGGCCCTGACCCTGCTGCCGCCTTTGTGAACTGA
->test_protein_2
-ATGAAGTGGGTGACCTTTATCTCTCTGCTGTTCCTGTTCTCTTCTGCCTACAGCTGA
 ```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-codontransformer-cpu:latest \
-  codon_transformer_predict.py \
-    -i /data/input.fa \
-    -o /out/optimized_codons.fa \
-    --organism "Homo sapiens"
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-codontransformer:latest \
-  codon_transformer_predict.py \
-    -i /data/input.fa \
-    -o /out/optimized_codons.fa \
-    --organism "Homo sapiens"
+  codon_transformer_predict.py -i /data/input.fa -o /out/optimized_codons.fa --organism "Homo sapiens"
 ```
+
+For the GPU image, use `rnazoo-codontransformer:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+Add `--no-deterministic` to sample codons.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu \
   --codontransformer_input /path/to/input.fa \
   --codontransformer_organism "Homo sapiens"
-
-# GPU
-nextflow run main.nf -profile docker,gpu \
-  --codontransformer_input /path/to/input.fa \
-  --codontransformer_organism "Homo sapiens"
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/codontransformer/`.
 
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--codontransformer_organism` | `Homo sapiens` | Target organism (any of 164 supported organisms) |
-| `--codontransformer_deterministic` | `true` | When `true`, decode by argmax (reproducible). Pass `--codontransformer_deterministic false` to sample instead. |
+| `--codontransformer_input` | `null` | Protein FASTA |
+| `--codontransformer_organism` | `Homo sapiens` | Target organism, spelled as in upstream's list |
+| `--codontransformer_deterministic` | `true` | `true` takes the most likely codons; `false` samples |
 
-## Supported organisms (partial list)
+## Limitations
 
-Homo sapiens, Mus musculus, Rattus norvegicus, Danio rerio, Drosophila melanogaster, Caenorhabditis elegans, Saccharomyces cerevisiae, Escherichia coli, Arabidopsis thaliana, and 155 more.
-
-See the full list at https://github.com/Adibvafa/CodonTransformer.
-
-## Example
-
-**Input:**
-```
->insulin_fragment
-MALWMRLLPLLALLALWGPDPAAAFVN
-```
-
-**Output:**
-```
->insulin_fragment
-ATGGCCCTGTGGATGAGGCTGCTGCCCCTGCTGGCCCTGCTGGCCCTGTGGGGCCCTGACCCTGCTGCCGCCTTTGTGAACTGA
-```
-
-The optimized DNA sequence encodes the same protein but uses codons preferred by the target organism for improved expression.
+- A command-line `--codontransformer_deterministic false` can reach the module as the string
+  `false`, which it treats as true. To sample, set `codontransformer_deterministic: false` in a
+  `-params-file`.

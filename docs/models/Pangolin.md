@@ -1,153 +1,104 @@
 # Pangolin
 
-Predict the effect of genetic variants on splice site strength, with tissue-specific scores.
+Predict how genetic variants change splice-site strength, with models trained on four tissues.
 
-- **Paper:** [Genome Biology 2022](https://doi.org/10.1186/s13059-022-02664-4) — Zeng & Li, "Predicting RNA splicing from DNA sequence using Pangolin"
-- **Upstream:** [github.com/tkzeng/Pangolin](https://github.com/tkzeng/Pangolin)
-- **License:** [GPL-3.0](https://github.com/tkzeng/Pangolin/blob/main/LICENSE) — copyleft. Public Docker distribution is permitted (the Dockerfile lives in this repo and downstream rebuilders are bound by the same license); commercial users should review the GPLv3 redistribution clauses for their use case.
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-pangolin:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-pangolin-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Paper:** [Genome Biology 2022](https://doi.org/10.1186/s13059-022-02664-4)
+- **Upstream:** https://github.com/tkzeng/Pangolin
+- **License:** [GPL-3.0](https://github.com/tkzeng/Pangolin/blob/main/LICENSE), a copyleft license, for the code and the models it ships. Public Docker distribution is permitted (the Dockerfile is in this repository, and rebuilders are bound by the same license); commercial users should review the GPL-3.0 redistribution clauses for their use.
+- **Device:** CPU or GPU (images `rnazoo-pangolin-cpu` and `rnazoo-pangolin`).
 
 ## What it does
 
-Pangolin is a deep-learning splice-site predictor that scores changes in splice site strength caused by SNVs and short indels. It improves on SpliceAI by training across **four tissues** (heart, liver, brain, testis from human + mouse + rhesus + rat), producing tissue-aware predictions rather than a single human-canonical score. Each variant gets two summary scores: the largest score *increase* and the largest score *decrease* within ±D bases (default D=50).
+Pangolin is a dilated residual convolutional network trained on splice-site usage from RNA-seq
+of heart, liver, brain and testis in human, rhesus macaque, mouse and rat. Twelve models (three
+per tissue) read 5,000 nt on each side of a variant and score each position within
+`--pangolin_distance` of it; each position keeps its largest change across tissues.
 
-The pipeline currently exposes only the inference path. Upstream's `custom_usage.py` for arbitrary-sequence scoring is not yet wired in.
+## Input
 
-## Input format
-
-Three inputs are required:
-
-1. **Variants** — VCF or CSV. CSV must have a header with columns identifying CHROM/POS/REF/ALT (defaults `CHROM,POS,REF,ALT`; override via `--pangolin_column_ids "Chr,Pos,Ref,Alt"`).
-2. **Reference FASTA** — any indexable format pyfastx supports (uncompressed `.fa`, bgzipped `.fa.gz` with `.gzi`, etc.). pyfastx auto-creates an index on first read.
-3. **gffutils annotation database** — a `.db` file built from a GTF using upstream's `scripts/create_db.py`:
+1. Variants: a VCF, or a CSV with a header row and the columns `CHROM,POS,REF,ALT` (other names
+   via `--pangolin_column_ids`). The file name must end in `.vcf` or `.csv`; compressed files
+   are not read.
+2. A reference FASTA, plain or gzipped. Pangolin reads it with pyfastx, which builds its own index.
+3. A gffutils annotation database, built once from a GTF with upstream's `create_db.py`, which
+   the image includes:
 
 ```bash
-# inside the pangolin container, or any env with gffutils installed
-python /opt/conda/envs/pangolin/bin/create_db.py gencode.v38.annotation.gtf.gz
-# produces gencode.v38.annotation.db
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+  -v /path/to/gtf_dir:/work \
+  ghcr.io/ericmalekos/rnazoo-pangolin-cpu:latest \
+  python /opt/conda/envs/pangolin/bin/create_db.py /work/gencode.v38.annotation.gtf.gz
+# writes /work/gencode.v38.annotation.db
 ```
 
-Pre-built DBs for GENCODE 38 are available from the upstream Dropbox link in the [Pangolin README](https://github.com/tkzeng/Pangolin#installation). Variants are skipped if they're outside any annotated gene, within 5 kb of chromosome ends, deletions longer than `2 × distance`, or inconsistent with the reference FASTA.
+By default `create_db.py` keeps only transcripts tagged `Ensembl_canonical` (`--filter None`
+keeps all). The [upstream README](https://github.com/tkzeng/Pangolin) links prebuilt GENCODE
+release 38 databases for GRCh38 and GRCh37.
 
-Example VCF:
+Example VCF (upstream `examples/brca.vcf`, GRCh37):
 
 ```
 ##fileformat=VCFv4.2
-##contig=<ID=chr19,length=58617616>
-#CHROM  POS       ID  REF  ALT  QUAL  FILTER  INFO
-chr19   38958362  .   C    T    .     .       .
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr17	41276135	.	T	G	.	.	.
 ```
 
-## Output format
+## Output
 
-An annotated VCF (or CSV, matching the input) where each record gains a `Pangolin=...` field in `INFO`:
+`pangolin_out/<input name>.pangolin.vcf` (or `.csv`): the input, with a `Pangolin` INFO field
+(VCF) or column (CSV) holding one entry per overlapping gene,
+`gene_id|pos:largest_increase|pos:largest_decrease|Warnings:`. Positions are relative to the
+variant. With `--pangolin_score_cutoff`, every position whose change reaches the cutoff is
+listed instead of the largest two.
+
+Example (a ZEB2 variant from a GRCh38 CSV run with `--pangolin_distance 500`; scores are rounded
+to two decimals but can print with extra digits):
 
 ```
-chr19  38958362  .  C  T  .  .  Pangolin=RYR1|2:0.91|-31:-0.08|Warnings:
+CHROM,POS,REF,ALT,Pangolin
+chr2,144401198,C,T,ENSG00000169554.24|-12:0.5299999713897705|1:-0.8600000143051147|Warnings:
 ```
-
-Format: `gene_symbol|relpos:largest_increase|relpos:largest_decrease|Warnings:<msg>`. Position offsets are relative to the variant POS.
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/inputs:/work \
   ghcr.io/ericmalekos/rnazoo-pangolin-cpu:latest \
-  pangolin_predict.py \
-    -i /work/variants.vcf \
-    -r /work/genome.fa \
-    -a /work/annotation.db \
-    -o /work/variants.pangolin
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/inputs:/work \
-  ghcr.io/ericmalekos/rnazoo-pangolin:latest \
-  pangolin_predict.py \
-    -i /work/variants.vcf \
-    -r /work/genome.fa \
-    -a /work/annotation.db \
-    -o /work/variants.pangolin
+  pangolin_predict.py -i /work/variants.vcf -r /work/genome.fa \
+    -a /work/annotation.db -o /work/variants.pangolin
 ```
 
-The output prefix is `variants.pangolin`; Pangolin auto-appends `.vcf` (or `.csv`) matching the input.
+For the GPU image, use `rnazoo-pangolin:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+Pangolin adds `.vcf` or `.csv` to the output prefix.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu \
   --pangolin_variants /path/to/variants.vcf \
   --pangolin_reference_fasta /path/to/genome.fa \
   --pangolin_annotation_db /path/to/annotation.db
-
-# GPU
-nextflow run main.nf -profile docker,gpu \
-  --pangolin_variants /path/to/variants.vcf \
-  --pangolin_reference_fasta /path/to/genome.fa \
-  --pangolin_annotation_db /path/to/annotation.db
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/pangolin/pangolin_out/`.
 
-Results appear in `results/pangolin/pangolin_out/<basename>.pangolin.vcf` (or `.csv`).
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--pangolin_variants` | (required) | VCF or CSV with variants |
-| `--pangolin_reference_fasta` | (required) | Reference FASTA (auto-indexed by pyfastx) |
-| `--pangolin_annotation_db` | (required) | gffutils annotation DB (built via `scripts/create_db.py`) |
-| `--pangolin_distance` | `50` | Bases on either side of the variant for splice-score calculation |
-| `--pangolin_mask` | `'True'` | Mask annotated-site gain + unannotated-site loss (recommended for variant interpretation) |
-| `--pangolin_score_cutoff` | `null` | If set, output every site with `\|delta\| ≥ cutoff` instead of just the max-loss/gain |
-| `--pangolin_column_ids` | `null` | (CSV input only) comma-separated column names for CHROM,POS,REF,ALT — upstream default `'CHROM,POS,REF,ALT'` is used when this is unset |
-
-## Reading the output
-
-```python
-import pysam
-
-vcf = pysam.VariantFile("variants.pangolin.vcf")
-for rec in vcf:
-    info = rec.info.get("Pangolin")
-    if not info:
-        continue
-    for entry in info:
-        # gene|relpos:largest_inc|relpos:largest_dec|Warnings:...
-        gene, inc, dec, *_ = entry.split("|")
-        inc_pos, inc_score = inc.split(":")
-        dec_pos, dec_score = dec.split(":")
-        if abs(float(inc_score)) >= 0.5 or abs(float(dec_score)) >= 0.5:
-            print(f"{rec.chrom}:{rec.pos} ({gene}) splice-altering: +{inc_score}@{inc_pos} / {dec_score}@{dec_pos}")
-```
-
-## Comparison with SpliceAI
-
-| Aspect | SpliceAI | Pangolin |
-|--------|----------|----------|
-| Training | Human only (GTEx) | Human + mouse + rhesus + rat across 4 tissues |
-| Outputs | 4 deltas (acceptor/donor × gain/loss) | 2 summary deltas (max increase, max decrease) |
-| Annotation | Bundled GENCODE V24 OR custom TSV | gffutils DB (must build yourself via `create_db.py` or download upstream) |
-| License | PolyForm Strict + CC-BY-NC-4.0 (non-commercial) | GPL-3.0 (copyleft) |
-| Reference fmt | Plain FASTA + .fai | pyfastx-indexable (incl. bgzip + .gzi) |
-
-Pangolin and SpliceAI are complementary — for a variant of interest, running both is common practice and disagreements between them often flag interesting biology.
-
-## Test fixture (synthetic mini-genome)
-
-The bundled smoke fixture under `tests/data/pangolin/` is the same shape as the SpliceAI fixture: a synthetic 12-kb chromosome (`TEST_CHR`) with random ACGT, a single fake `TEST_GENE` with 3 exons, and a single SNV. The fixture also ships the pre-built `mini_annotation.db` (~73 KB) so the Nextflow smoke doesn't need to call `create_db.py` at runtime. Delta scores from this fixture are 0.0 (random sequence has no splice motifs); the test verifies pipeline plumbing only.
+| `--pangolin_variants` | `null` | VCF or CSV of variants |
+| `--pangolin_reference_fasta` | `null` | Reference FASTA; required |
+| `--pangolin_annotation_db` | `null` | gffutils database; required |
+| `--pangolin_distance` | `50` | Positions scored on each side of the variant |
+| `--pangolin_mask` | `'True'` | `True` sets gains at annotated sites and losses at unannotated sites to 0 |
+| `--pangolin_score_cutoff` | `null` | List every position with an absolute change at or above this value |
+| `--pangolin_column_ids` | `null` | CSV only: chromosome, position, REF and ALT column names (`CHROM,POS,REF,ALT` when unset) |
 
 ## Limitations
 
-- **GPL-3.0 copyleft.** If you ship downstream Docker images that modify Pangolin, you must release source under the same license.
-- **Annotation DB is not bundled.** Unlike SpliceAI, Pangolin requires a user-supplied gffutils DB. For real-world use, download a pre-built GENCODE DB from the upstream Dropbox link or build your own from a GTF.
-- **Variants must be inside annotated genes.** Same exclusion rules as SpliceAI: intergenic variants, variants within 5 kb of chromosome ends, and deletions longer than `2 × distance` are silently skipped.
-- **No tissue selection in the wrapper.** The upstream model emits scores for 4 tissues; the bundled CLI summarises them into the max-increase / max-decrease pair. Per-tissue access would need a custom invocation.
+- Only substitutions and simple indels (REF or ALT a single base) are scored, and in a VCF only
+  the first ALT allele of each record.
+- Variants get no scores when they lie outside annotated genes, within 5,000 nt of a chromosome
+  end, are deletions longer than twice `--pangolin_distance`, or do not match the reference.
+- Scores are not reported per tissue.

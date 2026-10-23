@@ -5,92 +5,68 @@ Predict translation initiation sites (TIS), translation termination sites (TTS),
 - **Paper:** [NAR 2025](https://academic.oup.com/nar/article/53/7/gkaf277/8112693)
 - **Upstream:** https://github.com/rnasys/TranslationAI
 - **License:** AGPL-3.0 (source code) + CC BY-NC 4.0 (model weights, non-commercial only)
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-translationai:latest`: TF 1.15 GPU build. RNA-Zoo does not use it: TranslationAI's
-      command-line entry point hides every GPU from TensorFlow (`CUDA_VISIBLE_DEVICES=-1` in
-      `translationai/__main__.py`), so it ran on the CPU in the GPU image too and used no GPU
-      memory in the RNA-Zoo benchmark. The pipeline runs the CPU image under both `-profile cpu`
-      and `-profile gpu`.
-    - `rnazoo-translationai-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Device:** CPU. The pipeline runs `rnazoo-translationai-cpu` under both profiles, because
+  TranslationAI's command-line entry point hides every GPU (`CUDA_VISIBLE_DEVICES=-1`).
 
 ## What it does
 
-TranslationAI uses deep learning to identify translation initiation sites (TIS), translation termination sites (TTS), and complete ORFs in mRNA sequences. It scans each input mRNA and outputs site-level probability scores for where translation starts and stops, then assembles predicted ORFs from TIS/TTS pairs.
+A 32-layer dilated residual CNN, trained on human RefSeq protein-coding transcripts, scores every
+mRNA position as a TIS or TTS (five models with 2,000 nt of context, averaged) and pairs in-frame
+TIS and TTS calls into ORFs. Length is not capped.
 
-## Input format
+## Input
 
-FASTA file of mRNA sequences (DNA alphabet):
+FASTA with A, C, G, T or N only, each sequence on one line, and headers in upstream's layout
+`>chrN:start-end(strand)(name)(TIS, TTS,)`; other headers stop the run.
 
 ```
 >chr3:28283123-28361264(+)(CMC1)(241, 568,)
-GAGGGAACGGGTCCTGGCGGTGCTTTGCAAAGGGCCCGTGTTTCTGTTG...
->chr9:98997588-99064434(-)(HSD17B3)(48, 978,)
-TACACAGAGAGCCACGGCCAGGGCTGAAACAGTCTGTTGAGTGCAGCCAT...
+GAGGGAACGGGTCCTGGCGGTGCTTTGCAAAGGG...
 ```
 
-Headers can be in any format. The optional `(start, stop,)` notation in the example above is used by the upstream tool for validation but is not required.
+## Output
 
-## Output format
+In `results/translationai/`, named after the input and the thresholds: `<input>_predTIS_<t>.txt`
+and `<input>_predTTS_<t>.txt` (the header, then `position,score` per site, best first), and
+`<input>_predORFs_<t>_<t>.txt` (the header, then `TIS,TTS,TIS_score,TTS_score` per pair, best
+product first; transcripts without a pair are left out). Positions are 0-based and mark the
+first base of the start or stop codon.
 
-Three text files per input:
+Example (`translationai_test_predTIS_0.5.txt` from the test profile):
 
-1. **`*_predTIS_*.txt`** -- predicted TIS positions and probabilities:
-   ```
-   >chr3:28283123-28361264(+)(CMC1)(241, 568,)	241,0.8824475854635239
-   ```
-   Format: `header<TAB>position,probability`
-
-2. **`*_predTTS_*.txt`** -- predicted TTS positions and probabilities (same format)
-
-3. **`*_predORFs_*.txt`** -- predicted ORFs (TIS-TTS pairs with scores)
+```
+>chr3:28283123-28361264(+)(CMC1)(241, 568,)	241,0.8824475854635239
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+TranslationAI writes next to its input, so the command works on a copy in `/tmp`:
 
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-translationai-cpu:latest \
-  bash -c "cp /data/input.fa /tmp/input.fa && \
-    translationai -I /tmp/input.fa -t 0.5,0.5 && \
-    cp /tmp/input_pred*.txt /out/"
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-translationai:latest \
-  bash -c "cp /data/input.fa /tmp/input.fa && \
-    translationai -I /tmp/input.fa -t 0.5,0.5 && \
-    cp /tmp/input_pred*.txt /out/"
+  bash -c "cp /data/input.fa /tmp/input.fa && translationai -I /tmp/input.fa -t 0.5,0.5 && cp /tmp/input_pred*.txt /out/"
 ```
 
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --translationai_input /path/to/input.fa
+nextflow run main.nf -profile docker,cpu --translationai_input /path/to/input.fa
 ```
 
-Only models with input provided will run — no ignore flags needed.
+`-profile docker,gpu` runs the same CPU image. Results go to `results/translationai/`.
 
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--translationai_tis_threshold` | `0.5` | TIS probability threshold (0-1) |
-| `--translationai_tts_threshold` | `0.5` | TTS probability threshold (0-1) |
+| `--translationai_input` | `null` | FASTA file |
+| `--translationai_tis_threshold` | `0.5` | Below 1, the minimum TIS score; 1 or more, the number of top TIS per transcript |
+| `--translationai_tts_threshold` | `0.5` | The same for TTS |
 
-## Example output
+## Limitations
 
-**TIS predictions:**
-```
->chr3:28283123-28361264(+)(CMC1)(241, 568,)	241,0.8824475854635239
->chr9:98997588-99064434(-)(HSD17B3)(48, 978,)	48,0.9925230294466019
->chr1:153175905-153177601(+)(LELP1)(123, 417,)	123,0.9739317893981934
-```
-
-Each line shows the predicted TIS position and its probability score. Higher scores indicate more confident predictions. The threshold parameters control which predictions are reported.
+- An ORF pairs any predicted TIS with any predicted TTS downstream in the same frame, without
+  checking for stop codons in between.

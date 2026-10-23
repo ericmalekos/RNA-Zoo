@@ -1,108 +1,87 @@
 # SpliceBERT
 
-Extract RNA embeddings from a primary-RNA-sequence BERT pretrained on 2M+ vertebrate primary RNAs.
+Extract RNA embeddings from a BERT model pretrained on vertebrate primary RNA (pre-mRNA) sequences.
 
-- **Paper:** [Briefings in Bioinformatics 2024](https://doi.org/10.1093/bib/bbae163) — Chen et al., "Self-supervised learning on millions of primary RNA sequences from 72 vertebrates improves sequence-based RNA splicing prediction"
-- **Upstream:** [github.com/biomed-AI/SpliceBERT](https://github.com/biomed-AI/SpliceBERT)
-- **Weights:** [Zenodo 7995778](https://doi.org/10.5281/zenodo.7995778) (`models.tar.gz`, 217 MB; we ship the `SpliceBERT.1024nt` variant)
-- **License:** BSD-3-Clause source + CC-BY-4.0 weights (Zenodo) — clear for public Docker redistribution
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-splicebert:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-splicebert-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Paper:** [Briefings in Bioinformatics 2024](https://doi.org/10.1093/bib/bbae163)
+- **Upstream:** https://github.com/biomed-AI/SpliceBERT
+- **License:** BSD-3-Clause (code), CC BY 4.0 (weights, [Zenodo 7995778](https://doi.org/10.5281/zenodo.7995778)); both allow public Docker redistribution.
+- **Device:** CPU or GPU (images `rnazoo-splicebert-cpu` and `rnazoo-splicebert`).
 
 ## What it does
 
-SpliceBERT is a 6-layer, 512-dimensional BERT pretrained with masked language modeling on **2M+ primary RNA (pre-mRNA) sequences** drawn from 72 vertebrate species. Architectural details: ~19M parameters, 16 attention heads, single-nucleotide tokenization (vocab `[PAD] [UNK] [CLS] [SEP] [MASK] N A C G T`), absolute position embeddings, 1024 nt context.
+SpliceBERT is a 6-layer BERT encoder (width 512, 16 attention heads, 19.4 million parameters)
+pretrained by masked language modeling on over 2 million primary RNA sequences, introns
+included, from 72 vertebrates. The image holds the `SpliceBERT.1024nt` checkpoint. The wrapper
+returns one 512-d embedding per sequence, the mean over its nucleotide positions, and optionally
+one per nucleotide.
 
-Three pretrained variants ship in the upstream Zenodo bundle (`SpliceBERT.510nt`, `SpliceBERT-human.510nt`, `SpliceBERT.1024nt`); RNAZoo uses the `1024nt` broad-pretrain variant for the longest context window and broadest species coverage.
+## Input
 
-The pipeline currently exposes only the inference path (per-sequence and optional per-token embeddings). Upstream additionally supports fine-tuning for splice-site prediction and branchpoint prediction; that is not yet wired through RNAZoo.
+FASTA. Letters are uppercased and U becomes T, since the model was trained on DNA letters.
+Sequences over 1,024 nt are truncated with a warning (the model has 1,026 positions, two of them
+for the start and end tokens); empty sequences are skipped. Upstream warns that the model may
+not work on sequences shorter than 64 nt, the shortest length in its pretraining.
 
-## Input format
-
-FASTA file of RNA sequences using either RNA (A/C/G/U) or DNA (A/C/G/T) alphabets. SpliceBERT was trained on DNA letters; the wrapper automatically converts U → T before tokenization.
-
-**Maximum sequence length: 1024 nt.** SpliceBERT.1024nt has a 1026 max-position-embedding limit; CLS+SEP consume 2 slots, so raw inputs are capped at 1024. Longer sequences are truncated with a warning. The upstream README notes the model "may not work on sequences shorter than 64 nt" since the pretraining distribution was 64–1024 nt.
-
-Example:
+Example (`tests/data/splicebert_test.fa`, sequences shortened):
 
 ```
->test_rna_1
-GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGGGAAGUCCUCGUGUUGCACCUGACUGUCUUUCCGAACGGGCGUUUCUUUUCCUCCGCGCUACCUGCCAGG
->test_rna_2
-AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUUAAGCUGUAAGAUGGCAGUAGCUUACUAGGCAGGAAAAGACCCUGUUGAGCUUGACUCUAGUU
+>splicebert_test_1_exon_intron_exon
+CAGAGCAGACAACUAAGUGCUAUCAACUAGGC...
+>splicebert_test_4_short
+GCAACACACCGUAUCGGUCCUAGGAGGUCUGC...
 ```
 
-## Output format
+## Output
 
-A directory containing:
+In `splicebert_out/`:
 
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 512)` — one 512-d embedding per input sequence (mean-pooled across non-special positions, matching the convention used by RNA-FM / RiNALMo / RNAErnie / PlantRNA-FM wrappers)
-- **`labels.txt`**: one FASTA header per line, in the same order as the embedding rows
+- `sequence_embeddings.npy`: shape `(N, 512)`, one row per sequence
+- `labels.txt`: the FASTA headers, in row order
+- with per-token output: `<header>_tokens.npy`, shape `(L, 512)`, for each sequence (spaces and
+  `/` in the header become `_`)
 
-With `--per-token`:
+Example, for the four sequences in `tests/data/splicebert_test.fa`:
 
-- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L, 512)` — one 512-d embedding per nucleotide position
+```python
+import numpy as np
+emb = np.load("splicebert_out/sequence_embeddings.npy")       # shape (4, 512)
+names = open("splicebert_out/labels.txt").read().splitlines()  # ['splicebert_test_1_exon_intron_exon', ...]
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-splicebert-cpu:latest \
   splicebert_predict.py -i /data/input.fa -o /out
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-splicebert:latest \
-  splicebert_predict.py -i /data/input.fa -o /out
 ```
 
-Add `--per-token` to either invocation for per-token embeddings.
+For the GPU image, use `rnazoo-splicebert:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+Add `--per-token` for per-nucleotide embeddings.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu --splicebert_input /path/to/input.fa
-
-# GPU
-nextflow run main.nf -profile docker,gpu --splicebert_input /path/to/input.fa
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/splicebert/splicebert_out/`.
 
-Results appear in `results/splicebert/splicebert_out/`.
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--splicebert_per_token` | `false` | Also output per-token (L x 512) embeddings per sequence |
-| `--splicebert_max_len` | `1024` | Truncate inputs to this many nt (SpliceBERT.1024nt's positional-embedding cap, 1026 minus CLS+SEP) |
-| `--splicebert_batch_size` | `8` | Sequences per forward pass; lower if you hit GPU OOM |
-
-## Reading the output
-
-```python
-import numpy as np
-
-embeddings = np.load("splicebert_out/sequence_embeddings.npy")  # (N, 512)
-labels = open("splicebert_out/labels.txt").read().strip().split("\n")
-
-for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (512,)
-```
+| `--splicebert_input` | `null` | FASTA file |
+| `--splicebert_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--splicebert_max_len` | `1024` | Truncate longer sequences to this many nt |
+| `--splicebert_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 
 ## Limitations
 
-- **Vertebrate-only training.** Performance on plant, fungal, or bacterial RNA is uncharacterised. For plant work prefer PlantRNA-FM; for general ncRNA prefer RNA-FM / RiNALMo / ERNIE-RNA / RNAErnie.
-- **Maximum input length is 1024 nt** — short ncRNAs and short pre-mRNA windows fit; long mRNAs (>1 kb) must be truncated or chunked.
-- **Splice-task specialisation isn't yet wired** — upstream provides scripts for splice-site prediction (token classification) and branchpoint prediction; RNAZoo currently exposes only the embedding path. Fine-tune those tasks externally if needed, or open an issue requesting the head wiring.
-- **`bert.pooler.dense` warning at load time** is benign — the wrapper mean-pools `last_hidden_state` directly and never invokes the pooler.
+- Pretraining used vertebrate sequences only.
+- Only embeddings are exposed: upstream's splice-site and branchpoint prediction examples are not
+  wired in, and RNA-Zoo has no fine-tuning flags for SpliceBERT.
+- A warning at load time that the pooler weights are newly initialized is expected; the wrapper
+  does not use the pooler.

@@ -2,146 +2,90 @@
 
 Predict the effect of genetic variants on RNA splicing.
 
-- **Paper:** [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) — Jaganathan et al., "Predicting Splicing from Primary Sequence with Deep Learning"
-- **Upstream:** [github.com/Illumina/SpliceAI](https://github.com/Illumina/SpliceAI)
-- **License:** The image installs SpliceAI 1.3.1 from PyPI. At that release the source is GPL-3.0-or-later and the model weights carry no license statement. The current upstream repository is under [PolyForm Strict 1.0.0](https://github.com/Illumina/SpliceAI/blob/master/LICENSE) (non-commercial) and states that the model weights are CC BY-NC 4.0. Commercial users should obtain a license from Illumina. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-spliceai:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-spliceai-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
-
-> **License heads-up:** SpliceAI's current upstream terms are non-commercial for both source and weights, as are RiboNN's; TranslationAI's weights are CC BY-NC 4.0. If you are using RNAZoo in a commercial context (drug-development pipelines, paid clinical interpretation, etc.) you must either obtain a commercial license from Illumina or skip this model (don't pass `--spliceai_vcf`).
+- **Paper:** [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015)
+- **Upstream:** https://github.com/Illumina/SpliceAI
+- **License:** The image installs SpliceAI 1.3.1 from PyPI. At that release the source is GPL-3.0-or-later and the model weights carry no license statement. The current upstream repository is under [PolyForm Strict 1.0.0](https://github.com/Illumina/SpliceAI/blob/master/LICENSE) (non-commercial) and states that the weights are CC BY-NC 4.0. Commercial users should obtain a license from Illumina. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
+- **Device:** CPU or GPU (images `rnazoo-spliceai-cpu` and `rnazoo-spliceai`).
 
 ## What it does
 
-SpliceAI is a 32-layer dilated convolutional neural network that takes a candidate variant (SNV or short indel) plus its surrounding ±5 kb of reference sequence and predicts the variant's effect on splicing. For each variant it emits four delta scores in [0, 1]:
+SpliceAI is a residual network of 32 dilated convolutions that reads 5,000 nt on each side of
+every scored position; five models are averaged. It scores how much a variant raises or lowers
+the use of nearby positions as splice acceptors and donors.
 
-| Score  | Meaning |
-|--------|---------|
-| `DS_AG` | Acceptor-gain delta |
-| `DS_AL` | Acceptor-loss delta |
-| `DS_DG` | Donor-gain delta |
-| `DS_DL` | Donor-loss delta |
+## Input
 
-…plus the relative position (`DP_*`) of each putative gain/loss event. The recommended **delta-score threshold for a splice-altering variant is 0.5**; the paper uses 0.2 (high recall) and 0.8 (high precision) as alternative cutoffs.
+1. A VCF of variants.
+2. A reference FASTA. A `.fai` index beside it is used if present; otherwise one is built in the
+   work directory on each run.
+3. A gene annotation: `grch37` (bundled GENCODE V24lift37 canonical transcripts), `grch38`
+   (bundled GENCODE V24 canonical transcripts), or a custom tab-separated file with the columns
+   `#NAME CHROM STRAND TX_START TX_END EXON_START EXON_END` and exon coordinates comma-separated
+   with a trailing comma, as in upstream's `spliceai/annotations/grch37.txt`.
 
-The pipeline currently exposes only the inference path. Upstream's training scripts and supplementary analyses are not wired in.
-
-## Input format
-
-Three inputs are required:
-
-1. **VCF** — variants of interest, with `CHROM`, `POS`, `REF`, `ALT` columns. Multi-allele records are supported; complex SVs and indels longer than `2 × distance` are silently skipped.
-2. **Reference FASTA** — must contain every chromosome referenced in the VCF. A `.fai` sibling is created on the fly by pyfaidx if missing.
-3. **Annotation** — one of:
-    - `grch37` (bundled GENCODE V24lift37 canonical TSV)
-    - `grch38` (bundled GENCODE V24 canonical TSV)
-    - a path to a custom GENCODE-style TSV with columns `#NAME CHROM STRAND TX_START TX_END EXON_START EXON_END` (trailing-comma-separated exon coordinate lists)
-
-Variants outside any gene defined in the annotation are silently skipped — SpliceAI scores nothing for intergenic positions.
-
-Example VCF:
+Example (upstream `examples/input.vcf`, GRCh37, annotation `grch37`):
 
 ```
 ##fileformat=VCFv4.2
-##contig=<ID=chr19,length=58617616>
-#CHROM  POS       ID  REF  ALT  QUAL  FILTER  INFO
-chr19   38958362  .   C    T    .     .       .
+##contig=<ID=19,length=59128983>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+19	38958362	.	C	T	.	.	.
 ```
 
-## Output format
+## Output
 
-An annotated VCF where each variant gains a `SpliceAI=...` field in the `INFO` column:
+`spliceai_out/<input name>.spliceai.vcf`: the input records, with a `SpliceAI` INFO entry for
+each scored allele and gene, `ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL`.
+The delta scores (0 to 1) cover acceptor gain, acceptor loss, donor gain and donor loss; the
+delta positions place each change relative to the variant (positive is downstream). Upstream
+reads the largest delta score as the probability that the variant alters splicing; the paper
+characterizes cutoffs of 0.2 (high recall), 0.5 (recommended) and 0.8 (high precision).
+
+Example (upstream `examples/output.vcf`):
 
 ```
-chr19  38958362  .  C  T  .  .  SpliceAI=T|RYR1|0.00|0.00|0.91|0.08|-28|-46|-2|-31
+19	38958362	.	C	T	.	.	SpliceAI=T|RYR1|0.00|0.00|0.91|0.08|-28|-46|-2|-31
 ```
-
-Format: `ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL`.
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/inputs:/work \
   ghcr.io/ericmalekos/rnazoo-spliceai-cpu:latest \
-  spliceai_predict.py \
-    -i /work/variants.vcf \
-    -o /work/variants.annot.vcf \
-    -r /work/genome.fa \
-    -a grch38
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/inputs:/work \
-  ghcr.io/ericmalekos/rnazoo-spliceai:latest \
-  spliceai_predict.py \
-    -i /work/variants.vcf \
-    -o /work/variants.annot.vcf \
-    -r /work/genome.fa \
-    -a grch38
+  spliceai_predict.py -i /work/variants.vcf -o /work/variants.spliceai.vcf \
+    -r /work/genome.fa -a grch38
 ```
 
-For a custom annotation TSV, replace `-a grch38` with `-a /work/my_annot.tsv` and bind-mount the file into `/work`.
+For the GPU image, use `rnazoo-spliceai:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+A custom annotation goes in `/work` (`-a /work/annotation.tsv`); `-d` and `-m` set the distance
+and the mask.
 
 ## Run with Nextflow
 
 ```bash
-# CPU, builtin GRCh38 annotation
 nextflow run main.nf -profile docker,cpu \
   --spliceai_vcf /path/to/variants.vcf \
   --spliceai_reference_fasta /path/to/genome.fa \
   --spliceai_annotation grch38
-
-# GPU, custom annotation TSV
-nextflow run main.nf -profile docker,gpu \
-  --spliceai_vcf /path/to/variants.vcf \
-  --spliceai_reference_fasta /path/to/genome.fa \
-  --spliceai_annotation /path/to/my_annot.tsv
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/spliceai/spliceai_out/`.
 
-Results appear in `results/spliceai/spliceai_out/<basename>.spliceai.vcf`.
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--spliceai_vcf` | (required) | Input VCF with variants of interest |
-| `--spliceai_reference_fasta` | (required) | Reference FASTA matching the VCF coordinates; `.fai` autogenerated if absent |
-| `--spliceai_annotation` | `grch38` | `grch37`, `grch38`, or path to a custom GENCODE-style TSV |
-| `--spliceai_distance` | `50` | Maximum distance (bp) between the variant and any predicted gain/loss site |
-| `--spliceai_mask` | `0` | `0` = raw scores; `1` = mask annotated-acceptor/donor gain and unannotated loss (recommended for variant interpretation) |
-
-## Reading the output
-
-```python
-import pysam
-
-vcf = pysam.VariantFile("variants.annot.vcf")
-for rec in vcf:
-    info = rec.info.get("SpliceAI")
-    if not info:
-        continue
-    for entry in info:
-        allele, gene, ds_ag, ds_al, ds_dg, ds_dl, *_ = entry.split("|")
-        deltas = [float(x) for x in (ds_ag, ds_al, ds_dg, ds_dl)]
-        max_delta = max(deltas)
-        if max_delta >= 0.5:
-            print(f"{rec.chrom}:{rec.pos} {rec.ref}>{allele} ({gene}) — likely splice-altering ({max_delta:.2f})")
-```
-
-## Test fixture (synthetic mini-genome)
-
-The bundled smoke fixture under `tests/data/spliceai/` is a synthetic 12-kb chromosome (`TEST_CHR`) with random ACGT, a custom annotation defining a fake `TEST_GENE` with 3 exons, and a single SNV at the exon-2 midpoint. Delta scores from this fixture are all `0.00` — the random sequence has no real splice motifs — but the test verifies that the pipeline plumbing works end-to-end. **For real predictions, use a real reference genome** (GRCh38 from UCSC or Ensembl) and the bundled `grch38` annotation.
+| `--spliceai_vcf` | `null` | Input VCF |
+| `--spliceai_reference_fasta` | `null` | Reference FASTA; required |
+| `--spliceai_annotation` | `grch38` | `grch37`, `grch38` or the path to a custom annotation file |
+| `--spliceai_distance` | `50` | Maximum distance (0 to 4999) between the variant and a gained or lost splice site |
+| `--spliceai_mask` | `0` | `1` sets gains at annotated sites and losses at unannotated sites to 0; upstream recommends `1` for variant interpretation, `0` for alternative splicing analysis |
 
 ## Limitations
 
-- **Non-commercial only.** See the License section above.
-- **Variants must be inside annotated genes.** Intergenic variants are silently skipped; if your VCF appears empty in the output, check that the variants overlap genes in your annotation.
-- **Variants close to chromosome ends are skipped** (within 5 kb of either end — the model's per-variant context window can't be filled).
-- **Indels longer than `2 × distance` are skipped.** Bump `--spliceai_distance` if you need to score larger indels (default 50 → indels up to 100 bp).
-- **Reference allele is checked.** If `REF` doesn't match the reference FASTA at `POS`, SpliceAI emits a warning and skips that record.
+- Only SNVs and simple indels (REF or ALT a single base) get scores. Other REF and ALT pairs get
+  an entry of dots; symbolic, missing and `*` alleles get none.
+- Records get no `SpliceAI` field when the variant is outside every annotated gene, within 5 kb
+  of a chromosome end, has a REF allele longer than twice `--spliceai_distance`, or does not
+  match the reference FASTA.

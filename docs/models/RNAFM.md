@@ -1,132 +1,89 @@
 # RNA-FM
 
-Extract general-purpose RNA embeddings from sequence using a pretrained foundation model.
+Extract general-purpose RNA embeddings from a language model pretrained on non-coding RNA.
 
-- **Paper:** [arXiv 2022](https://arxiv.org/abs/2204.00300) — "Interpretable RNA Foundation Model from Unannotated Data for Highly Accurate RNA Structure and Function Predictions" (Chen et al.)
+- **Paper:** [arXiv 2022](https://arxiv.org/abs/2204.00300)
 - **Upstream:** https://github.com/ml4bio/RNA-FM
 - **License:** MIT (code), Apache-2.0 (weights)
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-rnafm:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-rnafm-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Device:** CPU or GPU (images `rnazoo-rnafm-cpu` and `rnazoo-rnafm`).
 
 ## What it does
 
-RNA-FM is a BERT-style foundation model pretrained on 23 million non-coding RNA sequences. It produces 640-dimensional embeddings for each nucleotide position, which can be used as features for downstream tasks (structure prediction, function annotation, etc.). Per-sequence embeddings are computed by mean-pooling over positions.
+RNA-FM is a 12-layer transformer encoder (width 640, 99.5 million parameters) pretrained by
+masked language modeling on 23 million non-coding RNA sequences from RNAcentral. The wrapper
+returns one 640-d embedding per sequence, the mean over its nucleotide positions, and
+optionally one per nucleotide.
 
-## Input format
+## Input
 
-FASTA file of RNA sequences using RNA alphabet (A, C, G, U). DNA sequences (with T) are automatically converted to U.
+FASTA. Letters are uppercased and T becomes U. Sequences over 1,022 nt are truncated with a
+warning (the model has 1,024 positions, two of them for the start and end tokens); empty
+sequences are skipped.
 
-**Maximum sequence length: 1022 nt.** RNA-FM has 1024 usable positional slots; BOS/EOS consume 2. Longer sequences are truncated with a warning.
-
-Example (`tests/data/rnafm_test.fa`):
+Example (`tests/data/rnafm_test.fa`, sequences shortened):
 
 ```
 >test_rna_1
-GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGGGAAGUCCUCGUGUUGCACCUGACUGUCUUUCCGAACGGGCGUUUCUUUUCCUCCGCGCUACCUGCCAGG
+GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGG...
 >test_rna_2
-AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUUAAGCUGUAAGAUGGCAGUAGCUUACUAGGCAGGAAAAGACCCUGUUGAGCUUGACUCUAGUU
+AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUU...
 ```
 
-## Output format
+## Output
 
-A directory containing:
+In `rnafm_out/`:
 
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 640)` — one 640-d embedding per input sequence (mean-pooled over positions)
-- **`labels.txt`**: one FASTA header per line, in the same order as the embedding rows
+- `sequence_embeddings.npy`: shape `(N, 640)`, one row per sequence
+- `labels.txt`: the FASTA headers, in row order
+- with per-token output: `<header>_tokens.npy`, shape `(L, 640)`, for each sequence (spaces and
+  `/` in the header become `_`)
 
-With `--per-token`:
-- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L, 640)` — one 640-d embedding per nucleotide position
+Example, for the input above:
+
+```python
+import numpy as np
+emb = np.load("rnafm_out/sequence_embeddings.npy")       # shape (2, 640)
+names = open("rnafm_out/labels.txt").read().splitlines()  # ['test_rna_1', 'test_rna_2']
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest \
   rnafm_predict.py -i /data/input.fa -o /out
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-rnafm:latest \
-  rnafm_predict.py -i /data/input.fa -o /out
 ```
 
-Add `--per-token` to either invocation for per-token embeddings.
+For the GPU image, use `rnazoo-rnafm:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+Add `--per-token` for per-nucleotide embeddings.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu --rnafm_input /path/to/input.fa
-
-# GPU
-nextflow run main.nf -profile docker,gpu --rnafm_input /path/to/input.fa
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/rnafm/rnafm_out/`.
 
-Results appear in `results/rnafm/rnafm_out/`.
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--rnafm_per_token` | `false` | Also output per-token (L x 640) embeddings per sequence |
-| `--rnafm_max_len` | `1022` | Truncate inputs to this many nt (RNA-FM's positional-embedding cap) |
-| `--rnafm_batch_size` | `8` | Sequences per forward pass; lower if you hit GPU OOM |
-
-## Reading the output
-
-```python
-import numpy as np
-
-# Per-sequence embeddings
-embeddings = np.load("rnafm_out/sequence_embeddings.npy")  # (N, 640)
-labels = open("rnafm_out/labels.txt").read().strip().split("\n")
-
-for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (640,)
-
-# Per-token embeddings (if --per-token was used)
-tokens = np.load("rnafm_out/test_rna_1_tokens.npy")  # (L, 640)
-print(f"Per-token shape: {tokens.shape}")
-```
-
-## Example output
-
-```
-Shape: (2, 640)
-Labels:
-test_rna_1
-test_rna_2
-```
-
-Each row is a 640-dimensional vector representing the RNA sequence. These embeddings can be used directly as input features for classifiers, regressors, or clustering.
-
-## Limitations
-
-- Maximum input length is **1022 nucleotides** (1024 positional slots minus 2 for BOS/EOS). Longer sequences are truncated.
-- This is the ncRNA model. An mRNA-specific model (mRNA-FM, 1280-d) also exists but is not included in this module.
+| `--rnafm_input` | `null` | FASTA file |
+| `--rnafm_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--rnafm_max_len` | `1022` | Truncate longer sequences to this many nt |
+| `--rnafm_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 
 ## Fine-tuning
 
-RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen 640-d RNA-FM embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
+Train a linear, MLP or XGBoost head on frozen RNA-FM embeddings, as the [Fine Tuning
+guide](../finetuning.md) describes. Its [common parameters](../finetuning.md#common-parameters)
+take the prefix `rnafm`: `--rnafm_finetune_input` and `--rnafm_finetune_label` are required, and
+`--rnafm_finetune_embeddings` reuses saved embeddings.
 
-### RNA-FM-specific parameters
+## Limitations
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--rnafm_finetune_input` | `null` | TSV/CSV with `name`, `sequence`, label column |
-| `--rnafm_finetune_label` | (required) | Column name with target values |
-| `--rnafm_finetune_embeddings` | `null` | Precomputed `(N, D)` `.npy` — switches to the head-only path |
-| `--rnafm_finetune_head_type` | `linear` | `linear`, `mlp`, or `xgboost` (xgboost requires `_embeddings`) |
-| `--rnafm_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
-| `--rnafm_finetune_epochs` | 20 | Max training epochs (torch heads) |
-| `--rnafm_finetune_lr` | 1e-3 | Adam (torch) or XGBoost learning rate |
+- The image holds the non-coding RNA model only; upstream's mRNA-FM (1280-d, trained on coding
+  sequences) is not included.

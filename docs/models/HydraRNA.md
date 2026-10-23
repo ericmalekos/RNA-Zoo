@@ -1,122 +1,93 @@
 # HydraRNA
 
-**Track:** RNA Foundation Models  
-**Paper:** Li et al., *Genome Biology* 2025 — doi:[10.1186/s13059-025-03853-7](https://doi.org/10.1186/s13059-025-03853-7)  
-**Upstream repo:** <https://github.com/GuipengLi/HydraRNA>  
-**License:** MIT (code + weights)  
-**GPU required:** Yes (Mamba CUDA selective-scan kernel; no CPU fallback)
+Extract embeddings of full-length RNAs from a hybrid state-space and attention language model.
+
+- **Paper:** [Genome Biology 2025](https://doi.org/10.1186/s13059-025-03853-7)
+- **Upstream:** https://github.com/GuipengLi/HydraRNA
+- **License:** MIT (code and weights)
+- **Device:** GPU only (image `rnazoo-hydrarna`); skipped with a warning under `-profile cpu`.
 
 ## What it does
 
-HydraRNA is a hybrid bidirectional-SSM + multi-head attention RNA language model
-trained on full-length transcripts (up to 10,000 nt). The model stack alternates
-between **Hydra** (bidirectional Mamba) blocks and **MHA** blocks (12 layers total),
-producing per-token and mean-pooled sequence embeddings (1024-d). It outperforms
-comparable models on mRNA-related benchmarks (MRL, half-life, TE) despite fewer
-parameters, attributed to the full-length input window and bidirectional SSM context.
-
-The zoo ships the **base model** (`HydraRNA_model.pt`, 337 MB from Zenodo
-[10.5281/zenodo.20481998](https://doi.org/10.5281/zenodo.20481998)). The secondary
-structure fine-tuned variant (`HydraRNA_model_V2.pt` + `HydraRNA_SS_model.pt`) is
-not currently wired.
+HydraRNA has 12 layers of width 1,024 (84 million parameters): bidirectional Hydra state-space
+layers, with attention in the 6th and 12th. It was pretrained by masked language modeling on 28
+million non-coding RNAs and mRNAs, with sequences over 4,096 nt split into segments. The image
+holds the base model from the authors' Zenodo record
+[20481998](https://doi.org/10.5281/zenodo.20481998). The wrapper runs it in float16 and returns
+one 1024-d embedding per sequence, the mean over its nucleotide positions, and optionally one
+per nucleotide.
 
 ## Input
 
-A FASTA file of RNA sequences (A/C/G/U or A/C/G/T). Sequences should ideally be
-complete mature transcripts; partial or very short sequences will produce
-out-of-distribution embeddings. No hard length limit is enforced — sequences longer
-than 10,240 nt are split into 10,240-nt chunks and the final embedding is the
-mean over chunk embeddings.
+FASTA; T becomes U. The model reads at most 10,240 nt per pass, so longer sequences are split
+into 10,240 nt chunks and their embeddings averaged. Nothing is truncated.
 
-**Example test sequence** (`tests/data/test_rna.fa` works):
+Example (`tests/data/rnafm_test.fa`, sequences shortened):
+
 ```
->my_transcript
-AUGCUAGCUAGCUAGCUA...
+>test_rna_1
+GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGG...
+>test_rna_2
+AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUU...
 ```
 
 ## Output
 
-| File | Description |
-|------|-------------|
-| `sequence_embeddings.npy` | `(N, 1024)` float32 — one row per sequence |
-| `labels.txt` | FASTA headers, one per line, matching row order |
-| `{header}_tokens.npy` | `(L, 1024)` per-token embeddings (optional; first 10,240 nt only for very long sequences) |
+In `hydrarna_out/`:
 
-## Docker run
+- `sequence_embeddings.npy`: shape `(N, 1024)`, one row per sequence
+- `labels.txt`: the FASTA headers, in row order
+- with per-token output: `<header>_tokens.npy`, shape `(L, 1024)`, covering at most the first
+  10,240 nt (spaces and `/` in the header become `_`)
+
+Example, for the input above:
+
+```python
+import numpy as np
+emb = np.load("hydrarna_out/sequence_embeddings.npy")       # shape (2, 1024)
+names = open("hydrarna_out/labels.txt").read().splitlines()  # ['test_rna_1', 'test_rna_2']
+```
+
+## Run with Docker
 
 ```bash
 docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/data:/data \
+  -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+  -v /path/to/input.fa:/data/input.fa \
+  -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-hydrarna:latest \
-  hydrarna_predict.py \
-    -i /data/sequences.fa \
-    -o /data/hydrarna_out
+  hydrarna_predict.py -i /data/input.fa -o /out
 ```
 
-With per-token embeddings:
-```bash
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/data:/data \
-  ghcr.io/ericmalekos/rnazoo-hydrarna:latest \
-  hydrarna_predict.py \
-    -i /data/sequences.fa \
-    -o /data/hydrarna_out \
-    --per-token
-```
+Add `--per-token` for per-nucleotide embeddings.
 
-## Nextflow run
+## Run with Nextflow
 
 ```bash
-nextflow run ericmalekos/RNA-Zoo \
-  --hydrarna_input sequences.fa \
-  --outdir results \
-  -profile docker,gpu
+nextflow run main.nf -profile docker,gpu --hydrarna_input /path/to/input.fa
 ```
 
-### Linear-probe fine-tuning
-
-```bash
-nextflow run ericmalekos/RNA-Zoo \
-  --hydrarna_finetune_input labeled.tsv \
-  --hydrarna_finetune_label rl \
-  --outdir results \
-  -profile docker,gpu
-```
-
-From precomputed embeddings (no GPU needed for head training):
-```bash
-nextflow run ericmalekos/RNA-Zoo \
-  --hydrarna_finetune_input labeled.tsv \
-  --hydrarna_finetune_label rl \
-  --hydrarna_finetune_embeddings sequence_embeddings.npy \
-  --outdir results \
-  -profile docker,cpu
-```
+Results go to `results/hydrarna/hydrarna_out/`.
 
 ## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--hydrarna_input` | `null` | Path to FASTA; activates the HYDRARNA process |
-| `--hydrarna_outdir` | `<outdir>/hydrarna` | Output directory |
-| `--hydrarna_per_token` | `false` | Emit per-token `.npy` files alongside sequence embeddings |
-| `--hydrarna_max_len` | `10000` | Warn (don't fail) for sequences exceeding this length |
-| `--hydrarna_finetune_input` | `null` | TSV/CSV with `name`, `sequence`, and a label column |
-| `--hydrarna_finetune_label` | `null` | Column name in the fine-tune TSV to use as the label |
-| `--hydrarna_finetune_outdir` | `<outdir>/hydrarna_finetune` | Fine-tune output directory |
-| `--hydrarna_finetune_epochs` | `20` | Training epochs for the probe head |
-| `--hydrarna_finetune_lr` | `1e-3` | Learning rate for the probe head |
-| `--hydrarna_finetune_embeddings` | `null` | Precomputed `(N, 1024)` `.npy`; skips embedding extraction |
-| `--hydrarna_finetune_head_type` | `linear` | Head architecture: `linear`, `mlp`, or `xgboost` |
-| `--hydrarna_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
+| `--hydrarna_input` | `null` | FASTA file |
+| `--hydrarna_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--hydrarna_max_len` | `10000` | Print a note for sequences longer than this (no truncation) |
 
-## Implementation notes
+## Fine-tuning
 
-- The model uses **vendored fairseq** (in the upstream repo's `fairseq/` directory).
-  The Dockerfile installs it as an editable package alongside the main inference code.
-- Tokenization: individual characters separated by spaces, prefixed with `<s>`.
-  T→U conversion is applied before tokenization (model vocabulary is ACGU).
-- Embeddings are extracted via `model.encoder.extract_features(src_tokens=...)`;
-  BOS and EOS tokens are stripped before mean-pooling.
-- The model is run in **float16** for inference.
-- No CPU variant is provided — the Mamba SSM kernel requires CUDA.
+Train a linear, MLP or XGBoost head on frozen HydraRNA embeddings, as the [Fine Tuning
+guide](../finetuning.md) describes. Its [common parameters](../finetuning.md#common-parameters)
+take the prefix `hydrarna`: `--hydrarna_finetune_input` and `--hydrarna_finetune_label` are
+required, and `--hydrarna_finetune_embeddings` reuses saved embeddings. The full chain needs a
+GPU (skipped under `-profile cpu`); with `--hydrarna_finetune_embeddings`, the head trains on
+CPU in the `rnazoo-finetune-head` image.
+
+## Limitations
+
+- Needs a CUDA GPU; there is no CPU image.
+- Chunks are averaged with equal weight, so a short last chunk counts as much as a full one.
+- Upstream's `HydraRNA_model_V2.pt` and secondary structure model are not included.

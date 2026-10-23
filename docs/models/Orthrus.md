@@ -1,208 +1,136 @@
 # Orthrus
 
-Mamba-based mature mRNA foundation model. Produces 256-d or 512-d global embeddings from full mRNA sequences for downstream property prediction (half-life, ribosome load, localization, RBP interaction, isoform function).
+Embed mature mRNAs with a Mamba-based foundation model.
 
 - **Paper:** [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3)
 - **Upstream:** https://github.com/bowang-lab/Orthrus
-- **License:** MIT (code + weights)
-- **Device:** GPU only — Mamba's selective-scan kernel is CUDA-only in the bundled `mamba_ssm` wheel. Skipped under `-profile cpu` with a warning. Single image variant:
-    - `rnazoo-orthrus:latest` (bundles all seven checkpoints — three 4-track + four 6-track)
+- **License:** MIT (code and weights)
+- **Device:** GPU only (image `rnazoo-orthrus`, with all seven checkpoints); skipped with a
+  warning under `-profile cpu`.
 
 ## What it does
 
-Orthrus is a self-supervised foundation model trained on **32.7 million transcripts** from GENCODE, RefSeq, and Zoonomia ortholog alignments (10 model organisms, 400+ mammalian species), using contrastive learning over splice-isoform pairs and orthologous transcript pairs. The encoder is a Mamba state-space model — unlike transformer-based foundation models (RNA-FM, RiNALMo, ERNIE-RNA) which scale O(L²) in attention memory, Mamba scales linearly in sequence length, so Orthrus handles long mRNAs (>10 kb) without OOM.
+Orthrus is a Mamba state-space encoder of mature mRNA, pretrained by contrastive learning on
+splice isoforms from ten metazoans and orthologous transcripts from over 400 mammals. The
+default checkpoint, `large-4track`, has 6 layers of width 512 (10.2 million parameters). The
+wrapper returns one embedding per sequence, the mean over its positions, and optionally one per
+nucleotide.
 
-## Available variants
+## Variants
 
-The image bundles all seven checkpoints. Select with `--orthrus_variant`:
+Choose a checkpoint with `--orthrus_variant`.
 
-### 4-track (sequence-only, FASTA input only)
+| Variant | Hugging Face repo | Width | Notes |
+|---------|-------------------|-------|-------|
+| `large-4track` (default) | `quietflamingo/orthrus-large-4-track` | 512 | |
+| `4track` | `antichronology/orthrus-4-track` | 512 | Fails at ortholog retrieval and at coding versus noncoding classification |
+| `base-4track` | `quietflamingo/orthrus-base-4-track` | 256 | |
+| `6track` | `antichronology/orthrus-6-track` | 512 | |
+| `small-6track` | `antichronology/orthrus-small-6-track` | 256 | |
+| `mlm-6track` | `antichronology/orthrus-mlm-6-track` | 512 | Contrastive plus masked language modeling |
+| `large-6track` | `quietflamingo/orthrus-large-6-track` | 512 | |
 
-| Variant flag | HuggingFace repo | Embed dim | Notes |
-|---|---|---|---|
-| `4track` | `antichronology/orthrus-4-track` | 512-d | Canonical sequence-only model (Nature Methods publication); the default before v1.0.0 |
-| `large-4track` *(default)* | `quietflamingo/orthrus-large-4-track` | 512-d | Default from v1.0.0. In the RNA-Zoo evaluations it retrieved human to mouse orthologs (recall at rank 1 0.89 against 0.04 for `4track`) and separated coding from lncRNA transcripts (AUROC 0.98 against 0.69) far better than `4track` |
-| `base-4track` | `quietflamingo/orthrus-base-4-track` | 256-d | Smaller/faster; half the embedding size |
+4-track variants read A, C, G and T as one-hot tracks and need only the FASTA. 6-track variants
+also need [annotation](#annotation-input-for-6-track-variants) for two more tracks: a 1 at the
+first nucleotide of each CDS codon, and a 1 at the last nucleotide of every exon but the last.
 
-All three use one-hot nucleotide encoding (A/C/G/T, 4 channels) and require only a FASTA — no annotation.
+## Input
 
-### 6-track (FASTA + CDS/splice annotation)
+FASTA (plain or `.gz`) of complete mature mRNAs (5' UTR, CDS and 3' UTR); T or U both work.
+There is no length cap and no truncation. The wrapper warns, without refusing, about sequences
+shorter than `--orthrus_min_len`.
 
-| Variant flag | HuggingFace repo | Embed dim | Objective | Notes |
-|---|---|---|---|---|
-| `6track` | `antichronology/orthrus-6-track` | 512-d | Contrastive | Canonical 6-track model (Nature Methods publication) |
-| `small-6track` | `antichronology/orthrus-small-6-track` | 256-d | Contrastive | Smaller/faster 6-track variant |
-| `mlm-6track` | `antichronology/orthrus-mlm-6-track` | 512-d | Contrastive + MLM | Adds masked-language-model head; best for embedding tasks |
-| `large-6track` | `quietflamingo/orthrus-large-6-track` | 512-d | Contrastive | Alternative 512-d checkpoint |
+Example: `tests/data/orthrus_test.fa`, two synthetic mRNAs of 457 and 439 nt.
 
-6-track variants add two annotation-derived binary channels per position:
+### Annotation input for 6-track variants
 
-| Extra track | Content |
-|---|---|
-| Track 5 — CDS | 1 at the **first nucleotide of each codon** within the CDS region |
-| Track 6 — Splice | 1 at the **last nucleotide of each exon** (5′ splice site in transcript coordinates) |
+Give one of:
 
-These require either `--annotation` (pre-computed TSV) or `--gtf` (auto-parsed GTF). See [Annotation input](#annotation-input-for-6-track-variants) below.
+- `--orthrus_annotation`: a TSV (or CSV) with a header row and the columns `name`, `cds_start`
+  and `cds_end` (0-based transcript coordinates, end exclusive), plus optional `exon_lengths`
+  (comma-separated, in transcript order; without it the splice track is all zeros). `name` is
+  the FASTA ID (the header's first word, before any `|`) without a version suffix.
+- `--orthrus_gtf`: a GENCODE or Ensembl GTF (plain or `.gz`), from which the wrapper derives
+  each transcript's CDS and exon lengths, matching IDs without version suffixes.
 
-## Input format
-
-### FASTA (all variants)
-
-FASTA of **complete mature mRNA sequences** (5'UTR + CDS + 3'UTR, or as much as you have of the spliced transcript). DNA (T) and RNA (U) are both accepted.
-
-**Important:** Orthrus was trained exclusively on full mature transcripts. Partial sequences (e.g. CDS only, single exons, ncRNA fragments) are out-of-distribution and produce embeddings that do not reflect the model's learned mRNA representations. The wrapper warns when sequences are shorter than `--min-len` (default 200 nt) but does not refuse them.
-
-Example (`tests/data/orthrus_test.fa`): two synthetic ~500 nt mature-mRNA-shaped sequences with 5'UTR + ORF + 3'UTR structure.
-
-### Annotation input (for 6-track variants)
-
-6-track variants require one of:
-
-#### Option A — Annotation TSV (`--annotation`)
-
-Tab-separated file with columns:
-
-| Column | Required | Description |
-|--------|----------|-------------|
-| `name` | yes | Must match the FASTA header (before first space or `\|`); version suffix stripped |
-| `cds_start` | yes | 0-based, transcript-relative CDS start position |
-| `cds_end` | yes | 0-based, exclusive CDS end position |
-| `exon_lengths` | no | Comma-separated exon lengths (e.g. `120,450,230`). If omitted, Track 6 (splice) is all zeros |
+If both are given, the TSV is used. Sequences without annotation are skipped with a warning, so
+the output can have fewer rows than the FASTA.
 
 ```
 name	cds_start	cds_end	exon_lengths
-ENST00000370316	78	1578	78,450,123,50,899
-ENST00000456328	25	1025	25,300,200,500
+tx1	78	1578	78,450,123,50,899
 ```
 
-#### Option B — GTF auto-parse (`--gtf`)
+## Output
 
-Point to a GENCODE or Ensembl GTF (plain or `.gz`). The wrapper parses exon and CDS records for all transcripts found in the FASTA, derives transcript-relative CDS coordinates and exon lengths, and builds both annotation tracks internally. No genome FASTA needed — the FASTA input already contains the spliced transcript sequences.
+In `orthrus_out/`:
 
-Transcript IDs are matched by stripping version suffixes (e.g. `ENST00000370316.7` → `ENST00000370316`).
+- `sequence_embeddings.npy`: shape `(N, D)`, with D the variant's width (512 or 256)
+- `labels.txt`: the FASTA headers, in row order
+- with per-token output: `<header>_tokens.npy`, shape `(L, D)`, for each sequence (spaces and
+  `/` in the header become `_`)
 
-```bash
-# FASTA headers like ">ENST00000370316.7|ENSG...|..." are matched automatically
-orthrus_predict.py -i transcripts.fa -o out/ --variant 6track --gtf gencode.v47.annotation.gtf.gz
+Example, for `tests/data/orthrus_test.fa` with the default variant:
+
+```python
+import numpy as np
+emb = np.load("orthrus_out/sequence_embeddings.npy")       # shape (2, 512)
+names = open("orthrus_out/labels.txt").read().splitlines()  # full headers: 'test_mrna_1 synthetic ...'
 ```
-
-## Output format
-
-A directory containing:
-
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, D)` — one mean-pooled embedding per input sequence. `D=512` for `4track`/`large-4track`/`6track`/`mlm-6track`/`large-6track`; `D=256` for `base-4track`/`small-6track`.
-- **`labels.txt`**: one FASTA header per line, matching embedding rows
-
-With `--per-token`:
-
-- **`<label>_tokens.npy`**: per-sequence `(L, D)` array — one embedding per nucleotide position
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe.
-
 ```bash
-# 4-track (no annotation)
 docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
+  -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-orthrus:latest \
   orthrus_predict.py -i /data/input.fa -o /out
-
-# 6-track with annotation TSV
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/annotation.tsv:/data/annotation.tsv \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-orthrus:latest \
-  orthrus_predict.py -i /data/input.fa -o /out --variant 6track --annotation /data/annotation.tsv
-
-# 6-track with GTF auto-parse
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/gencode.gtf.gz:/data/annotation.gtf.gz \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-orthrus:latest \
-  orthrus_predict.py -i /data/input.fa -o /out --variant 6track --gtf /data/annotation.gtf.gz
 ```
+
+For a 6-track variant, mount the annotation and add, for example,
+`--variant 6track --annotation /data/annotation.tsv` (or `--gtf /data/annotation.gtf.gz`).
+Add `--per-token` for per-nucleotide embeddings.
 
 ## Run with Nextflow
 
 ```bash
-# 4-track
 nextflow run main.nf -profile docker,gpu --orthrus_input /path/to/input.fa
 
-# 6-track with annotation TSV
-nextflow run main.nf -profile docker,gpu \
-  --orthrus_input /path/to/input.fa \
-  --orthrus_variant 6track \
-  --orthrus_annotation /path/to/annotation.tsv
-
-# 6-track with GTF
+# 6-track variant, annotation derived from a GTF
 nextflow run main.nf -profile docker,gpu \
   --orthrus_input /path/to/input.fa \
   --orthrus_variant 6track \
   --orthrus_gtf /path/to/gencode.gtf.gz
 ```
 
-Under `-profile cpu` the process logs a warning and skips. Results appear in `results/orthrus/orthrus_out/`.
+Results go to `results/orthrus/orthrus_out/`.
 
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--orthrus_variant` | `large-4track` | Model variant; see the variant table above. |
-| `--orthrus_annotation` | `null` | Annotation TSV (name, cds_start, cds_end[, exon_lengths]) for 6-track variants. |
-| `--orthrus_gtf` | `null` | GTF/GFF file to auto-derive annotation for 6-track variants. |
-| `--orthrus_per_token` | `false` | Also output per-token (L × D) embeddings per sequence. |
-| `--orthrus_min_len` | `200` | Warn (don't refuse) when sequences are shorter than this. |
-
-## Reading the output
-
-```python
-import numpy as np
-
-embeddings = np.load("orthrus_out/sequence_embeddings.npy")  # (N, D)
-labels = open("orthrus_out/labels.txt").read().strip().split("\n")
-
-for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (512,) or (256,) depending on variant
-```
-
-## Why Mamba (linear memory)
-
-Compared to the transformer foundations in RNAZoo:
-
-| Model | Embedding | Architecture | Memory at L=10k nt |
-|-------|-----------|--------------|--------------------|
-| RNA-FM | 640-d | Transformer (12-layer) | ~2.5 GB attention matrix |
-| RiNALMo | 1280-d | Transformer (33-layer, 650M params) | ~7 GB attention matrix |
-| ERNIE-RNA | 768-d | Transformer (12-layer) | ~2.5 GB attention matrix |
-| **Orthrus** | **512-d** | **Mamba SSM (6-layer, ~10M params)** | **Linear (~MB scale)** |
-
-For mRNAs >5 kb, Orthrus is often the only foundation model in the zoo that fits on a single consumer GPU.
-
-## Limitations
-
-- **Mature transcripts only.** Partial sequences are out-of-distribution.
-- **GPU required.** No CPU fallback in the bundled image.
-- **6-track GTF parsing is in-memory.** For very large GTF files (>1 GB) the initial parse may take 30–60 s. Parse once, then reuse the `--annotation` TSV for subsequent runs.
-- **Embedding dimension is 512 or 256** depending on variant.
+| `--orthrus_input` | `null` | FASTA file |
+| `--orthrus_variant` | `large-4track` | Checkpoint (see [Variants](#variants)) |
+| `--orthrus_annotation` | `null` | Annotation TSV for 6-track variants |
+| `--orthrus_gtf` | `null` | GTF for 6-track variants |
+| `--orthrus_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--orthrus_min_len` | `200` | Warn about sequences shorter than this many nt |
 
 ## Fine-tuning
 
-RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen Orthrus embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
+Train a linear, MLP or XGBoost head on frozen Orthrus embeddings, as the [Fine Tuning
+guide](../finetuning.md) describes. Its [common parameters](../finetuning.md#common-parameters)
+take the prefix `orthrus`: `--orthrus_finetune_input` and `--orthrus_finetune_label` are
+required, and `--orthrus_finetune_embeddings` reuses saved embeddings. The full chain needs a
+GPU (skipped under `-profile cpu`) and always embeds with `large-4track`, whatever
+`--orthrus_variant` says. With `--orthrus_finetune_embeddings`, the head trains on CPU in the
+`rnazoo-finetune-head` image, so embeddings from any variant work.
 
-The full-chain path is GPU-only because Orthrus inference itself requires CUDA (Mamba SSM kernels). The **precomputed-embeddings path lifts that requirement** — once you have the `.npy`, head training runs on CPU in the dedicated `rnazoo-finetune-head` image.
+## Limitations
 
-### Orthrus fine-tuning parameters
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--orthrus_finetune_input` | `null` | TSV/CSV with `name`, `sequence`, label column |
-| `--orthrus_finetune_label` | (required) | Column name with target values |
-| `--orthrus_finetune_embeddings` | `null` | Precomputed `(N, D)` `.npy` — switches to the head-only path (CPU-OK) |
-| `--orthrus_finetune_head_type` | `linear` | `linear`, `mlp`, or `xgboost` (xgboost requires `_embeddings`) |
-| `--orthrus_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
-| `--orthrus_finetune_epochs` | 20 | Max training epochs (torch heads) |
-| `--orthrus_finetune_lr` | 1e-3 | Adam (torch) or XGBoost learning rate |
+- Needs a CUDA GPU; there is no CPU image.
+- Orthrus was trained on full mature transcripts; fragments such as CDS-only sequences or single
+  exons are out of distribution.
+- With `--orthrus_gtf`, a transcript without CDS records gets a CDS track along its whole length.

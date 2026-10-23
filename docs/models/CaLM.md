@@ -1,144 +1,92 @@
 # CaLM
 
-Extract codon-level embeddings from a 12-layer transformer pretrained on cross-organism CDS sequences. Complementary to CodonTransformer (which is generative): CaLM produces representations, CodonTransformer optimizes codon usage.
+Extract codon-level embeddings of protein-coding sequences.
 
-- **Paper:** [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00791-0) — Outeiral & Deane, "Codon language embeddings provide strong signals for use in protein engineering"
-- **GitHub:** [`oxpig/CaLM`](https://github.com/oxpig/CaLM)
-- **License:** BSD-3-Clause (code). The weights, downloaded from opig.stats.ox.ac.uk, carry no
-  license statement in the repository or the paper, so their commercial use and redistribution
-  are unclear.
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-calm:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-calm-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Paper:** [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00791-0)
+- **Upstream:** https://github.com/oxpig/CaLM
+- **License:** BSD-3-Clause (code). The weights, downloaded from opig.stats.ox.ac.uk, carry no license statement in the repository or the paper, so their commercial use and redistribution are unclear.
+- **Device:** CPU or GPU (images `rnazoo-calm-cpu` and `rnazoo-calm`).
 
 ## What it does
 
-CaLM is a 12-layer, 768-dimensional codon-level transformer (~86M params) pretrained on millions of CDSs from across the tree of life. Unlike single-nucleotide RNA LMs (RNA-FM, RiNALMo, ERNIE-RNA, PlantRNA-FM), CaLM tokenizes the input as in-frame **3-letter codons** and treats each codon as an atomic unit — which preserves coding-frame structure that gets lost under nucleotide tokenization.
+CaLM is a 12-layer transformer encoder (width 768, rotary positions, 85.7 million parameters)
+that reads a coding sequence one codon per token. It was pretrained by masked language modeling
+on 9 million non-redundant coding sequences from the European Nucleotide Archive, cropped to
+1,024 codons. The wrapper returns one 768-d embedding per sequence (the mean over codons) and
+optionally one per codon.
 
-Input is up to **1024 codons** (~3 kb of CDS); 64 codons + a few special tokens make up the vocabulary. The model uses rotary position embeddings (no fixed positional limit beyond the 1024-codon training window).
+## Input
 
-Where it slots in: CaLM embeddings have been shown to carry strong signal for protein-engineering downstream tasks — e.g. predicting protein expression, solubility, melting temperature — directly from coding sequence. Pair this with CodonTransformer (generative codon optimization) for an embedding+design loop.
+FASTA of coding sequences. The wrapper reads each sequence as codons from its first base, so
+give the CDS alone, in frame: UTRs would be read as codons too. Letters are uppercased and T
+becomes U. A length that is not a multiple of 3 is trimmed to the last full codon, and sequences
+over 1,024 codons (3,072 nt) are truncated, both with a warning. Empty sequences are skipped.
 
-## Input format
-
-FASTA file of RNA / CDS sequences. The wrapper:
-
-- Uppercases the input and converts T → U automatically.
-- Trims any sequence that is not a multiple of 3 nucleotides to the largest codon-aligned prefix (with a warning).
-- Truncates inputs longer than 1024 codons (3072 nt) (with a warning).
-
-Example (reuses `tests/data/rnafm_test.fa` for the in-pipeline smoke test):
+Example (`tests/data/rnafm_test.fa`, a smoke input rather than real CDSs; the first sequence is
+trimmed from 103 to 102 nt):
 
 ```
 >test_rna_1
-GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGGGAAGUCCUCGUGUUGCACCUGACUGUCUUUCCGAACGGGCGUUUCUUUUCCUCCGCGCUACCUGCCAGG
+GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGG...
 >test_rna_2
-AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUUAAGCUGUAAGAUGGCAGUAGCUUACUAGGCAGGAAAAGACCCUGUUGAGCUUGACUCUAGUU
+AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUU...
 ```
 
-## Output format
+## Output
 
-A directory containing:
+In `calm_out/`:
 
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 768)` — one 768-d embedding per input sequence (mean-pooled across codon positions, excluding `<cls>` and `<eos>`)
-- **`labels.txt`**: one FASTA header per line, in the same order as the embedding rows
+- `sequence_embeddings.npy`: shape `(N, 768)`, one row per sequence (`<cls>` and `<eos>` excluded
+  from the mean)
+- `labels.txt`: the FASTA headers, in row order
+- with per-token output: `<header>_tokens.npy`, shape `(C + 2, 768)` for C codons; unlike the
+  mean, it keeps `<cls>` (first row) and `<eos>` (last row). Spaces and `/` in the header become `_`.
 
-With `--per-token`:
+Example, for the input above:
 
-- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L+2, 768)` — one 768-d embedding per codon position **including** `<cls>` (row 0) and `<eos>` (last row), so L+2 rows for an L-codon input
+```python
+import numpy as np
+emb = np.load("calm_out/sequence_embeddings.npy")       # shape (2, 768)
+names = open("calm_out/labels.txt").read().splitlines()  # ['test_rna_1', 'test_rna_2']
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-calm-cpu:latest \
   calm_predict.py -i /data/input.fa -o /out
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-calm:latest \
-  calm_predict.py -i /data/input.fa -o /out
 ```
 
-Add `--per-token` to either invocation for per-codon embeddings.
+For the GPU image, use `rnazoo-calm:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+Add `--per-token` for per-codon embeddings.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu --calm_input /path/to/input.fa
-
-# GPU
-nextflow run main.nf -profile docker,gpu --calm_input /path/to/input.fa
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/calm/calm_out/`.
 
-Results appear in `results/calm/calm_out/`.
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--calm_per_token` | `false` | Also output per-codon (L+2 x 768) embeddings per sequence |
-| `--calm_max_codons` | `1024` | Truncate to this many codons (CaLM's `max_positions` cap, ~3 kb of CDS) |
-
-## Reading the output
-
-```python
-import numpy as np
-
-embeddings = np.load("calm_out/sequence_embeddings.npy")  # (N, 768)
-labels = open("calm_out/labels.txt").read().strip().split("\n")
-
-for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (768,)
-```
-
-## Comparison with the other foundation models in the zoo
-
-| Model | Embedding | Pooling | Tokenization | Training set | Max input | Bundled license |
-|-------|-----------|---------|--------------|--------------|-----------|-----------------|
-| RNA-FM | 640-d | Mean (excl CLS+EOS) | Single nt | 23M ncRNAs (RNAcentral) | 1022 nt | MIT (code) + Apache-2.0 (weights) |
-| RiNALMo | 1280-d | Mean (excl CLS+EOS) | Single nt | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | Apache-2.0 (code) + CC BY 4.0 (weights) |
-| ERNIE-RNA | 768-d | [CLS] | Single nt | 20M ncRNAs (RNAcentral) | 1022 nt | MIT (code); weights: none stated |
-| RNAErnie | 768-d | Mean (excl CLS+SEP) | Single nt | 23M ncRNAs (RNAcentral) | 2046 nt | Apache-2.0 |
-| Orthrus | 512-d | Mean (`mean_unpadded`) | Single nt (Mamba SSM) | 32.7M mRNAs (GENCODE+RefSeq) | unbounded (linear mem) | MIT |
-| PlantRNA-FM | 480-d | Mean (excl CLS+EOS) | Single nt | ~25M plant RNAs (1124 species) | 1024 nt | MIT |
-| **CaLM** | **768-d** | **Mean (excl CLS+EOS)** | **Codon (3-letter)** | **Cross-organism CDSs (ENA codingseqs)** | **1024 codons (~3 kb)** | **BSD-3-Clause (code); weights: none stated** |
-
-CaLM is the zoo's only **codon-level** foundation model. The other six tokenize at the nucleotide level — which loses reading-frame structure unless the downstream head reconstructs it. For protein-engineering and CDS-level tasks (translation efficiency, expression, solubility, thermal stability), codon tokenization is the natural inductive bias.
-
-Pairing notes:
-
-- **CodonTransformer** (in the Translation track) is generative — given a protein it produces optimized DNA. CaLM is the embedding counterpart — given a CDS it produces a fixed-dim representation. Use both for design + scoring loops.
-- **For non-coding RNA**, prefer the nt-tokenized models. CaLM's pretraining data is CDSs; non-coding sequences fall outside its training distribution.
-
-## Limitations
-
-- **Codon-aligned input required.** Sequences whose length is not a multiple of 3 are trimmed to the largest codon-aligned prefix; if your sequence has 5'UTR + CDS + 3'UTR concatenated without removing the UTRs, CaLM will treat the whole thing as codons and the embedding will be partly noise. Strip the UTRs first.
-- **Maximum 1024 codons** (~3 kb). Longer CDSs are truncated. For long mRNAs use Orthrus (Mamba, linear memory).
-- **Inference-only.** Upstream `training.py` exists for from-scratch pretraining but no fine-tuning recipe is shipped — fine-tuning support is not currently exposed in the pipeline.
+| `--calm_input` | `null` | FASTA file of coding sequences |
+| `--calm_per_token` | `false` | Also write per-codon embeddings |
+| `--calm_max_codons` | `1024` | Truncate longer sequences to this many codons |
 
 ## Fine-tuning
 
-RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen 768-d codon-level CaLM embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
+Train a linear, MLP or XGBoost head on frozen CaLM embeddings, as the [Fine Tuning
+guide](../finetuning.md) describes. Its [common parameters](../finetuning.md#common-parameters)
+take the prefix `calm`: `--calm_finetune_input` and `--calm_finetune_label` are required, and
+`--calm_finetune_embeddings` reuses saved embeddings. Put in-frame coding sequences in the
+`sequence` column.
 
-### CaLM-specific parameters
+## Limitations
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--calm_finetune_input` | `null` | TSV/CSV with `name`, `sequence` (CDS), label column |
-| `--calm_finetune_label` | (required) | Column name with target values |
-| `--calm_finetune_embeddings` | `null` | Precomputed `(N, D)` `.npy` — switches to the head-only path |
-| `--calm_finetune_head_type` | `linear` | `linear`, `mlp`, or `xgboost` (xgboost requires `_embeddings`) |
-| `--calm_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
-| `--calm_finetune_epochs` | 20 | Max training epochs (torch heads) |
-| `--calm_finetune_lr` | 1e-3 | Adam (torch) or XGBoost learning rate |
+- The wrapper does not locate the CDS; give in-frame coding sequences.

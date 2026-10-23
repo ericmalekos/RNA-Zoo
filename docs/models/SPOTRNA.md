@@ -1,43 +1,44 @@
 # SPOT-RNA
 
-Predict RNA secondary structure including pseudoknots and non-canonical base pairs.
+Predict RNA secondary structure, including pseudoknots and non-canonical base pairs.
 
 - **Paper:** [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9)
 - **Upstream:** https://github.com/jaswindersingh2/SPOT-RNA
 - **License:** MPL-2.0 (code). The model archive is hosted outside the repository and states no
   terms of its own; the README names MPL-2.0 for the project without saying whether it covers
   the archive, so commercial use and redistribution of the weights are unclear.
-- **Device:** CPU or GPU (5-model TensorFlow ensemble). Before 1.0.0 the wrapper always ran
-  SPOT-RNA on 4 CPU threads; it now uses the GPU under `-profile gpu` and the task's CPUs.
-  Two image variants:
-    - `rnazoo-spotrna:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-spotrna-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Device:** CPU or GPU (images `rnazoo-spotrna-cpu` and `rnazoo-spotrna`).
 
 ## What it does
 
-SPOT-RNA predicts RNA secondary structure from sequence using an ensemble of 5 deep learning models. Unlike many structure prediction methods, it can predict:
+SPOT-RNA is an ensemble of five networks (2D ResNet blocks, a 2D BiLSTM and a fully connected
+block; 17.5 million parameters in all), trained on 10,814 bpRNA structures and then on 120
+high-resolution structures by transfer learning. It averages the five base-pair probability maps
+and calls pairs at 0.335 or more, keeping only the most probable partner of each base.
 
-- Canonical base pairs (AU, GC, GU)
-- Non-canonical base pairs
-- Pseudoknots
-- All types of base pair interactions
+## Input
 
-The ensemble averages predictions across 5 models with different architectures for robust results.
+FASTA. Letters are uppercased and T becomes U. There is no length cap; upstream quotes about
+16 GB of RAM for sequences under 500 nt.
 
-## Input format
-
-FASTA file of RNA sequences (A, C, G, U alphabet; T is auto-converted):
+Example (`tests/data/spotrna_test.fa`):
 
 ```
 >2zzm_B
 GGCAGAUCUGAGCCUGGGAGCUCUCUGCC
 ```
 
-No hard length limit, but memory scales as O(L^2). Sequences under 500 nt are recommended for reasonable memory usage.
+## Output
 
-## Output format
+In `spotrna_out/`:
 
-**`structures.txt`** — FASTA-like file with dot-bracket notation (pseudoknot-aware):
+- `structures.txt`: header, sequence and dot-bracket line for each sequence; pseudoknots use
+  `[]` and `{}`
+- per sequence, named after the first word of its header (`/` and `:` become `_`): the pairs in
+  `<name>.bpseq` and `<name>.ct`, and the L × L pair probabilities (upper triangle) in `<name>.prob`
+- with plotting on: `<name>_contact.png`, a heatmap of `<name>.prob`
+
+Example `structures.txt`, for the input above:
 
 ```
 >2zzm_B
@@ -45,80 +46,38 @@ GGCAGAUCUGAGCCUGGGAGCUCUCUGCC
 ((((((...(((((...).))))))))))
 ```
 
-Per-sequence files:
-- **`*.bpseq`** — base-pair format (index, base, pair partner; 0=unpaired)
-- **`*.ct`** — connectivity table format
-- **`*.prob`** — full L x L base-pair probability matrix
-- **`*_contact.png`** (optional) — base-pair probability heatmap. Emitted only when `--spotrna_plot` is set.
-
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-spotrna-cpu:latest \
-  spotrna_predict.py -i /data/input.fa -o /out
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-spotrna:latest \
-  spotrna_predict.py -i /data/input.fa -o /out
+  spotrna_predict.py -i /data/input.fa -o /out --cpu 4
 ```
+
+For the GPU image, use `rnazoo-spotrna:latest`, add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`
+and replace `--cpu 4` with `--gpu 0` (the default, `--gpu -1`, runs on the CPU). Add `--plot`
+for the heatmaps.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu --spotrna_input /path/to/input.fa
-
-# GPU
-nextflow run main.nf -profile docker,gpu --spotrna_input /path/to/input.fa
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. On the CPU, SPOT-RNA uses `--task_cpus` threads
+(default 4). Results go to `results/spotrna/spotrna_out/`.
 
-Results appear in `results/spotrna/spotrna_out/`.
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--spotrna_plot` | `false` | Also save per-sequence contact-map heatmaps as `<name>_contact.png` |
+| `--spotrna_input` | `null` | FASTA file |
+| `--spotrna_plot` | `false` | Also write `<name>_contact.png` heatmaps |
 
-## Reading the probability matrix
+## Limitations
 
-```python
-import numpy as np
-
-# Load the full L x L pair probability matrix
-prob = np.loadtxt("spotrna_out/2zzm_B.prob")
-print(f"Shape: {prob.shape}")  # (29, 29)
-
-# Find high-confidence pairs
-pairs = np.argwhere(prob > 0.5)
-print(f"Predicted pairs: {len(pairs)}")
-```
-
-## Example output
-
-```
->2zzm_B
-GGCAGAUCUGAGCCUGGGAGCUCUCUGCC
-((((((...(((((...).))))))))))
-```
-
-This structure shows a stem-loop with nested base pairs and no pseudoknots for this particular sequence. When pseudoknots are present, they are denoted with `[]` and `{}` bracket types.
-
-## Technical notes
-
-- Uses TensorFlow 2.15 with `tf.compat.v1` (originally TF 1.14, updated for modern TF)
-- 5 ensemble models range from 8-58 MB each (~155 MB total)
-- Prediction threshold is hardcoded at 0.335
-- Post-processing includes hairpin loop constraints, multiplet resolution, and lone pair removal
-- The wrapper copies input FASTA to a temp file to avoid an upstream in-place overwrite bug
+- If any sequence yields no structure, the run fails after the others finish and names it.
+- The dot-bracket line has three bracket levels; a pair that fits none appears only in the
+  `.bpseq` and `.ct` files.

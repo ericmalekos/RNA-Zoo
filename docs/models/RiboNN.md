@@ -1,115 +1,80 @@
 # RiboNN
 
-Predict translation efficiency (TE) from mRNA sequence across 78 human cell types and tissues.
+Predict translation efficiency (TE) from mRNA sequence for 78 human cell types and tissues.
 
 - **Paper:** [Nature Biotechnology 2025](https://www.nature.com/articles/s41587-025-02712-x)
 - **Upstream:** https://github.com/Sanofi-Public/RiboNN
-- **License:** Sanofi academic, non-commercial license for both the code ([LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/LICENSE)) and the model weights ([MODEL WEIGHTS LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/MODEL%20WEIGHTS%20LICENSE.txt)). The grant covers use, copying, modification and merging for academic or non-profit, non-commercial purposes only. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
-- **Device:** CPU or GPU (CPU works, GPU faster). Before 1.0.0 the GPU image held a CPU-only
-  PyTorch build and never used the GPU; the image now installs the CUDA build and checks it.
+- **License:** Sanofi academic, non-commercial license for the code ([LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/LICENSE)) and the weights ([MODEL WEIGHTS LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/MODEL%20WEIGHTS%20LICENSE.txt)). The grant covers use, copying, modification and merging for academic or non-profit, non-commercial purposes only. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
+- **Device:** CPU or GPU (images `rnazoo-ribonn-cpu` and `rnazoo-ribonn`).
 
 ## What it does
 
-RiboNN is a multi-task neural network that predicts translation efficiency from mRNA sequence (5'UTR + CDS + 3'UTR). It outputs TE predictions for the 78 human cell types of its human model simultaneously (the mouse model has 68).
+RiboNN is a convolutional network trained on TE from 1,076 human and 835 mouse ribosome
+profiling samples with matched RNA-seq. From an mRNA's 5' UTR, CDS and 3' UTR it predicts TE in
+all 78 human cell types at once (68 with the mouse model). A human prediction averages 50
+models.
 
-## Input format
+## Input
 
-Tab-separated text file with 4 columns (no header):
+Tab-separated, with a header row and the columns `tx_id`, `utr5_sequence`, `cds_sequence`
+(start through stop codon) and `utr3_sequence`. Each CDS must be a multiple of 3 nt and end in
+a stop codon, or the run fails. Transcripts over 12,288 nt, or with a 5' UTR over 1,381 nt or a
+CDS plus 3' UTR over 11,937 nt, are dropped from the output.
 
-```
-tx_id    utr5_sequence    cds_sequence    utr3_sequence
-```
-
-Example (`tests/data/ribonn_prediction_input.txt`):
-```
-ENST00000215375.7	AGACGTCCCTGCGCGTCGTCCTCCTCGCCCTCCAGGCCGCCCGCGCCGCGCCGGAGTCCGCTGTCCGCCAGCTACCCGCTTCCTGCCGCCCGCCGCTGCC	ATGCTGCCCGCCGCGCTGCTCCGCCGCCCGGG...	GCGGTGCGTACCCGGTGTCCCGAGGCCCGGCC...
-```
-
-Transcripts with combined CDS + 3'UTR length exceeding 11,937 nt are automatically removed.
-
-## Output format
-
-Tab-separated text file (`prediction_output.txt`) with columns:
+Example (`tests/data/ribonn_prediction_input.txt`, sequences shortened):
 
 ```
-tx_id  utr5_sequence  cds_sequence  utr3_sequence  predicted_TE_108T  predicted_TE_12T  ...  mean_predicted_TE
+tx_id	utr5_sequence	cds_sequence	utr3_sequence
+ENST00000215375.7	AGACGTCCCTGCGCGTCG...	ATGCTGCCCGCCGCGCTG...	GCGGTGCGTACCCGGTGT...
 ```
 
-Each `predicted_TE_*` column is the predicted log2 translation efficiency for that cell type. The final column is the mean across all cell types.
+## Output
+
+`ribonn_out/prediction_output.txt`, tab-separated: the input columns, one
+`predicted_TE_<cell type>` column per cell type, and `mean_predicted_TE` (the mean over cell
+types). Values are on the paper's TE scale, a log-ratio residual, not log2 TE.
+
+Example (sequence columns omitted):
+
+```
+tx_id	predicted_TE_HEK293	predicted_TE_HeLa	...	mean_predicted_TE
+ENST00000215375.7	1.0705105	1.0321615	...	1.0564895
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-docker run --rm \
-  -v /path/to/input.txt:/app/data/prediction_input1.txt \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+  -v /path/to/input.tsv:/data/input.tsv \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
-  bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /app/data/prediction_input1.txt -o /out --species human"
+  bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /data/input.tsv -o /out --species human"
 ```
 
-For mouse: replace `--species human` with `--species mouse`.
-
-To predict using a fine-tuned checkpoint:
-
-```bash
-docker run --rm \
-  -v /path/to/input.txt:/app/data/prediction_input1.txt \
-  -v /path/to/checkpoint.ckpt:/app/checkpoint.ckpt \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
-  bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /app/data/prediction_input1.txt -o /out --checkpoint /app/checkpoint.ckpt --target TE_MyCondition"
-```
+For the GPU image, use `rnazoo-ribonn:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+For a fine-tuned checkpoint, mount it and add `--checkpoint <file> --target <column>`.
 
 ## Run with Nextflow
 
 ```bash
-nextflow run main.nf -profile docker,cpu \
-  --ribonn_input /path/to/input.txt
+nextflow run main.nf -profile docker,cpu --ribonn_input /path/to/input.tsv
 ```
 
-Only models with input provided will run — no ignore flags needed.
-
-Results appear in `results/ribonn/ribonn_out/prediction_output.txt`.
-
-### Predict with a fine-tuned checkpoint
-
-After fine-tuning (see below), use the saved checkpoint for prediction on new data:
-
-```bash
-nextflow run main.nf -profile docker,cpu \
-  --ribonn_input /path/to/input.txt \
-  --ribonn_checkpoint results/ribonn_finetune/ribonn_finetune_out/fold0/*.ckpt \
-  --ribonn_finetune_target TE_MyCondition
-```
+Use `-profile docker,gpu` for the GPU image. Results go to `results/ribonn/ribonn_out/`.
 
 ## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--ribonn_input` | `null` | Tab-separated input file |
-| `--ribonn_species` | `human` | Species for pretrained models (`human` or `mouse`) |
-| `--ribonn_checkpoint` | `null` | Path to a fine-tuned `.ckpt` checkpoint for prediction |
-| `--ribonn_finetune_target` | `null` | When predicting with a fine-tuned `--ribonn_checkpoint`, the target column name the checkpoint was trained on (passed as the wrapper's `--target` flag). Reuses the same key as the fine-tune target. |
-
-## Example output (truncated)
-
-```
-tx_id	predicted_TE_HEK293	predicted_TE_HeLa	...	mean_predicted_TE
-ENST00000215375.7	1.0705105	1.0321615	...	1.0564895
-ENST00000231004.5	0.47455412	0.41119576	...	0.54676294
-```
+| `--ribonn_input` | `null` | Input table |
+| `--ribonn_species` | `human` | `human` or `mouse` models; ignored with `--ribonn_checkpoint` |
+| `--ribonn_checkpoint` | `null` | Absolute path to a fine-tuned `.ckpt`, used instead of the pretrained models |
+| `--ribonn_finetune_target` | `null` | With `--ribonn_checkpoint`: the column the checkpoint was trained on; names the output column |
 
 ## Fine-tuning on your own data
 
-RiboNN supports transfer learning from the pretrained 78-cell-type human model to a new cell type or condition. The pretrained convolutional layers are frozen initially, then the full model is fine-tuned with a lower learning rate.
-
-### Input format
-
-Tab-separated file with columns: `tx_id`, `utr5_sequence`, `cds_sequence`, `utr3_sequence`, and your target TE column (numeric values). The target column name is specified via `--ribonn_finetune_target`.
-
-### Run fine-tuning
+Transfer learning from the pretrained human model to one new TE column, such as a new cell type.
+The input is the prediction table plus a numeric target column; rows without a value are dropped.
 
 ```bash
 nextflow run main.nf -profile docker,cpu \
@@ -117,17 +82,26 @@ nextflow run main.nf -profile docker,cpu \
   --ribonn_finetune_target TE_MyCondition
 ```
 
-### Parameters
-
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--ribonn_finetune_target` | (required) | Column name containing TE values |
-| `--ribonn_finetune_phase1_epochs` | `50` | Epochs for head-only training (conv layers frozen) |
-| `--ribonn_finetune_phase2_epochs` | `150` | Epochs for full model training (all layers) |
-| `--ribonn_finetune_patience` | `50` | Early stopping patience |
+| `--ribonn_finetune_input` | `null` | Training table |
+| `--ribonn_finetune_target` | `null` (required) | Column with the TE values |
+| `--ribonn_finetune_phase1_epochs` | `50` | Phase 1: new head on frozen convolution layers |
+| `--ribonn_finetune_phase2_epochs` | `150` | Phase 2: all layers, learning rate cut tenfold to 1e-5 |
+| `--ribonn_finetune_patience` | `50` | Phase 2 early stopping on validation R² |
 | `--ribonn_finetune_folds` | `5` | Cross-validation folds |
 
-### Output
+Outputs in `results/ribonn_finetune/ribonn_finetune_out/`:
 
-- `results/ribonn_finetune/ribonn_finetune_out/predictions.tsv` — cross-validated predictions on held-out test folds
-- `results/ribonn_finetune/ribonn_finetune_out/fold*/` — saved model checkpoints per fold
+- `predictions.tsv`: `tx_id`, `fold` and `predicted_<target>`, each transcript predicted while held out
+- `fold<k>/`: the checkpoint with the best validation R² in fold k
+
+To predict with one of these checkpoints, run the prediction with `--ribonn_checkpoint` (an
+absolute path, since the module runs from `/app`) and `--ribonn_finetune_target`. The output then
+holds `tx_id` and `predicted_<target>` only.
+
+## Limitations
+
+- Fine-tuning starts from the human model only.
+- Fine-tuning is not in the test profile: `conf/test.config` records that it failed on
+  `tests/data/ribonn_finetune.tsv` in upstream RiboNN's `validation_step`.

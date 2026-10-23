@@ -1,132 +1,91 @@
 # RNAErnie
 
-Extract RNA embeddings from a 12-layer ERNIE-framework transformer pretrained with motif-aware multi-level masking and type-guided fine-tuning.
+Extract RNA embeddings from RNAErnie, an RNA language model built on the ERNIE framework.
 
 - **Paper:** [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00836-4)
-- **Upstream (original PaddlePaddle):** https://github.com/CatIIIIIIII/RNAErnie (MIT)
-- **HF port used here:** [`LLM-EDA/RNAErnie`](https://huggingface.co/LLM-EDA/RNAErnie) — official PyTorch port, **Apache-2.0**, 2048-token context
-- **License:** Apache-2.0 (weights). RNAErnie's vocab is just A/U/C/G/N + 6 special tokens, so the wrapper bakes a tiny char-level tokenizer in directly and loads weights via `transformers.BertModel.from_pretrained(...)` — no extra packages needed.
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-rnaernie:latest` — CUDA-enabled (default, used with `-profile gpu`)
-    - `rnazoo-rnaernie-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
+- **Upstream:** https://github.com/CatIIIIIIII/RNAErnie; weights: Hugging Face [`LLM-EDA/RNAErnie`](https://huggingface.co/LLM-EDA/RNAErnie)
+- **License:** MIT for the original PaddlePaddle code, which the image does not include; Apache-2.0 for the `LLM-EDA/RNAErnie` weights that it loads.
+- **Device:** CPU or GPU (images `rnazoo-rnaernie-cpu` and `rnazoo-rnaernie`).
 
 ## What it does
 
-RNAErnie is a 12-layer, 768-dimensional transformer pretrained on ~23M ncRNA sequences from RNAcentral. Its distinguishing feature is **motif-aware pretraining**: in addition to standard masked language modeling at base and subsequence levels, the pretraining objective also masks RNA motifs from a curated motif database, encouraging the model to learn biologically meaningful k-mer patterns. At fine-tuning time, the paper proposes a **type-guided fine-tuning strategy** where the model first predicts a coarse-grained RNA type (miRNA, lncRNA, etc.) and appends the predicted type as auxiliary information to refine the embedding.
+The image runs a PyTorch RNAErnie that the author trained from scratch after the paper: a
+12-layer encoder (width 768, 86.6 million parameters) trained on about 31 million RNAcentral
+sequences of up to 2,048 tokens, with slightly different tokenization (upstream README). The
+paper's model used about 23 million RNAcentral sequences and motif-aware masking. The wrapper
+returns one 768-d embedding per sequence (the mean over nucleotides) and optionally one per
+nucleotide.
 
-The pipeline currently exposes only the inference path (per-sequence and optional per-token embeddings). Type-guided fine-tuning is a future addition (`TODO` in the fine-tuning support table).
+## Input
 
-## Input format
+FASTA. Letters are uppercased, T becomes U, and letters other than A, C, G, U and N become
+`[UNK]`. Sequences over 2,046 nt are truncated with a warning (2,048 positions minus `[CLS]`
+and `[SEP]`); empty sequences are skipped.
 
-FASTA file of RNA sequences using RNA alphabet (A, C, G, U). DNA sequences (with T) are automatically converted to U.
-
-**Maximum sequence length: 2046 nt.** The LLM-EDA port has a 2048 max-position-embedding limit; CLS+SEP consume 2 slots, so raw inputs are capped at 2046. Longer sequences are truncated with a warning.
-
-Example (reuses `tests/data/rnafm_test.fa`):
+Example (`tests/data/rnaernie_test.fa`, sequences shortened):
 
 ```
 >test_rna_1
-GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGGGAAGUCCUCGUGUUGCACCUGACUGUCUUUCCGAACGGGCGUUUCUUUUCCUCCGCGCUACCUGCCAGG
+GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGG...
 >test_rna_2
-AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUUAAGCUGUAAGAUGGCAGUAGCUUACUAGGCAGGAAAAGACCCUGUUGAGCUUGACUCUAGUU
+AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUU...
 ```
 
-## Output format
+## Output
 
-A directory containing:
+In `rnaernie_out/`:
 
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 768)` — one 768-d embedding per input sequence (mean-pooled across non-special positions, matching the convention used by RNA-FM / RiNALMo / Orthrus wrappers; ERNIE-RNA's wrapper is the lone exception in the zoo and uses [CLS]-pooling instead)
-- **`labels.txt`**: one FASTA header per line, in the same order as the embedding rows
+- `sequence_embeddings.npy`: shape `(N, 768)`, one row per sequence
+- `labels.txt`: the FASTA headers, in row order
+- with per-token output: `<header>_tokens.npy`, shape `(L, 768)`, for each sequence (spaces and
+  `/` in the header become `_`)
 
-With `--per-token`:
+Example, for the input above:
 
-- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(L, 768)` — one 768-d embedding per nucleotide position
+```python
+import numpy as np
+emb = np.load("rnaernie_out/sequence_embeddings.npy")       # shape (2, 768)
+names = open("rnaernie_out/labels.txt").read().splitlines()  # ['test_rna_1', 'test_rna_2']
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
-
 ```bash
-# CPU
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-rnaernie-cpu:latest \
   rnaernie_predict.py -i /data/input.fa -o /out
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-rnaernie:latest \
-  rnaernie_predict.py -i /data/input.fa -o /out
 ```
 
-Add `--per-token` to either invocation for per-token embeddings.
+For the GPU image, use `rnazoo-rnaernie:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+Add `--per-token` for per-nucleotide embeddings.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu --rnaernie_input /path/to/input.fa
-
-# GPU
-nextflow run main.nf -profile docker,gpu --rnaernie_input /path/to/input.fa
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/rnaernie/rnaernie_out/`.
 
-Results appear in `results/rnaernie/rnaernie_out/`.
-
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--rnaernie_per_token` | `false` | Also output per-token (L x 768) embeddings per sequence |
-| `--rnaernie_max_len` | `2046` | Truncate inputs to this many nt (RNAErnie's positional-embedding cap, 2048 minus CLS+SEP) |
-| `--rnaernie_batch_size` | `8` | Sequences per forward pass; lower if you hit GPU OOM |
-
-## Reading the output
-
-```python
-import numpy as np
-
-embeddings = np.load("rnaernie_out/sequence_embeddings.npy")  # (N, 768)
-labels = open("rnaernie_out/labels.txt").read().strip().split("\n")
-
-for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (768,)
-```
-
-## Comparison with the other foundation models in the zoo
-
-| Model | Embedding | Pooling | Architecture | Training set | Max input | Bundled license |
-|-------|-----------|---------|--------------|--------------|-----------|-----------------|
-| RNA-FM | 640-d | Mean (excl CLS+EOS) | 12-layer transformer | 23M ncRNAs (RNAcentral) | 1022 nt | MIT (code) + Apache-2.0 (weights) |
-| RiNALMo | 1280-d | Mean (excl CLS+EOS) | 33-layer transformer (650M params) | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | Apache-2.0 (code) + CC BY 4.0 (weights) |
-| ERNIE-RNA | 768-d | [CLS] | 12-layer + structure-aware attention | 20M ncRNAs (RNAcentral) | 1022 nt | MIT (code); weights: none stated |
-| **RNAErnie** | **768-d** | **Mean (excl CLS+SEP)** | **12-layer transformer + motif-aware MLM** | **23M ncRNAs (RNAcentral)** | **2046 nt** | **Apache-2.0** |
-| Orthrus | 512-d | Mean (`mean_unpadded`) | Mamba SSM (10M params) | 32.7M mRNAs (GENCODE+RefSeq) | unbounded (linear mem) | MIT |
-
-RNAErnie's unique angle is motif-aware pretraining + the type-guided fine-tuning strategy in the paper. Recent benchmarks place it intermediate on classification and below RiNALMo / ERNIE-RNA on secondary structure — useful as a complementary embedding for ensemble work, not a strict upgrade over what's already in the zoo.
-
-## Limitations
-
-- **Maximum input length is 2046 nt** — short ncRNAs and miRNAs fit comfortably; longer mRNAs (>2 kb) must be truncated or chunked. For long mRNAs use Orthrus (Mamba, linear memory).
-- **Inference-only currently.** Type-guided fine-tuning is in upstream and exists as a TODO in the fine-tuning support table.
+| `--rnaernie_input` | `null` | FASTA file |
+| `--rnaernie_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--rnaernie_max_len` | `2046` | Truncate longer sequences to this many nt (2,046 at most) |
+| `--rnaernie_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 
 ## Fine-tuning
 
-RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen 768-d RNAErnie embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples.
+Train a linear, MLP or XGBoost head on frozen RNAErnie embeddings, as the [Fine Tuning
+guide](../finetuning.md) describes. Its [common parameters](../finetuning.md#common-parameters)
+take the prefix `rnaernie`: `--rnaernie_finetune_input` and `--rnaernie_finetune_label` are
+required, and `--rnaernie_finetune_embeddings` reuses saved embeddings.
 
-### RNAErnie-specific parameters
+## Limitations
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--rnaernie_finetune_input` | `null` | TSV/CSV with `name`, `sequence`, label column |
-| `--rnaernie_finetune_label` | (required) | Column name with target values |
-| `--rnaernie_finetune_embeddings` | `null` | Precomputed `(N, D)` `.npy` — switches to the head-only path |
-| `--rnaernie_finetune_head_type` | `linear` | `linear`, `mlp`, or `xgboost` (xgboost requires `_embeddings`) |
-| `--rnaernie_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
-| `--rnaernie_finetune_epochs` | 20 | Max training epochs (torch heads) |
-| `--rnaernie_finetune_lr` | 1e-3 | Adam (torch) or XGBoost learning rate |
+- The embeddings come from the later PyTorch model, not the weights evaluated in the paper.
+- The paper's type-guided fine-tuning is not implemented.

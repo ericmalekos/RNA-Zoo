@@ -1,136 +1,99 @@
 # mRNABERT
 
-Extract embeddings from a 12-layer MosaicBERT pretrained on ~18M full-length mRNAs with hybrid per-nt-UTR + per-codon-CDS tokenization. Combines nucleotide-level resolution for untranslated regions with codon-level structure for CDS — distinct from the all-nucleotide foundation models (RNA-FM, RiNALMo, ERNIE-RNA, RNAErnie, PlantRNA-FM) and the all-codon model (CaLM).
+Extract embeddings of mRNAs, with one token per UTR nucleotide and one per CDS codon.
 
-- **Paper:** [Nature Communications 2025](https://doi.org/10.1038/s41467-025-65340-8) — Xiong et al., "mRNABERT: advancing mRNA sequence design with a universal language model and comprehensive dataset"
-- **GitHub:** [`yyly6/mRNABERT`](https://github.com/yyly6/mRNABERT) · **HF model:** [`YYLY66/mRNABERT`](https://huggingface.co/YYLY66/mRNABERT)
-- **License:** Apache-2.0 (code + weights, per HF YAML)
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-mrnabert:latest` — CUDA-enabled (default, used with `-profile gpu`); uses the upstream Triton-based flash-attention path
-    - `rnazoo-mrnabert-cpu:latest` — CPU-only; the model's `bert_layers.py` falls back to plain PyTorch attention when triton can't be imported
+- **Paper:** [Nature Communications 2025](https://doi.org/10.1038/s41467-025-65340-8)
+- **Upstream:** https://github.com/yyly6/mRNABERT; weights and model code: Hugging Face [`YYLY66/mRNABERT`](https://huggingface.co/YYLY66/mRNABERT)
+- **License:** Apache-2.0 (code and weights, per the Hugging Face model card)
+- **Device:** CPU or GPU (images `rnazoo-mrnabert-cpu` and `rnazoo-mrnabert`).
 
 ## What it does
 
-mRNABERT is a 12-layer / 768-dim MosaicBERT (Apache-2.0) pretrained on ~18M curated full-length mRNA sequences from across the tree of life. The novel design choice is its **hybrid tokenization**: the 5'/3' UTRs are tokenized at single-nucleotide resolution (A, T, C, G, N) while the CDS region is tokenized at codon resolution (64 codons). The 74-token vocab is the union: 5 specials + 5 single-letter UTR tokens + 64 codons.
+mRNABERT is a 12-layer BERT-style encoder (width 768, 113.4 million parameters) that uses ALiBi
+attention biases instead of position embeddings. It was pretrained by masked language modeling
+on about 18 million mRNA sequences, then aligned with protein embeddings by contrastive learning
+on 500,000 CDS and protein pairs. The wrapper returns one 768-d embedding per sequence, the mean
+over its tokens, and optionally one per token.
 
-The model uses **ALiBi positional embeddings** instead of absolute positions, which allows length extrapolation beyond the 512-token training context to ~1024 tokens at inference (the tokenizer's `model_max_length`). The wrapper truncates longer inputs.
+## Input
 
-## Input format
+FASTA of mRNA sequences, with T or U. The wrapper uppercases them, turns U into T and picks the
+CDS itself: the longest ORF that runs from an ATG to the first in-frame stop codon. The ORF is
+tokenized as codons and the rest as single nucleotides; a sequence without an ORF is read as all
+UTR. The wrapper logs the ORF it picked for each sequence. Sequences over 1,022 tokens (1,024
+with `[CLS]` and `[SEP]`) are truncated with a warning; empty sequences are skipped.
 
-Standard FASTA of mRNA sequences. The wrapper:
-
-- Uppercases and converts U → T (mRNABERT's vocab is DNA-style, T not U).
-- **Auto-detects the longest ORF** in each sequence using upstream's logic (`data_process/process_pretrain_data.py:find_longest_cds`) — finds the longest ATG…STOP frame, treats it as CDS, and treats flanking regions as UTR. No CDS coordinates required from the user.
-- If no ORF is detected, the entire sequence is treated as UTR (single-letter tokenization).
-- Truncates inputs whose tokenized length exceeds 1024 tokens (after CLS/SEP).
-
-Example (reuses `tests/data/rnafm_test.fa` for the smoke test — note that `test_rna_1` has no in-frame stop and thus no detectable ORF, so it's tokenized as all-UTR; `test_rna_2` has a tiny 18-nt ORF that gets codon-tokenized):
+Example (`tests/data/rnafm_test.fa`, used by the test profile; sequences shortened; only
+`test_rna_2` has an ORF):
 
 ```
 >test_rna_1
-GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGGGAAGUCCUCGUGUUGCACCUGACUGUCUUUCCGAACGGGCGUUUCUUUUCCUCCGCGCUACCUGCCAGG
+GGGUGCGAUCAUACCAGCACUAAUGCCCUCCUGG...
 >test_rna_2
-AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUUAAGCUGUAAGAUGGCAGUAGCUUACUAGGCAGGAAAAGACCCUGUUGAGCUUGACUCUAGUU
+AUUCCGAGAGCUAACGGAGAACUCUGUUCGAUUU...
 ```
 
-## Output format
+## Output
 
-A directory containing:
+In `mrnabert_out/`:
 
-- **`sequence_embeddings.npy`**: NumPy array of shape `(N, 768)` — one 768-d embedding per input sequence (mean-pooled across token positions, excluding `[CLS]` and `[SEP]`)
-- **`labels.txt`**: one FASTA header per line, in the same order as the embedding rows
+- `sequence_embeddings.npy`: shape `(N, 768)`, one row per sequence (`[CLS]` and `[SEP]` excluded
+  from the mean)
+- `labels.txt`: the FASTA headers, in row order
+- with per-token output: `<header>_tokens.npy`, shape `(T, 768)` for T tokens, including `[CLS]`
+  (first row) and `[SEP]` (last row). Spaces and `/` in the header become `_`.
 
-With `--per-token`:
+The model card's example averages over all tokens, `[CLS]` and `[SEP]` included; pool the
+per-token output to match it.
 
-- **`<label>_tokens.npy`**: per-sequence NumPy array of shape `(T, 768)` — one 768-d embedding per token **including** `[CLS]` (row 0) and `[SEP]` (last row), where T is the number of tokens (codon-tokenized CDS counts as 1 token per codon, not 1 per nt)
+Example, for the input above:
 
-> **Pooling note.** This wrapper mean-pools excluding CLS/SEP, matching the RNAZoo foundation-tier convention (RNA-FM, RiNALMo, RNAErnie, PlantRNA-FM, CaLM). The upstream README example uses a simpler mean-with-CLS+SEP — pool yourself from `--per-token` output if you need exact upstream parity.
+```python
+import numpy as np
+emb = np.load("mrnabert_out/sequence_embeddings.npy")       # shape (2, 768)
+names = open("mrnabert_out/labels.txt").read().splitlines()  # ['test_rna_1', 'test_rna_2']
+```
 
 ## Run with Docker
 
 ```bash
-# CPU (uses PyTorch attention fallback)
-docker run --rm \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
   -v /path/to/input.fa:/data/input.fa \
   -v /path/to/output:/out \
   ghcr.io/ericmalekos/rnazoo-mrnabert-cpu:latest \
   mrnabert_predict.py -i /data/input.fa -o /out
-
-# GPU (uses Triton-based flash-attention)
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-mrnabert:latest \
-  mrnabert_predict.py -i /data/input.fa -o /out
 ```
 
-Add `--per-token` to either invocation for per-token embeddings.
+For the GPU image, use `rnazoo-mrnabert:latest` and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`.
+Add `--per-token` for per-token embeddings.
 
 ## Run with Nextflow
 
 ```bash
-# CPU
 nextflow run main.nf -profile docker,cpu --mrnabert_input /path/to/input.fa
-
-# GPU
-nextflow run main.nf -profile docker,gpu --mrnabert_input /path/to/input.fa
 ```
 
-Results land in `results/mrnabert/mrnabert_out/`.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/mrnabert/mrnabert_out/`.
 
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--mrnabert_per_token` | `false` | Also output per-token (T x 768) embeddings per sequence |
-| `--mrnabert_max_tokens` | `1024` | Truncate to this many tokens (tokenizer's `model_max_length`; ALiBi extrapolates beyond config max_pos=512) |
-
-## Reading the output
-
-```python
-import numpy as np
-
-embeddings = np.load("mrnabert_out/sequence_embeddings.npy")  # (N, 768)
-labels = open("mrnabert_out/labels.txt").read().strip().split("\n")
-
-for label, emb in zip(labels, embeddings):
-    print(f"{label}: {emb.shape}")  # (768,)
-```
-
-## Comparison with the other foundation models in the zoo
-
-| Model | Tokenization | Embedding | Pretraining set | Position encoding |
-|-------|--------------|-----------|-----------------|-------------------|
-| RNA-FM | Single nt | 640-d | 23M ncRNAs (RNAcentral) | Absolute (max 1022 nt) |
-| RiNALMo | Single nt | 1280-d | 36M ncRNAs (RNAcentral) | Absolute |
-| ERNIE-RNA | Single nt | 768-d | 20M ncRNAs (RNAcentral) | Absolute (max 1022 nt) |
-| RNAErnie | Single nt | 768-d | 23M ncRNAs (RNAcentral) | Absolute (max 2046 nt) |
-| Orthrus | Single nt (Mamba) | 512-d | 32.7M mRNAs (GENCODE+RefSeq) | None (state-space) |
-| PlantRNA-FM | Single nt | 480-d | ~25M plant RNAs | Rotary (max 1024 nt) |
-| CaLM | Codon (3-letter) | 768-d | ~9M CDSs (cross-organism) | Rotary (max 1024 codons) |
-| **mRNABERT** | **Hybrid: 1-nt UTR + 3-nt CDS codons** | **768-d** | **~18M full-length mRNAs** | **ALiBi (extrapolates beyond 512 to 1024)** |
-
-mRNABERT is the only zoo model that tokenizes UTR and CDS regions differently — preserving codon-frame structure where it exists while keeping nucleotide resolution where it doesn't. For full-length mRNA design, expression prediction, or any task where the UTR/CDS distinction matters, this is the natural inductive bias.
-
-## Limitations
-
-- **CDS detection by ORF length only.** The wrapper picks the longest ATG…STOP frame; if the true CDS is shorter than a spurious upstream ORF, the wrong region gets codon-tokenized. For research-grade work, supply pre-trimmed UTR and CDS sequences and let the wrapper auto-detect.
-- **Length cap is 1024 tokens** post-tokenization (after CLS+SEP overhead, ~1022 effective). An mRNA with 200-nt 5'UTR + 600-nt CDS + 200-nt 3'UTR tokenizes to 200 + 200 + 200 = 600 tokens — comfortable. An mRNA with 4 kb of UTRs would exceed it; the wrapper truncates with a warning.
-- **Pooler weights are uninitialized in the released checkpoint** — this triggers a benign warning at load. The wrapper uses mean-pool over `last_hidden_state`, not `pooler_output`, so the missing weights don't affect outputs. Don't use `model.pooler` directly.
-- **Inference-only.** Upstream `run_mlm.py` exists for continued MLM pretraining and downstream fine-tuning, but neither is exposed through the pipeline yet.
+| `--mrnabert_input` | `null` | FASTA file |
+| `--mrnabert_per_token` | `false` | Also write per-token embeddings |
+| `--mrnabert_max_tokens` | `1024` | Maximum tokens, `[CLS]` and `[SEP]` included (ALiBi sets no hard limit; the paper tested 3,066) |
 
 ## Fine-tuning
 
-RNAZoo exposes a generic head trainer (linear / MLP / XGBoost, regression or classification) on top of frozen 768-d mRNABERT embeddings. See the [Fine Tuning guide](../finetuning.md) for input format, head choice, the two execution paths (full chain vs. precomputed embeddings), and worked examples — the worked example uses mRNABERT for a stability-bin classifier.
+Train a linear, MLP or XGBoost head on frozen mRNABERT embeddings, as the [Fine Tuning
+guide](../finetuning.md) describes. Its [common parameters](../finetuning.md#common-parameters)
+take the prefix `mrnabert`: `--mrnabert_finetune_input` and `--mrnabert_finetune_label` are
+required, and `--mrnabert_finetune_embeddings` reuses saved embeddings.
 
-### mRNABERT-specific parameters
+## Limitations
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--mrnabert_finetune_input` | `null` | TSV/CSV with `name`, `sequence`, label column |
-| `--mrnabert_finetune_label` | (required) | Column name with target values |
-| `--mrnabert_finetune_embeddings` | `null` | Precomputed `(N, D)` `.npy` — switches to the head-only path |
-| `--mrnabert_finetune_head_type` | `linear` | `linear`, `mlp`, or `xgboost` (xgboost requires `_embeddings`) |
-| `--mrnabert_finetune_task` | `auto` | `auto`, `regression`, or `classification` |
-| `--mrnabert_finetune_epochs` | 20 | Max training epochs (torch heads) |
-| `--mrnabert_finetune_lr` | 1e-3 | Adam (torch) or XGBoost learning rate |
+- The CDS is chosen by ORF length alone, and CDS coordinates cannot be supplied: a longer spurious
+  ORF wins over the true CDS.
+- Both images use plain PyTorch attention: the GPU image disables upstream's Triton kernel,
+  which does not compile there. Warnings at load about Triton and the uninitialized pooler are
+  expected; the wrapper does not use the pooler.

@@ -1,135 +1,89 @@
 # RiboTIE (TRISTAN)
 
-Detect translated ORFs from ribo-seq + genomic sequence using a transformer model.
+Detect translated ORFs from ribosome profiling reads with a transformer model.
 
 - **Paper:** [Nature Communications 2025](https://www.nature.com/articles/s41467-025-56543-0)
 - **Upstream:** https://github.com/TRISTAN-ORF/TRISTAN (v1.1.1)
 - **License:** MIT (code and weights)
-- **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-tristan:latest` — CUDA-enabled (default, used with `-profile gpu`, recommended for real datasets)
-    - `rnazoo-tristan-cpu:latest` — CPU-only (smaller, used with `-profile cpu`, viable for small datasets)
+- **Device:** CPU or GPU (images `rnazoo-tristan-cpu` and `rnazoo-tristan`).
 
 ## What it does
 
-RiboTIE (implemented via the TRISTAN package) detects translated open reading frames (ORFs) by combining genomic sequence with ribo-seq data. It fine-tunes a pretrained transformer model on the user's ribo-seq data before predicting translated ORFs. The model outputs per-transcript translation initiation site (TIS) predictions as GTF annotations and CSV scores.
+RiboTIE scores every transcript position as a translation start from the ribosome profiling
+reads, with a Performer transformer. Two human models, pretrained on eight datasets and split by
+chromosome into complementary folds, are fine-tuned on each sample before predicting and listing
+the called ORFs.
 
-## Input format
+## Input
 
-A directory containing:
+A directory with the genome FASTA, a GTF and, per sample, a BAM or SAM of reads mapped to the
+transcriptome; plus a YAML config. The module copies the directory to `data/`, so config paths
+start with `data/`, and sets `h5_path` and `out_prefix` itself. Transcripts over 30,000 nt are
+skipped.
 
-1. **Genome FASTA** (`.fa`): reference genome assembly
-2. **GTF annotation** (`.gtf`): gene/transcript annotation
-3. **BAM files** (`.bam`): transcriptome-mapped ribo-seq reads (one per sample)
-4. **YAML config file**: specifying paths, sample mapping, and fold assignments
-
-Example config (`config.yml`):
+Example (`tests/data/ribotie_config.yml`, shortened):
 
 ```yaml
-fa_path: GRCh38v110_snippet.fa
-gtf_path: GRCh38v110_snippet.gtf
-
-ribo_paths:
-  "sample1": SRR000001.bam
-  "sample2": SRR000002.bam
-  "sample3": SRR000003.bam
-
-h5_path: ribotie_out/dbs/ribotie.h5
-out_prefix: ribotie_out/out/ribotie
-
-trained_model:
-  folds:
-    0:
-      test: []
-      train: ['sample2']
-      transfer_checkpoint: /path/to/checkpoint_f0.ckpt
-      val: ['sample3']
-    1:
-      test: ['sample3']
-      train: ['sample1']
-      transfer_checkpoint: /path/to/checkpoint_f1.ckpt
-      val: ['sample2']
+gtf_path : data/GRCh38v110_snippet.gtf
+fa_path  : data/GRCh38v110_snippet.fa
+h5_path  : ribotie_out/dbs/ribotie.h5
+out_prefix : ribotie_out/out/ribotie
+ribo_paths :
+  SRR000001 : data/SRR000001.bam
+  SRR000002 : data/SRR000002.bam
 ```
 
-Note: sample IDs in `ribo_paths` must be strings (use quotes around numeric IDs).
+## Output
 
-## Output format
+In `results/ribotie/ribotie_out/out/`, per sample: `ribotie_<sample>.csv` and `.gtf` with the
+called ORFs (`.novel.*` for novel ORFs, `.redundant.*` before upstream's CDS variant filter),
+`.npy` with raw scores for every position, and the fine-tuned models (`_f0.rt.ckpt`,
+`_f1.rt.ckpt`, `_params.rt.yml`). `ribotie_out/dbs/ribotie.h5` holds the parsed inputs.
 
-- **`*.gtf`**: predicted ORFs in GTF format
-- **`*.csv`**: per-ORF prediction scores
-- **`*.npy`** (optional): raw prediction arrays
+Example (`ribotie_SRR000001.csv` from the test profile, first columns):
+
+```
+ribotie_score,ribotie_rank,seqname,ORF_id,ORF_len,transcript_id,transcript_len,start_codon,stop_codon,strand,ORF_type,...
+0.6596,1,1,ENST00000673477_121,1944,ENST00000673477,4098,ATG,TAG,+,annotated CDS,...
+```
 
 ## Run with Docker
 
-> See the [Direct Docker guide](../direct-docker.md) for the shared `docker run` recipe (UID, `HOME`, `USER` env vars, and GPU flag). Below are the model-specific parts.
+From a directory holding `config.yml` and the inputs in `data/`:
 
 ```bash
-# CPU
-docker run --rm \
-  -v /path/to/data:/work \
-  -w /work \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+  -v "$PWD":/work -w /work \
   ghcr.io/ericmalekos/rnazoo-tristan-cpu:latest \
-  bash -c "mkdir -p ribotie_out/dbs ribotie_out/out && \
-    ribotie config.yml --accelerator cpu --overwrite_data --max_epochs 10 --patience 3"
-
-# GPU
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  -v /path/to/data:/work \
-  -w /work \
-  ghcr.io/ericmalekos/rnazoo-tristan:latest \
-  bash -c "mkdir -p ribotie_out/dbs ribotie_out/out && \
-    ribotie config.yml --accelerator gpu --overwrite_data --max_epochs 10 --patience 3"
+  bash -c "mkdir -p ribotie_out/dbs ribotie_out/out && ribotie config.yml --accelerator cpu --overwrite_data"
 ```
+
+For the GPU image, use `rnazoo-tristan:latest`, add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`
+and pass `--accelerator gpu`.
 
 ## Run with Nextflow
 
 ```bash
-# CPU (slow but works for the bundled test data and small inputs)
 nextflow run main.nf -profile docker,cpu \
-  --ribotie_input /path/to/data_dir \
-  --ribotie_config /path/to/config.yml
-
-# GPU (recommended for real ribo-seq datasets)
-nextflow run main.nf -profile docker,gpu \
-  --ribotie_input /path/to/data_dir \
+  --ribotie_input /path/to/data \
   --ribotie_config /path/to/config.yml
 ```
 
-Only models with input provided will run — no ignore flags needed.
+Use `-profile docker,gpu` for the GPU image. Results go to `results/ribotie/ribotie_out/`.
 
-### Parameters
+## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--ribotie_input` | `null` (required) | Directory containing the FASTA + GTF + BAM(s) referenced by the YAML config |
-| `--ribotie_config` | `null` (required) | YAML config file with `samples`, `out_prefix`, etc. (see upstream `transcript_transformer` docs) |
-| `--ribotie_max_epochs` | (upstream default) | Maximum training epochs |
-| `--ribotie_patience` | (upstream default) | Early stopping patience |
-| `--ribotie_checkpoint` | `null` | Path to a `*.rt.ckpt` saved from a previous run. When set, each fold's `transfer_checkpoint` in the YAML is rewritten to this file so the model skips re-fine-tuning. |
+| `--ribotie_input` | `null` | Directory with the FASTA, GTF and read files |
+| `--ribotie_config` | `null` | YAML config (required with `--ribotie_input`) |
+| `--ribotie_max_epochs` | `null` | Maximum fine-tuning epochs; unset keeps upstream's default |
+| `--ribotie_patience` | `null` | Early-stopping patience; unset keeps upstream's default |
+| `--ribotie_checkpoint` | `null` | Fine-tuned `.rt.ckpt` written into the config's `transfer_checkpoint` lines |
 
-## Reusing a fine-tuned checkpoint
+## Limitations
 
-Every `ribotie config.yml` run writes per-sample, per-fold fine-tuned checkpoints at `<out_prefix>_<sample>_f{0,1}.rt.ckpt`. These are captured by the module's `checkpoints` output emit (matched by `**.ckpt`). To skip re-fine-tuning on a later run over new data, pass one of them as `--ribotie_checkpoint`:
-
-```bash
-nextflow run main.nf -profile docker,cpu \
-  --ribotie_input /path/to/new_data_dir \
-  --ribotie_config /path/to/new_config.yml \
-  --ribotie_checkpoint results/ribotie/ribotie_out/out/ribotie_SRR000001_f0.rt.ckpt
-```
-
-## Bundled pretrained checkpoints
-
-Located inside the Docker image at:
-
-```
-/opt/conda/envs/tristan/lib/python3.10/site-packages/transcript_transformer/pretrained/
-  tt_models/Homo_sapiens.GRCh38.113_f{0..4}.tt.ckpt   # Human
-  tt_models/Mus_musculus.GRCm39.112_f{0..4}.tt.ckpt    # Mouse
-  rt_models/50perc_06_23_f{0,1}.rt.ckpt                # Pretrained RiboTIE
-```
-
-## Pipeline steps
-
-1. **Build HDF5 database** from FASTA + GTF + BAM (automatic)
-2. **Fine-tune** the pretrained model on user's ribo-seq samples
-3. **Predict** translated ORFs and emit per-sample GTF/CSV outputs
+- `--ribotie_checkpoint` rewrites only `transfer_checkpoint` lines already in the config, all to
+  one path and with a two-space indent; upstream's `trained_model` block nests that key deeper
+  and gives each fold its own checkpoint. Check the rewritten `config.yml` in the work directory.
+  The file is not staged, so it must be visible inside the container.
