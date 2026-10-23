@@ -210,13 +210,17 @@ def main():
         model.load_state_dict(state, strict=False)
         model.eval()
 
-        fold_preds = []
+        # get_batch_indices groups sequences by length, so batches do not come in input order:
+        # place each batch's predictions at the input positions it holds.
+        fold_preds = np.full(len(seqs), np.nan)
         with torch.no_grad():
-            for batch in dataloader:
+            for idx, batch in zip(batches, dataloader, strict=True):
                 # CustomBatchConverter returns 6 items
                 toks = batch[3].to(device)
                 out = model(toks)
-                fold_preds.extend(out.squeeze(-1).cpu().numpy().tolist())
+                fold_preds[idx] = out.reshape(-1).cpu().numpy()
+        if np.isnan(fold_preds).any():
+            sys.exit("Error: some sequences received no prediction")
 
         all_fold_preds.append(fold_preds)
 

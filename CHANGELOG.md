@@ -15,6 +15,11 @@
   (`Dockerfiles/constraints/{tristan,calm}.txt`), with torch pinned (RiboTIE 2.5.1, CaLM 2.2)
   and CaLM's repository at a fixed commit. A test of the other rebuilt CPU images on the
   pipeline's test data found no failure.
+- UTR-LM scored sequences in length-sorted batches but wrote the scores in input order, so when
+  inputs differed in length after cropping (shorter than 50 nt for MRL, 100 nt for TE and EL)
+  sequences received other sequences' scores. Scores are now written back to their own
+  sequences (checked against one-sequence runs). Inputs that are all at least 50 nt (MRL) or
+  100 nt (TE, EL) long were not affected.
 - `bin/saluki_predict.py` was not executable, so the pipeline could not run the new Saluki
   wrapper (the 1.0.0 pipeline test failed on this); `scripts/check_model_count.py` and
   `scripts/pin_container_digests.py` are executable too.
@@ -28,6 +33,10 @@
   and wrapper comments (CaLM, DRfold2, SpliceAI) and the images' `licenses` labels: images
   whose weights state no terms (CaLM, DRfold2, SpliceAI) are labeled `NOASSERTION` with the
   details in their description, SpliceBERT `BSD-3-Clause AND CC-BY-4.0`.
+- The 23 model pages were checked claim by claim against the code, the model registry and each
+  paper, corrected where they were wrong, and rewritten shorter with the same sections.
+- Correction to 1.0.0: staging the reference FASTA's `.fai` helps SpliceAI only. Pangolin reads
+  the FASTA through pyfastx, which builds its own index.
 
 ## 1.0.0 (2026-10-23)
 
