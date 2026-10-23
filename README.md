@@ -6,7 +6,7 @@
 [![Lint](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Documentation](https://img.shields.io/badge/docs-ericmalekos.github.io%2FRNA--Zoo-blue)](https://ericmalekos.github.io/RNA-Zoo)
 
-A Nextflow pipeline model zoo for RNA deep learning — 23 models across translation, structure, splicing, modification, and more.
+A Nextflow pipeline model zoo for RNA deep learning: 23 models across translation, structure, splicing, modification and more.
 
 | Model | Track | Task | Paper | License |
 |-------|-------|------|-------|---------|
@@ -21,7 +21,7 @@ A Nextflow pipeline model zoo for RNA deep learning — 23 models across transla
 | [ERNIE-RNA](https://github.com/Bruce-ywj/ERNIE-RNA) | Foundation | Structure-aware embeddings (768-d) | [Nature Comms 2025](https://www.nature.com/articles/s41467-025-64972-0) | MIT (code); weights: none stated |
 | [Orthrus](https://github.com/bowang-lab/Orthrus) | Foundation | Mamba mRNA embeddings (7 checkpoints, 256 or 512-d, default large-4track, GPU) | [Nature Methods 2026](https://www.nature.com/articles/s41592-026-03064-3) | MIT |
 | [HydraRNA](https://github.com/GuipengLi/HydraRNA) | Foundation | Hybrid Hydra-SSM + MHA full-length RNA embeddings (1024-d, GPU) | [Genome Biology 2025](https://doi.org/10.1186/s13059-025-03853-7) | MIT |
-| [RNAErnie](https://github.com/CatIIIIIIII/RNAErnie) | Foundation | Motif-aware RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00836-4) | Apache-2.0 |
+| [RNAErnie](https://github.com/CatIIIIIIII/RNAErnie) | Foundation | RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00836-4) | Apache-2.0 (weights the image loads); MIT (original code, not in the image) |
 | [PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | Foundation | Plant-only RNA embeddings (480-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00946-z) | MIT |
 | [CaLM](https://github.com/oxpig/CaLM) | Foundation | Codon-level RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00791-0) | BSD-3-Clause (code); weights: none stated |
 | [mRNABERT](https://huggingface.co/YYLY66/mRNABERT) | Foundation | Hybrid UTR/CDS mRNA embeddings (768-d) | [Nature Comms 2025](https://doi.org/10.1038/s41467-025-65340-8) | Apache-2.0 |

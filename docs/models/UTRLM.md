@@ -113,8 +113,5 @@ an alternative.
 
 ## Limitations
 
-- Predictions are computed in order of scored length but written in input order, so they can
-  land on the wrong names when scored lengths differ (sequences under 50 nt for `mrl`, under
-  100 nt for `te` and `el`). To avoid this, order the FASTA from shortest to longest.
 - For `el` with `Muscle`, two checkpoints match each fold; the wrapper takes whichever the file
   system lists first.

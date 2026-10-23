@@ -1,92 +1,57 @@
 # RNAZoo
 
-**A Nextflow pipeline model zoo for RNA deep learning.**
+A Nextflow pipeline that runs 23 RNA deep learning models, each from its own container image.
 
 ## What's included
 
-23 models across 6 tracks (13 task programs and 10 embedding models). Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
+The 23 models fall into six tracks: 13 task programs and 10 embedding models (the nine
+foundation models and SpliceBERT). The [model overview](models/overview.md) lists each model's
+task, input, output, GPU needs and license.
 
-### RNA Foundation Models
+| Track | Models |
+|-------|--------|
+| Translation | [RiboNN](models/RiboNN.md), [Riboformer](models/Riboformer.md), [RiboTIE](models/RiboTIE.md), [TranslationAI](models/TranslationAI.md), [Saluki](models/Saluki.md), [CodonTransformer](models/CodonTransformer.md) |
+| RNA foundation models | [RNA-FM](models/RNAFM.md), [RiNALMo](models/RiNALMo.md), [ERNIE-RNA](models/ERNIERNA.md), [Orthrus](models/Orthrus.md), [HydraRNA](models/HydraRNA.md), [RNAErnie](models/RNAErnie.md), [PlantRNA-FM](models/PlantRNAFM.md), [CaLM](models/CaLM.md), [mRNABERT](models/mRNABERT.md) |
+| RNA structure | [RhoFold](models/RhoFold.md), [SPOT-RNA](models/SPOTRNA.md), [DRfold2](models/DRfold2.md) |
+| RNA modification | [MultiRM](models/MultiRM.md) |
+| Splicing | [Pangolin](models/Pangolin.md), [SpliceAI](models/SpliceAI.md), [SpliceBERT](models/SpliceBERT.md) |
+| mRNA design | [UTR-LM](models/UTRLM.md) |
 
-All foundation models take a FASTA of RNA sequences and write `sequence_embeddings.npy` (shape `(N, D)`) plus a matching `labels.txt`. Per-token `(L, D)` embeddings are available with `--<model>_per_token`.
+Each embedding model writes one vector per sequence (`sequence_embeddings.npy`, with the
+sequence names in `labels.txt`) and, with `--<model>_per_token`, one per token. All but
+SpliceBERT can train a prediction head on your labels ([Fine Tuning](finetuning.md)).
 
-| Model | Architecture | Output dim | Pooling | Training set | Max input | GPU image | CPU image |
-|-------|--------------|-----------|---------|--------------|-----------|-----------|-----------|
-| [RNA-FM](models/RNAFM.md) | 12-layer Transformer | **640-d** | Mean (excl CLS+EOS) | 23M ncRNAs (RNAcentral) | 1022 nt | 4.2 GB | 1.7 GB |
-| [RiNALMo](models/RiNALMo.md) | 33-layer Transformer (650M params) | **1280-d** | Mean (excl CLS+EOS) | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | 5.6 GB | 3.1 GB |
-| [ERNIE-RNA](models/ERNIERNA.md) | 12-layer Transformer + 2D structure attention | **768-d** | **[CLS]** | 20M ncRNAs (RNAcentral) | 1022 nt | 5.7 GB | — (single image) |
-| [Orthrus](models/Orthrus.md) | 6-layer Mamba SSM (~10M params) | **512-d** | Mean (`mean_unpadded`) | 32.7M mRNAs (GENCODE+RefSeq+Zoonomia, contrastive) | unbounded (linear mem) | ~5 GB | — (GPU only) |
-| [RNAErnie](models/RNAErnie.md) | 12-layer Transformer (motif-aware MLM) | **768-d** | Mean (excl CLS+SEP) | 23M ncRNAs (RNAcentral) | 2046 nt | ~4 GB | ~1.5 GB |
-| [PlantRNA-FM](models/PlantRNAFM.md) | 12-layer ESM Transformer (35M params) | **480-d** | Mean (excl CLS+EOS) | ~25M plant RNAs (1124 species, 54.2B bases) | 1024 nt | ~3 GB | ~1.2 GB |
-| [CaLM](models/CaLM.md) | 12-layer Transformer (~86M params) | **768-d** | Mean (excl CLS+EOS) | ~9M CDSs (cross-organism ENA codingseqs) | 1024 codons (~3 kb) | ~3 GB | ~1.2 GB |
-| [mRNABERT](models/mRNABERT.md) | 12-layer MosaicBERT + ALiBi (~86M params) | **768-d** | Mean (excl CLS+SEP) | ~18M full-length mRNAs | 1024 tokens (hybrid 1-nt UTR + 3-nt CDS codons) | ~3 GB | ~1.2 GB |
+## How it runs
 
-**Pooling note:** values reflect the as-implemented behavior of the wrapper scripts in `bin/`. ERNIE-RNA is the only foundation model using the `[CLS]` token as the per-sequence representation; the other four mean-pool over actual sequence positions (excluding special tokens). This matters when comparing embeddings across models — `[CLS]` from an MLM-only model is qualitatively different from a position-mean.
-
-### Specialized models
-
-The remaining 12 models are task-specific predictors across translation, structure, modification, and mRNA design. Each uses its native input/output format — see the linked model card for details.
-
-| Model | Track | Training set | Input | Output | GPU image | CPU image |
-|-------|-------|--------------|-------|--------|-----------|-----------|
-| [RiboNN](models/RiboNN.md) | Translation | 78 human cell-type TE | TSV (`tx_id`, UTR5, CDS, UTR3) | per-cell-type TE TSV | 2.8 GB | 1.2 GB |
-| [Riboformer](models/Riboformer.md) | Translation | ribo-seq, 5 species | Dir (WIG + GFF + FASTA) | `model_prediction.txt` | 4.0 GB | 2.3 GB |
-| [RiboTIE](models/RiboTIE.md) | Translation | human ribo-seq (8 SRRs) | Dir (FASTA + GTF + BAMs + YAML) | per-sample GTF / CSV / NPY | 3.9 GB | 1.3 GB |
-| [TranslationAI](models/TranslationAI.md) | Translation | 47K human RefSeq mRNAs | FASTA mRNA | `*_predTIS` / `*_predTTS` / `*_predORFs.txt` | 1.9 GB | 0.6 GB |
-| [Saluki](models/Saluki.md) | Translation | 66 mRNA-decay datasets (human + mouse) | FASTA (UTR lowercase, CDS UPPERCASE) | `preds.npy` | 4.2 GB | 1.4 GB |
-| [CodonTransformer](models/CodonTransformer.md) | Translation | 1M genes across 164 organisms | FASTA protein | optimized DNA FASTA | 3.7 GB | 1.2 GB |
-| [RhoFold](models/RhoFold.md) | Structure | PDB + bpRNA self-distillation | FASTA RNA | PDB + `ss.ct` + `results.npz` | 4.2 GB | 1.7 GB |
-| [SPOT-RNA](models/SPOTRNA.md) | Structure | bpRNA + PDB + Rfam | FASTA RNA | `structures.txt` + per-seq `bpseq` / `ct` / `prob` | 2.7 GB | 0.6 GB |
-| [DRfold2](models/DRfold2.md) | Structure (Tier 2) | bpRNA + PDB single-seq | FASTA RNA | per-seq PDB | ~5 GB | — (GPU only) |
-| [MultiRM](models/MultiRM.md) | Modification | ~300K human modification sites | FASTA RNA | `modification_scores.tsv` + `predicted_sites.tsv` | 3.5 GB | 1.0 GB |
-| [Pangolin](models/Pangolin.md) | Splicing | 4-tissue (heart/liver/brain/testis) human + 3 species | VCF/CSV + ref FASTA + gffutils DB | annotated VCF/CSV | ~3 GB | ~3 GB |
-| [SpliceAI](models/SpliceAI.md) | Splicing | 1k human variants per gene (Cell 2019) | VCF + ref FASTA + annotation | annotated VCF (4-class delta) | ~2.3 GB | ~2.3 GB |
-| [SpliceBERT](models/SpliceBERT.md) | Splicing | 2M+ vertebrate primary RNAs (72 species) | FASTA RNA | NumPy (N x 512) | ~3 GB | ~1.2 GB |
-| [UTR-LM](models/UTRLM.md) | mRNA Design | 5'UTRs, 5 species + MPRA (MRL) | FASTA 5'UTR | `predictions.tsv` | 4.9 GB | 2.4 GB |
-
-**Totals:** CPU set is **~39 GB** across 21 images; GPU set is **~82 GB** across 22 images. See the [installation page](getting-started/installation.md) for the matching pre-pull commands.
+- Each model has its own image, `ghcr.io/ericmalekos/rnazoo-<name>`, with the weights inside, so
+  nothing is downloaded at run time. Most models have a GPU image and a smaller CPU image.
+- A model runs only when its input parameter is set, so one command can run one model or
+  several in parallel.
+- Docker or Singularity runs the images. Add `gpu` or `cpu` to the profile. Orthrus, HydraRNA
+  and DRfold2 need a GPU and are skipped under `cpu`.
 
 ## Quick start
 
-### With Nextflow (recommended for pipelines)
+From the cloned repository, with Nextflow and Docker installed
+([Installation](getting-started/installation.md)):
 
 ```bash
-# Run the test suite (13 models on CPU, ~5 min)
-nextflow run . -profile test,docker,cpu
+# Test run: 19 models on the test inputs in tests/data/
+nextflow run main.nf -profile test,docker,cpu
 
-# Run a single model — only models you provide input for will run
-nextflow run . -profile docker,cpu --rnafm_input my_sequences.fa
-
-# Run multiple models in parallel
-nextflow run . -profile docker,cpu \
-  --rnafm_input seqs.fa \
-  --spotrna_input seqs.fa \
-  --multirm_input seqs.fa
-
-# Use a YAML params file for complex runs
-nextflow run . -profile docker,cpu -params-file my_params.yml
+# One model on your own FASTA
+nextflow run main.nf -profile docker,cpu --rnafm_input my_sequences.fa
 ```
 
-### With plain Docker (no Nextflow required)
-
-```bash
-# Run one model against a FASTA (CPU)
-docker run --rm \
-    -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
-    -v $PWD/seqs.fa:/data/input.fa -v $PWD/out:/out \
-    ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest \
-    rnafm_predict.py -i /data/input.fa -o /out
-```
-
-See the [Direct Docker guide](direct-docker.md) for invocations of every model.
-
-## Design principles
-
-- **One Docker image per model** — weights baked in at build time, no runtime downloads
-- **GPU by default** — the test suite and per-model docs assume `--profile gpu`; foundation and structure models are 30–60× faster on GPU than CPU
-- **CPU supported for small runs** — most models also ship a `-cpu` image; pick `--profile cpu` for laptop / no-GPU use, with the caveat that GPU-only models (Orthrus, DRfold2) auto-skip with a warning
-- **Portable** — runs anywhere with Docker or Singularity + Nextflow
+On a machine with an NVIDIA GPU, write `gpu` instead of `cpu`. The
+[Quick Start](getting-started/quickstart.md) shows more options, and
+[Direct Docker usage](direct-docker.md) runs the images without Nextflow.
 
 ## License
 
-The RNA-Zoo pipeline code is released under the MIT License. Each model keeps its own terms for its code, weights and container image, stated on its page: some forbid commercial use, and for some the weights carry no license statement, which leaves their use unclear.
+The RNA-Zoo pipeline code is released under the MIT License. Each model keeps its own terms for
+its code, weights and container image, listed in the [model overview](models/overview.md#licenses)
+and on its page: some forbid commercial use, and for some the weights carry no license
+statement, which leaves their use unclear. Please cite RNA-Zoo
+([CITATION.cff](https://github.com/ericmalekos/RNA-Zoo/blob/main/CITATION.cff)) and the paper of
+every model you run.

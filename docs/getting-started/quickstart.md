@@ -1,149 +1,60 @@
 # Quick Start
 
-> Examples below use `-profile docker,gpu`. Swap `gpu` → `cpu` if you don't have an NVIDIA GPU; foundation/structure models will still run on CPU, just slower (~30–60 s per inference call vs sub-second on GPU). Orthrus is GPU-only and auto-skips under `cpu`.
+Run these commands in the cloned repository ([Installation](installation.md)). They use the CPU
+images; with an NVIDIA GPU, write `gpu` instead of `cpu` in the profile. Orthrus, HydraRNA and
+DRfold2 need a GPU and are skipped under `cpu`.
 
-## How it works
+## Run one model
 
-RNAZoo is **opt-in** — only models you provide input for will run. No `--ignore_*` flags needed.
+A model runs only when its input is set, so there is nothing to switch off.
 
 ```bash
-# Only RNA-FM runs (everything else is skipped automatically)
-nextflow run . -profile docker,gpu --rnafm_input my_sequences.fa
+# RNA embeddings (RNA-FM)
+nextflow run main.nf -profile docker,cpu --rnafm_input my_rna.fa
+
+# Translation efficiency (RiboNN): a TSV of 5' UTR, CDS and 3' UTR sequences
+nextflow run main.nf -profile docker,cpu --ribonn_input my_transcripts.tsv
+
+# RNA 3D structure (RhoFold)
+nextflow run main.nf -profile docker,cpu --rhofold_input my_rna.fa
+
+# RNA modifications (MultiRM)
+nextflow run main.nf -profile docker,cpu --multirm_input my_rna.fa
 ```
 
-## Run a single model
+Each model's page gives its input format and parameters.
 
-### RNA embeddings (RNA-FM)
+## Run several models
 
-```bash
-nextflow run . -profile docker,gpu \
-  --rnafm_input my_rna_sequences.fa
-```
-
-### Translation efficiency (RiboNN)
+Set several inputs and the models run in parallel:
 
 ```bash
-nextflow run . -profile docker,gpu \
-  --ribonn_input my_transcripts.txt
-```
-
-### RNA 3D structure (RhoFold)
-
-```bash
-nextflow run . -profile docker,gpu \
-  --rhofold_input my_rna_sequences.fa
-```
-
-### RNA modifications (MultiRM)
-
-```bash
-nextflow run . -profile docker,gpu \
-  --multirm_input my_rna_sequences.fa
-```
-
-## Run multiple models in parallel
-
-Provide inputs for multiple models and they run simultaneously:
-
-```bash
-nextflow run . -profile docker,cpu \
+nextflow run main.nf -profile docker,cpu \
   --rnafm_input sequences.fa \
   --spotrna_input sequences.fa \
   --multirm_input sequences.fa
 ```
 
-## Custom output directories
+## Output directory and CPUs
 
-By default, each model writes to `results/<model_name>/`. Override per-model or globally:
+Each model writes to `<outdir>/<model>/`, with `results/` as the default `--outdir`;
+`--<model>_outdir` moves one model's results. Each task gets `--task_cpus` CPUs (default 4), and
+the thread limits inside the containers follow it.
 
 ```bash
-# Custom per-model output
-nextflow run . -profile docker,cpu \
+nextflow run main.nf -profile docker,cpu \
   --rnafm_input sequences.fa \
-  --rnafm_outdir my_project/embeddings
-
-# Custom global output root
-nextflow run . -profile docker,cpu \
-  --rnafm_input sequences.fa \
-  --outdir my_project/results
+  --outdir my_project/results \
+  --task_cpus 8
 ```
 
-## Use a YAML params file
-
-For complex runs, create a YAML file instead of passing many CLI flags. A template is provided at `conf/params_template.yml`:
-
-```bash
-cp conf/params_template.yml my_params.yml
-# Edit my_params.yml — set _input for models you want to run
-nextflow run . -profile docker,cpu -params-file my_params.yml
-```
-
-Example `my_params.yml`:
-
-```yaml
-outdir: my_results
-
-rnafm_input: data/rna_sequences.fa
-rnafm_per_token: true
-
-multirm_input: data/rna_sequences.fa
-multirm_alpha: 0.01
-```
-
-## Fine-tuning
-
-Some models support fine-tuning on your own data. The workflow is: fine-tune to produce a checkpoint, then use that checkpoint for prediction.
-
-### RiboNN — transfer learning for a new cell type
-
-```bash
-# Fine-tune on your TE data
-nextflow run . -profile docker,cpu \
-  --ribonn_finetune_input my_te_data.tsv \
-  --ribonn_finetune_target TE_MyCondition
-```
-
-### UTR-LM — fine-tune on custom expression data
-
-```bash
-# Step 1: Fine-tune
-nextflow run . -profile docker,cpu \
-  --utrlm_finetune_input my_utr_data.csv \
-  --utrlm_finetune_label my_mrl \
-  --utrlm_finetune_task mrl
-
-# Step 2: Predict with fine-tuned model
-nextflow run . -profile docker,cpu \
-  --utrlm_input new_sequences.fa \
-  --utrlm_checkpoint results/utrlm_finetune/best_model.pt \
-  --utrlm_task mrl
-```
-
-See [RiboNN](../models/RiboNN.md#fine-tuning-on-your-own-data) and [UTR-LM](../models/UTRLM.md#fine-tuning-on-your-own-data) model pages for full details.
-
-## Run with Docker directly (no Nextflow)
-
-Every model can also be run standalone with Docker:
-
-```bash
-# RNA-FM embeddings
-docker run --rm \
-  -v /path/to/input.fa:/data/input.fa \
-  -v /path/to/output:/out \
-  ghcr.io/ericmalekos/rnazoo-rnafm:latest \
-  rnafm_predict.py -i /data/input.fa -o /out
-```
-
-See each model's page for its specific Docker command.
-
-## Output structure
-
-Results are organized by model name:
+The results are laid out by model:
 
 ```
 results/
   ribonn/
-    prediction_output.txt
+    ribonn_out/
+      prediction_output.txt
   rnafm/
     rnafm_out/
       sequence_embeddings.npy
@@ -153,3 +64,36 @@ results/
       structures.txt
   ...
 ```
+
+## Parameters file
+
+For many parameters, write them to a YAML file and pass it with `-params-file`.
+`nextflow.config` lists every parameter with its default.
+
+```yaml
+outdir: my_results
+rnafm_input: data/rna_sequences.fa
+rnafm_per_token: true
+multirm_input: data/rna_sequences.fa
+multirm_alpha: 0.01
+```
+
+```bash
+nextflow run main.nf -profile docker,cpu -params-file my_params.yml
+```
+
+## Fine-tuning
+
+The nine foundation models can train a prediction head on your labeled sequences:
+
+```bash
+nextflow run main.nf -profile docker,cpu \
+  --rnafm_finetune_input my_labels.tsv \
+  --rnafm_finetune_label te
+```
+
+See [Fine Tuning](../finetuning.md). The fine-tuning modules of RiboNN and UTR-LM currently fail.
+
+## Without Nextflow
+
+Each image also runs with a plain `docker run`; see [Direct Docker usage](../direct-docker.md).

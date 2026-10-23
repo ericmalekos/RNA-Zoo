@@ -2,10 +2,15 @@
 
 ## Requirements
 
-- **Nextflow** >= 23.04.0 ([install guide](https://www.nextflow.io/docs/latest/getstarted.html))
-- **Docker** or **Singularity** (for running model containers)
-- **NVIDIA GPU** (recommended) — required for Orthrus; foundation/structure models also run much faster on GPU. CPU works for the other 21 models, just slower.
-- **NVIDIA Container Toolkit** (for GPU runs) — needed so Docker can expose the GPU to containers. See the [official install guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html). Without it, GPU profiles fail with `unknown runtime: nvidia`.
+- [Nextflow](https://www.nextflow.io/docs/latest/install.html) 23.04.0 or later, which needs
+  Java.
+- Docker, or Singularity or Apptainer, to run the model images.
+- For GPU runs, an NVIDIA GPU, and for Docker also the
+  [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html):
+  the `gpu` profile starts containers with `--runtime=nvidia`, which the toolkit provides. With
+  Singularity, the `gpu` profile passes `--nv` instead.
+
+Orthrus, HydraRNA and DRfold2 run only on a GPU. The other 20 models also run on the CPU.
 
 ## Install Nextflow
 
@@ -14,158 +19,91 @@ curl -s https://get.nextflow.io | bash
 sudo mv nextflow /usr/local/bin/
 ```
 
-Or via conda:
+Or with conda:
 
 ```bash
 conda install -c bioconda nextflow
 ```
 
-## Clone the pipeline
+## Get the pipeline
 
 ```bash
 git clone https://github.com/ericmalekos/RNA-Zoo.git
 cd RNA-Zoo
 ```
 
-## Docker images
+## Container images
 
-All model containers are hosted on GitHub Container Registry (`ghcr.io/ericmalekos/rnazoo-*`). Nextflow pulls them automatically on first run — no manual `docker pull` needed. The per-model image sizes are listed on the [home page](../index.md#whats-included) so you can pick a subset rather than pulling everything.
+The images are on GitHub Container Registry as `ghcr.io/ericmalekos/rnazoo-<name>`. Nextflow
+pulls the images of the models you run when it first needs them, so pulling ahead is optional.
+With Singularity, Nextflow converts each image on first use; set `NXF_SINGULARITY_CACHEDIR` to a
+directory with space to keep the converted images for later runs.
 
-If you'd rather skip Nextflow entirely and drive the containers yourself, see the [Direct Docker guide](../direct-docker.md) for per-model `docker run` recipes.
+The `gpu` profile uses the CUDA images, `rnazoo-<name>`; the `cpu` profile uses the smaller
+`rnazoo-<name>-cpu`. The exceptions:
 
-If you want to warm the cache up front, pick the loop that matches your hardware. **If you have an NVIDIA GPU, use the GPU loop below — that's the project's default and the path the test suite is tuned for.** The CPU loop is the fallback for hardware without CUDA.
+- ERNIE-RNA has one image, `rnazoo-ernierna`, for both profiles.
+- Orthrus, HydraRNA and DRfold2 have only a GPU image and are skipped under `cpu`.
+- TranslationAI runs `rnazoo-translationai-cpu` under both profiles, because its command-line
+  tool hides the GPU.
+- Fine-tuning on saved embeddings runs in the CPU-only `rnazoo-finetune-head`.
+
+The 23 images of the `gpu` profile add up to about 98 GB compressed, the 20 of the `cpu` profile
+to about 32 GB; layers that images share are downloaded once. To pull a whole set ahead of time:
 
 ```bash
-# --- GPU setup (~81 GB total compressed download)
-# Pulls the CUDA-enabled variants for every tool. Orthrus is GPU-only by
-# design (mamba-ssm requires CUDA at import time).
-for img in ribonn riboformer tristan saluki translationai \
-           codontransformer rnafm rinalmo ernierna orthrus rnaernie \
-           plantrnafm calm mrnabert splicebert spliceai pangolin rhofold spotrna multirm utrlm; do
+# Images of the gpu profile
+for img in ribonn riboformer tristan translationai-cpu saluki codontransformer \
+           rnafm rinalmo ernierna orthrus hydrarna rnaernie plantrnafm calm mrnabert \
+           rhofold spotrna drfold2 multirm pangolin spliceai splicebert utrlm; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
 
 ```bash
-# --- CPU-only setup (~31 GB total compressed download)
-# Selects the smaller -cpu variants where they exist. ernierna only
-# ships a single image (built with CUDA-enabled framework but runs on
-# CPU too) — included here for completeness. Orthrus and DRfold2 are
-# GPU-only and not in this list.
-for img in ribonn-cpu riboformer-cpu tristan-cpu saluki-cpu translationai-cpu \
-           codontransformer-cpu rnafm-cpu rinalmo-cpu ernierna rnaernie-cpu \
-           plantrnafm-cpu calm-cpu mrnabert-cpu splicebert-cpu spliceai-cpu pangolin-cpu rhofold-cpu spotrna-cpu multirm-cpu utrlm-cpu; do
+# Images of the cpu profile
+for img in ribonn-cpu riboformer-cpu tristan-cpu translationai-cpu saluki-cpu \
+           codontransformer-cpu rnafm-cpu rinalmo-cpu ernierna rnaernie-cpu plantrnafm-cpu \
+           calm-cpu mrnabert-cpu rhofold-cpu spotrna-cpu multirm-cpu pangolin-cpu \
+           spliceai-cpu splicebert-cpu utrlm-cpu; do
   docker pull ghcr.io/ericmalekos/rnazoo-${img}:latest
 done
 ```
 
-> **CPU performance note:** foundation models (RNA-FM, RiNALMo,
-> ERNIE-RNA, UTR-LM) take ~30–60 s per inference call on CPU and
-> sub-second on GPU. Use the GPU loop above if you have an NVIDIA card.
+To run the images without Nextflow, see [Direct Docker usage](../direct-docker.md).
 
 ## Profiles
 
-| Profile | Description |
-|---------|-------------|
-| `docker` | Use Docker as container engine |
-| `singularity` | Use Singularity as container engine |
-| `gpu` | Enable GPU with NVIDIA runtime (default for the test suite) |
-| `cpu` | Force CPU mode (GPU-only models auto-skip with a warning) |
-| `test` | Use bundled minimal test inputs (CPU-friendly subset) |
-| `test_gpu` | Use bundled minimal test inputs including GPU-only / GPU-recommended models (RhoFold, Orthrus) |
+Combine a container engine, a device and, optionally, a test profile, for example
+`-profile test,docker,cpu`.
 
-Combine profiles with commas:
+| Profile | Effect |
+|---------|--------|
+| `docker` | Run the images with Docker |
+| `singularity` | Run the images with Singularity or Apptainer |
+| `gpu` | GPU images, with the GPU passed to the containers |
+| `cpu` | CPU images; GPU-only models are skipped with a warning |
+| `test` | Test inputs from `tests/data/` for 19 models: all but Orthrus, HydraRNA, RhoFold and DRfold2 |
+| `test_gpu` | `test` plus RhoFold and Orthrus |
+| `test_singularity` | Test inputs for five models (RiboNN, RNA-FM, SpliceBERT, MultiRM, UTR-LM) |
+| `test_finetune`, `test_finetune_from_emb`, `test_finetune_classify` | Fine-tuning tests; see [Fine Tuning](../finetuning.md#test-profiles) |
 
-```bash
-nextflow run . -profile test_gpu,docker,gpu
-```
+Always give `gpu` or `cpu`. With neither, the pipeline uses the GPU images but passes no GPU to
+them.
 
-## Verify installation
-
-If you have an NVIDIA GPU, run the GPU test suite — this is the canonical end-to-end check:
-
-```bash
-# Run the GPU test suite (22 models, requires NVIDIA Container Toolkit)
-nextflow run . -profile test_gpu,docker,gpu
-```
-
-Expected output — all 22 models should pass:
-
-```
-RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
-RNAZOO:RIBOFORMER (riboformer:bacteria_cm_mg)         | 1 of 1 ✔
-RNAZOO:RIBOTIE (ribotie)                              | 1 of 1 ✔
-RNAZOO:TRANSLATIONAI (translationai)                  | 1 of 1 ✔
-RNAZOO:SALUKI (saluki:human)                          | 1 of 1 ✔
-RNAZOO:CODONTRANSFORMER (codontransformer:...)        | 1 of 1 ✔
-RNAZOO:RNAFM (rnafm)                                  | 1 of 1 ✔
-RNAZOO:RINALMO (rinalmo)                              | 1 of 1 ✔
-RNAZOO:ERNIERNA (ernierna)                            | 1 of 1 ✔
-RNAZOO:ORTHRUS (orthrus)                              | 1 of 1 ✔
-RNAZOO:RNAERNIE (rnaernie)                            | 1 of 1 ✔
-RNAZOO:PLANTRNAFM (plantrnafm)                        | 1 of 1 ✔
-RNAZOO:CALM (calm)                                    | 1 of 1 ✔
-RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
-RNAZOO:SPLICEBERT (splicebert)                        | 1 of 1 ✔
-RNAZOO:SPLICEAI (spliceai)                            | 1 of 1 ✔
-RNAZOO:PANGOLIN (pangolin)                            | 1 of 1 ✔
-RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
-RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
-RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
-RNAZOO:RHOFOLD (rhofold)                              | 1 of 1 ✔
-Succeeded   : 21
-```
-
-Riboformer's bundled-dataset test runs faster on GPU (~1.5 min vs ~2.5 min on CPU). Models with both CPU and GPU image variants automatically use their GPU images under `-profile gpu`.
-
-### CPU fallback
-
-If you don't have an NVIDIA GPU, the smaller `test` profile runs the 19 of 22 models that work on CPU in a reasonable time:
+## Check the installation
 
 ```bash
-# Run the CPU test suite (19 models on CPU, ~5 minutes)
-nextflow run . -profile test,docker,cpu
+# With an NVIDIA GPU: 21 models
+nextflow run main.nf -profile test_gpu,docker,gpu
+
+# Without one: 19 models on the CPU images
+nextflow run main.nf -profile test,docker,cpu
+
+# With Singularity or Apptainer: five models
+nextflow run main.nf -profile test_singularity,singularity,cpu
 ```
 
-Expected output — all 19 should pass:
-
-```
-RNAZOO:RIBONN (ribonn)                                | 1 of 1 ✔
-RNAZOO:RIBOFORMER (riboformer:bacteria_cm_mg)         | 1 of 1 ✔
-RNAZOO:RIBOTIE (ribotie)                              | 1 of 1 ✔
-RNAZOO:TRANSLATIONAI (translationai)                  | 1 of 1 ✔
-RNAZOO:SALUKI (saluki:human)                          | 1 of 1 ✔
-RNAZOO:CODONTRANSFORMER (codontransformer:...)        | 1 of 1 ✔
-RNAZOO:RNAFM (rnafm)                                  | 1 of 1 ✔
-RNAZOO:RINALMO (rinalmo)                              | 1 of 1 ✔
-RNAZOO:ERNIERNA (ernierna)                            | 1 of 1 ✔
-RNAZOO:RNAERNIE (rnaernie)                            | 1 of 1 ✔
-RNAZOO:PLANTRNAFM (plantrnafm)                        | 1 of 1 ✔
-RNAZOO:CALM (calm)                                    | 1 of 1 ✔
-RNAZOO:MRNABERT (mrnabert)                            | 1 of 1 ✔
-RNAZOO:SPLICEBERT (splicebert)                        | 1 of 1 ✔
-RNAZOO:SPLICEAI (spliceai)                            | 1 of 1 ✔
-RNAZOO:PANGOLIN (pangolin)                            | 1 of 1 ✔
-RNAZOO:SPOTRNA (spotrna)                              | 1 of 1 ✔
-RNAZOO:MULTIRM (multirm)                              | 1 of 1 ✔
-RNAZOO:UTRLM (utrlm:mrl)                              | 1 of 1 ✔
-Succeeded   : 19
-```
-
-Two models are excluded from the CPU test:
-
-| Model | Reason | Covered by `test_gpu`? |
-|-------|--------|------------------------|
-| Orthrus | GPU-only (mamba-ssm requires CUDA at import) | Yes |
-| RhoFold | Too slow on CPU (~5 min, 10 recycling iterations) | Yes |
-
-> Riboformer uses the in-image E. coli dataset (`GSE119104_Mg_buffer`) via `--riboformer_bundled_dataset` — no external test data needed. See [the Riboformer page](../models/Riboformer.md) for how to point it at a bundled dataset.
-
-### How profiles select container images
-
-Most models ship two image variants on GHCR:
-
-- `ghcr.io/ericmalekos/rnazoo-<tool>:latest` — CUDA-enabled GPU build (default)
-- `ghcr.io/ericmalekos/rnazoo-<tool>-cpu:latest` — CPU-only build (smaller)
-
-`-profile gpu` selects the unsuffixed (GPU) image; `-profile cpu` selects the `-cpu` image. Nextflow handles the pull automatically — you do not invoke Docker directly. Exception: Orthrus ships only as a single GPU image (mamba-ssm requires CUDA at import time and auto-skips under `-profile cpu`).
+Every process should finish with a check mark, and the outputs land in `results_test/`.
+RhoFold is left out of `test` because it is slow on the CPU. HydraRNA and DRfold2 are in no
+test profile.

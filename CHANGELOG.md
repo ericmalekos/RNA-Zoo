@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Documentation
+- The home page, model overview, fine-tuning guide, quickstart, installation and direct-Docker
+  pages were checked against the code and the model pages, corrected and shortened. The
+  direct-Docker commands for Saluki, TranslationAI, RiboNN and SPOT-RNA on a GPU were wrong; the
+  GPU-only models are Orthrus, HydraRNA and DRfold2; RiboNN and UTR-LM fine-tuning currently fail
+  and are not tested.
+- Removed the benchmark page and its weekly workflow, which had been disabled after 16 failed runs.
+
 ## 1.0.1 (2026-10-23)
 
 ### Fixed

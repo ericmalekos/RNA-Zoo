@@ -1,179 +1,128 @@
 # Run containers directly (no Nextflow)
 
-Every RNAZoo image is self-contained: model weights are baked in, no runtime downloads are needed, and each ships a CLI wrapper you can invoke with a single `docker run`. Use this page if you don't want to set up Nextflow, or for quick one-offs and bug reports.
-
-Nextflow is still recommended for large pipelines (parallelism, resume, staging) — see the [quickstart](getting-started/quickstart.md). The commands here are the raw equivalent.
+Each image holds a model, its weights and a command-line entry point, so a single `docker run`
+is enough for a quick test or a bug report. For larger runs, Nextflow adds parallel tasks,
+resuming and file staging; see the [Quick Start](getting-started/quickstart.md).
 
 ## Common recipe
 
-Every model follows the same invocation pattern:
-
 ```bash
+mkdir -p /path/to/output    # otherwise Docker creates it, owned by root
 docker run --rm \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
+    -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
     -v /path/to/input.fa:/data/input.fa \
     -v /path/to/output:/out \
-    ghcr.io/ericmalekos/rnazoo-<MODEL>-cpu:latest \
-    <MODEL>_predict.py -i /data/input.fa -o /out
+    ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest \
+    rnafm_predict.py -i /data/input.fa -o /out
 ```
 
-For a GPU-accelerated run, drop the `-cpu` suffix from the image tag and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`:
+For another model, change the image and the command ([table below](#per-model-commands)). For a
+GPU, drop `-cpu` from the image name and add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all`,
+or `--gpus all`; both need the NVIDIA Container Toolkit.
+
+## Things to know
+
+- **User.** `-u $(id -u):$(id -g)` makes the output files yours instead of root's. It needs
+  `-e HOME=/tmp -e USER=$(whoami)` too: PyTorch can fail at import when your user ID has no entry
+  in the container's `/etc/passwd`.
+- **Threads.** The pipeline caps each task's threads at `--task_cpus` with environment variables
+  such as `OMP_NUM_THREADS` (the full list is in `nextflow.config`). A bare `docker run` sets
+  none, so PyTorch, TensorFlow and BLAS may start a thread per core; add, for example,
+  `-e OMP_NUM_THREADS=4` on a shared machine.
+- **Log output.** If the log appears only at the end when piped or redirected, add
+  `-e PYTHONUNBUFFERED=1`.
+
+## Per-model commands
+
+These commands use the mounts of the common recipe. Image names leave out the prefix
+`ghcr.io/ericmalekos/rnazoo-` and the tag `:latest`. The embedding models also take
+`--per-token`.
+
+| Model | CPU image | GPU image | Command |
+|-------|-----------|-----------|---------|
+| [RNA-FM](models/RNAFM.md) | `rnafm-cpu` | `rnafm` | `rnafm_predict.py -i /data/input.fa -o /out` |
+| [RiNALMo](models/RiNALMo.md) | `rinalmo-cpu` | `rinalmo` | `rinalmo_predict.py -i /data/input.fa -o /out` |
+| [ERNIE-RNA](models/ERNIERNA.md) | `ernierna` | `ernierna` | `ernierna_predict.py -i /data/input.fa -o /out` |
+| [Orthrus](models/Orthrus.md) | none | `orthrus` | `orthrus_predict.py -i /data/input.fa -o /out` |
+| [HydraRNA](models/HydraRNA.md) | none | `hydrarna` | `hydrarna_predict.py -i /data/input.fa -o /out` |
+| [RNAErnie](models/RNAErnie.md) | `rnaernie-cpu` | `rnaernie` | `rnaernie_predict.py -i /data/input.fa -o /out` |
+| [PlantRNA-FM](models/PlantRNAFM.md) | `plantrnafm-cpu` | `plantrnafm` | `plantrnafm_predict.py -i /data/input.fa -o /out` |
+| [CaLM](models/CaLM.md) | `calm-cpu` | `calm` | `calm_predict.py -i /data/input.fa -o /out` |
+| [mRNABERT](models/mRNABERT.md) | `mrnabert-cpu` | `mrnabert` | `mrnabert_predict.py -i /data/input.fa -o /out` |
+| [SpliceBERT](models/SpliceBERT.md) | `splicebert-cpu` | `splicebert` | `splicebert_predict.py -i /data/input.fa -o /out` |
+| [RhoFold](models/RhoFold.md) | `rhofold-cpu` | `rhofold` | `rhofold_predict.py -i /data/input.fa -o /out` |
+| [SPOT-RNA](models/SPOTRNA.md) | `spotrna-cpu` | `spotrna` | `spotrna_predict.py -i /data/input.fa -o /out --cpu 4`; on the GPU image, `--gpu 0` instead of `--cpu 4` |
+| [DRfold2](models/DRfold2.md) | none | `drfold2` | `drfold2_predict.py -i /data/input.fa -o /out` |
+| [MultiRM](models/MultiRM.md) | `multirm-cpu` | `multirm` | `multirm_predict.py -i /data/input.fa -o /out` |
+| [UTR-LM](models/UTRLM.md) | `utrlm-cpu` | `utrlm` | `utrlm_predict.py -i /data/input.fa -o /out --task mrl --model-dir /opt/utrlm/Model` |
+| [CodonTransformer](models/CodonTransformer.md) | `codontransformer-cpu` | `codontransformer` | `codon_transformer_predict.py -i /data/input.fa -o /out/optimized_codons.fa --organism "Homo sapiens"` |
+| [Saluki](models/Saluki.md) | `saluki-cpu` | `saluki` | `saluki_predict.py -i /data/input.fa -o /out`; to set the splice track, mount an exon-length TSV and add `--exons /data/exons.tsv` |
+| [TranslationAI](models/TranslationAI.md) | `translationai-cpu` | none (the tool hides the GPU) | `bash -c "cp /data/input.fa /tmp/input.fa && translationai -I /tmp/input.fa -t 0.5,0.5 && cp /tmp/input_pred*.txt /out/"` |
+
+Orthrus, HydraRNA and DRfold2 have no CPU image; run them with the GPU options.
+
+### Models with other inputs
+
+**RiboNN** reads a TSV and must run from `/app`:
 
 ```bash
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v /path/to/input.fa:/data/input.fa \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+    -v /path/to/input.tsv:/data/input.tsv \
     -v /path/to/output:/out \
-    ghcr.io/ericmalekos/rnazoo-<MODEL>:latest \
-    <MODEL>_predict.py -i /data/input.fa -o /out
+    ghcr.io/ericmalekos/rnazoo-ribonn-cpu:latest \
+    bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /data/input.tsv -o /out --species human"
 ```
 
-See the [home-page table](index.md#whats-included) for inputs, outputs, and image sizes, and [installation](getting-started/installation.md) for pre-pulling a full set.
-
-## Gotchas
-
-A few things the Nextflow profile handles for you that you need to replicate with raw `docker run`:
-
-- **UID / HOME / USER flags.** Without `-u $(id -u):$(id -g)` the container writes as root, leaving files you can't easily delete. Without `-e HOME=/tmp -e USER=$(whoami)` newer PyTorch versions crash at import when the host UID isn't in `/etc/passwd` (e.g. `KeyError: getpwuid(): uid not found`). Include both in every invocation.
-- **Write permissions on the output mount.** The output directory on the host must exist and be writable by your UID (`mkdir -p /path/to/output` is usually enough).
-- **GPU flag.** `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all` requires the NVIDIA Container Toolkit installed on the host. On Docker 19.03+ you can use `--gpus all` as an equivalent shortcut.
-- **Line-buffered stdout.** If you pipe output through `tee` or redirect it and see nothing for a while, add `-e PYTHONUNBUFFERED=1` to force Python line-buffering.
-
-## Per-model invocations
-
-The single-input/single-output models (most of the zoo) all follow the same shape. Save yourself typing by exporting a helper:
+**SpliceAI** and **Pangolin** read several files. Put them in one directory, mounted as `/work`:
 
 ```bash
-run_rnazoo() {
-    local model="$1"; shift
-    docker run --rm \
-        -u $(id -u):$(id -g) \
-        -e HOME=/tmp -e USER=$(whoami) \
-        -v "$PWD/input.fa:/data/input.fa" \
-        -v "$PWD/out:/out" \
-        "ghcr.io/ericmalekos/rnazoo-${model}-cpu:latest" \
-        "$@"
-}
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+    -v /path/to/inputs:/work \
+    ghcr.io/ericmalekos/rnazoo-spliceai-cpu:latest \
+    spliceai_predict.py -i /work/variants.vcf -o /work/variants.spliceai.vcf \
+        -r /work/genome.fa -a grch38
 ```
 
-Then: `run_rnazoo rnafm rnafm_predict.py -i /data/input.fa -o /out`, etc.
+For Pangolin, use the image `rnazoo-pangolin-cpu` and the command
+`pangolin_predict.py -i /work/variants.vcf -r /work/genome.fa -a /work/annotation.db -o /work/variants.pangolin`.
+[Its page](models/Pangolin.md) shows how to build `annotation.db` from a GTF.
 
-### Simple models (single-mount input → output dir)
-
-| Model | In-container command |
-|-------|----------------------|
-| [RNA-FM](models/RNAFM.md) | `rnafm_predict.py -i /data/input.fa -o /out` |
-| [RiNALMo](models/RiNALMo.md) | `rinalmo_predict.py -i /data/input.fa -o /out` |
-| [UTR-LM](models/UTRLM.md) | `utrlm_predict.py -i /data/input.fa -o /out --task mrl --model-dir /opt/utrlm/Model` |
-| [ERNIE-RNA](models/ERNIERNA.md) | `ernierna_predict.py -i /data/input.fa -o /out` |
-| [RNAErnie](models/RNAErnie.md) | `rnaernie_predict.py -i /data/input.fa -o /out` |
-| [PlantRNA-FM](models/PlantRNAFM.md) | `plantrnafm_predict.py -i /data/input.fa -o /out` |
-| [CaLM](models/CaLM.md) | `calm_predict.py -i /data/input.fa -o /out` |
-| [mRNABERT](models/mRNABERT.md) | `mrnabert_predict.py -i /data/input.fa -o /out` |
-| [SpliceBERT](models/SpliceBERT.md) | `splicebert_predict.py -i /data/input.fa -o /out` |
-| [RhoFold](models/RhoFold.md) | `rhofold_predict.py -i /data/input.fa -o /out` |
-| [SPOT-RNA](models/SPOTRNA.md) | `spotrna_predict.py -i /data/input.fa -o /out` |
-| [MultiRM](models/MultiRM.md) | `multirm_predict.py -i /data/input.fa -o /out` |
-| [CodonTransformer](models/CodonTransformer.md) | `codon_transformer_predict.py -i /data/input.fa -o /out/optimized_codons.fa --organism "Homo sapiens"` |
-
-### Models with model-family / cell-line flags
-
-Same mount pattern as above, with an extra argument:
-
-- **Saluki** (half-life): `bash -c "saluki_predict_fasta.py -d 0 -o /out /opt/saluki_models /data/input.fa"` — `-d 0` is human, `-d 1` is mouse.
-- **RiboNN** (TE): the container expects its input staged into `/app/data/prediction_input1.txt`; easiest is `-v /path/to/input.txt:/app/data/prediction_input1.txt` and then `bash -c "cd /app && python3 /opt/bin/ribonn_predict.py -i /app/data/prediction_input1.txt -o /out --species human"`.
-- **TranslationAI** (TIS/TTS/ORFs): `bash -c "translationai -i /data/input.fa -o /out"`.
-- **SpliceAI** (variant-effect): mount the dir containing the VCF + reference FASTA + (optional) custom annotation TSV, then `spliceai_predict.py -i /work/variants.vcf -o /work/variants.annot.vcf -r /work/genome.fa -a grch38`. Replace `grch38` with a path inside `/work` for a custom annotation.
-- **Pangolin** (tissue-specific variant-effect): mount the dir containing the VCF/CSV + reference FASTA + gffutils `.db`, then `pangolin_predict.py -i /work/variants.vcf -r /work/genome.fa -a /work/annotation.db -o /work/variants.pangolin`. Build the `.db` once via `python /opt/conda/envs/pangolin/bin/create_db.py your.gtf` inside the container.
-
-### Multi-file inputs (ribo-seq)
-
-These need a directory mount with several files + a config.
-
-**RiboTIE** — needs FASTA + GTF + BAMs + YAML config in one directory. See [its page](models/RiboTIE.md) for the config layout. A bare-minimum invocation:
+**RiboTIE** runs in a directory that holds `config.yml` and the input files
+([config layout](models/RiboTIE.md)). On the GPU image `rnazoo-tristan`, pass `--accelerator gpu`.
 
 ```bash
-docker run --rm \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v /path/to/data_dir:/work -w /work \
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+    -v "$PWD":/work -w /work \
     ghcr.io/ericmalekos/rnazoo-tristan-cpu:latest \
-    bash -c "mkdir -p ribotie_out/dbs ribotie_out/out && \
-             ribotie config.yml --accelerator cpu --overwrite_data --max_epochs 10 --patience 3"
+    bash -c "mkdir -p ribotie_out/dbs ribotie_out/out && ribotie config.yml --accelerator cpu --overwrite_data"
 ```
 
-**Riboformer** — either give it your own data directory with WIG + FASTA + GFF3, or use one of the bundled in-image datasets:
+**Riboformer** reads a dataset directory mounted under `/opt/Riboformer/datasets/` and writes
+its outputs, `model_prediction.txt` among them, into that directory. With a copy of the test data
+from the repository:
 
 ```bash
-# Bundled E. coli dataset (no external files needed)
-docker run --rm \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v $PWD/out:/out \
+cp -r tests/data/riboformer my_data
+docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+    -v "$PWD/my_data":/opt/Riboformer/datasets/my_data \
     ghcr.io/ericmalekos/rnazoo-riboformer-cpu:latest \
-    bash -c "cd /opt/Riboformer/Riboformer && \
-             python data_processing.py -d GSE119104_Mg_buffer \
-                 -r GSM3358138_filter_Cm_ctrl -t GSM3358140_freeze_Mg_ctrl && \
-             python transfer.py -i GSE119104_Mg_buffer -m bacteria_cm_mg && \
-             cp /opt/Riboformer/datasets/GSE119104_Mg_buffer/model_prediction.txt /out/"
+    bash -c "python data_processing.py -d my_data -r GSM3358138_filter_Cm_ctrl -t GSM3358140_freeze_Mg_ctrl && python transfer.py -i my_data -m bacteria_cm_mg"
 ```
 
-```bash
-# Minimal external dataset (tests/data/riboformer_smoke/ from the repo —
-# synthetic 10-gene genome, ~170 KB total, correct for wsize=40 / bacteria_cm_mg).
-# IMPORTANT: always use -w 40 to match the model's training window size.
-DATA=/path/to/RNA-Zoo/tests/data/riboformer_smoke
-docker run --rm \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v "$DATA":/smoke_data:ro \
-    -v "$PWD/out":/out \
-    ghcr.io/ericmalekos/rnazoo-riboformer-cpu:latest \
-    bash -c "
-      cd /opt/Riboformer/Riboformer
-      mkdir -p ../datasets/smoke_test
-      cp /smoke_data/* ../datasets/smoke_test/
-      python data_processing.py -d smoke_test \
-          -r smoke_ref_ctrl -t smoke_tgt_ctrl \
-          -p 14 -w 40 -th 25
-      python transfer.py -i smoke_test -m bacteria_cm_mg
-      cp ../datasets/smoke_test/model_prediction.txt /out/
-    "
-```
+## Help and debugging
 
-### GPU-only models
-
-**Orthrus** requires CUDA at import time (mamba-ssm); it cannot run on CPU.
-
-```bash
-# Orthrus (mature-mRNA embeddings, 4-track 512-d)
-docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-    -u $(id -u):$(id -g) \
-    -e HOME=/tmp -e USER=$(whoami) \
-    -v /path/to/input.fa:/data/input.fa \
-    -v /path/to/output:/out \
-    ghcr.io/ericmalekos/rnazoo-orthrus:latest \
-    orthrus_predict.py -i /data/input.fa -o /out
-```
-
-## Help text
-
-Every CLI wrapper accepts `--help`:
+Each RNA-Zoo wrapper lists its options with `--help`:
 
 ```bash
 docker run --rm ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest rnafm_predict.py --help
 ```
 
-## Debugging inside a container
-
-Drop into an interactive shell to poke around (useful for schema questions, tweaking model flags, checking bundled data paths):
+To look around inside an image, start a shell:
 
 ```bash
-docker run --rm -it \
-    -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
-    ghcr.io/ericmalekos/rnazoo-<model>-cpu:latest bash
+docker run --rm -it -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
+    ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest bash
 ```
 
-Most images have the source code under `/app` or `/opt/<upstream>/` and the CLI wrapper under `/opt/bin/`.
+The wrappers are in `/opt/bin` (ERNIE-RNA's in `/opt/ernie-rna`). Most upstream code is under
+`/opt`; RiboNN's is under `/app`.
