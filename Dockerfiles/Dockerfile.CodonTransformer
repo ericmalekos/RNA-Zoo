@@ -19,13 +19,18 @@ RUN /opt/conda/envs/codontransformer/bin/pip install --no-cache-dir \
 # Install CodonTransformer from PyPI
 RUN /opt/conda/envs/codontransformer/bin/pip install --no-cache-dir CodonTransformer
 
-# Pre-download HuggingFace model weights (~358 MB) so they're baked into
-# the image. No runtime download needed.
+# Bake the HuggingFace weights (~358 MB) into a plain directory under /opt, readable by any
+# user, and point the wrapper at it. The HuggingFace cache is not used at run time: the
+# default cache (/root/.cache) is unreadable to a non-root Singularity user, and the RNA-Zoo
+# profiles redirect HF_HOME to /tmp, so a cached copy was never found and the model was
+# downloaded again on every run.
 RUN /opt/conda/envs/codontransformer/bin/python -c "\
 from transformers import AutoTokenizer, BigBirdForMaskedLM; \
-AutoTokenizer.from_pretrained('adibvafa/CodonTransformer'); \
-BigBirdForMaskedLM.from_pretrained('adibvafa/CodonTransformer'); \
-print('Model cached successfully')"
+AutoTokenizer.from_pretrained('adibvafa/CodonTransformer').save_pretrained('/opt/codontransformer_model'); \
+BigBirdForMaskedLM.from_pretrained('adibvafa/CodonTransformer').save_pretrained('/opt/codontransformer_model'); \
+print('Model saved to /opt/codontransformer_model')" && \
+    chmod -R a+rX /opt/codontransformer_model
+ENV CODONTRANSFORMER_MODEL=/opt/codontransformer_model
 
 # Copy our CLI wrapper script
 COPY bin/codon_transformer_predict.py /opt/bin/codon_transformer_predict.py

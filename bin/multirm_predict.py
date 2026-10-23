@@ -216,9 +216,13 @@ def main():
                 for pos in range(check_pos):
                     window_seq = seq[pos : pos + WINDOW]
                     kmers_idx = seq2index([window_seq], embeddings_dict)
-                    x = torch.transpose(
-                        torch.from_numpy(kmers_idx), 0, 1
-                    ).to(device)
+                    # seq2index returns (batch, n_kmers) = (1, 49), which is what the model
+                    # expects: its LSTM is batch_first=True. Do NOT transpose to (49, 1), as
+                    # upstream MultiRM's Scripts/main.py does: the model then sees 49
+                    # examples of length 1, y_preds[k][0] is the prediction for the window's
+                    # first trinucleotide only, and the center base never reaches the model
+                    # (varying it leaves all 12 outputs unchanged).
+                    x = torch.from_numpy(kmers_idx).to(device)
                     y_preds = model(x)
                     for k in range(NUM_TASK):
                         probs[k, pos] = y_preds[k].detach().cpu().numpy()[0]

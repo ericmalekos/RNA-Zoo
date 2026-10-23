@@ -6,7 +6,9 @@ Predict translation initiation sites (TIS), translation termination sites (TTS),
 - **Upstream:** https://github.com/rnasys/TranslationAI
 - **License:** AGPL-3.0 (source code) + CC BY-NC 4.0 (model weights, non-commercial only)
 - **Device:** CPU or GPU. Two image variants:
-    - `rnazoo-translationai:latest` — CUDA-enabled (TF 1.15 GPU build, default with `-profile gpu`). Works on any GPU; older binary kernels PTX-JIT for compute capabilities >7.0 (Turing/Ampere/Ada/Hopper) on first kernel launch.
+    - `rnazoo-translationai:latest`: TF 1.15 GPU build. RNA-Zoo does not use it: in the RNA-Zoo
+      benchmark it did no work on current GPUs (no GPU memory used), so the pipeline runs the CPU
+      image under both `-profile cpu` and `-profile gpu`.
     - `rnazoo-translationai-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
 ## What it does

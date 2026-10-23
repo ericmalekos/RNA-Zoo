@@ -21,7 +21,7 @@ process MULTIRM {
     path "multirm_out/*_modifications.png",        emit: plots, optional: true
 
     script:
-    def plot_flag = params.multirm_plot ? '--plot' : ''
+    def plot_flag = params.multirm_plot.toString().toBoolean() ? '--plot' : ''
     """
     multirm_predict.py \
         -i ${input_fasta} \

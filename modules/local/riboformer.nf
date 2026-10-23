@@ -47,13 +47,19 @@ process RIBOFORMER {
     # cd into a subdir so os.path.dirname(os.getcwd()) resolves to \$NF_WORKDIR.
     cd "\$RUN_DIR"
 
-    python /opt/Riboformer/Riboformer/data_processing.py \\
+    # Upstream's quantile normalization indexes an empty array when too few genes pass its
+    # coverage threshold (a single gene always failed in the RNA-Zoo benchmark; five or more
+    # ran). Report that plainly instead of the bare numpy IndexError.
+    if ! python /opt/Riboformer/Riboformer/data_processing.py \\
         -d nf_input \\
         -r "${reference_wig}" \\
         -t "${target_wig}" \\
         -p ${params.riboformer_psite} \\
         -w ${params.riboformer_wsize} \\
-        -th ${params.riboformer_threshold}
+        -th ${params.riboformer_threshold}; then
+        echo "Riboformer data processing failed. If the GFF3 holds very few genes, or few genes pass --riboformer_threshold, upstream's normalization receives an empty array; give more genes (at least five) or lower the threshold." >&2
+        exit 1
+    fi
 
     python /opt/Riboformer/Riboformer/transfer.py -i nf_input -m "${model_name}"
 

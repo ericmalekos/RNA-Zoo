@@ -23,11 +23,16 @@ process SPOTRNA {
     path "spotrna_out/*_contact.png",  emit: plots,  optional: true
 
     script:
-    def plot_flag = params.spotrna_plot ? '--plot' : ''
+    // toString().toBoolean(): a command-line "--spotrna_plot false" arrives as a String,
+    // which Groovy treats as true
+    def plot_flag = params.spotrna_plot.toString().toBoolean() ? '--plot' : ''
+    def gpu_index = params.device == 'gpu' ? 0 : -1
     """
     spotrna_predict.py \
         -i ${input_fasta} \
         -o spotrna_out \
+        --gpu ${gpu_index} \
+        --cpu ${task.cpus} \
         ${plot_flag}
     """
 }

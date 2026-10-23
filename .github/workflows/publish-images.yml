@@ -131,8 +131,14 @@ jobs:
           FULL=$(yq -o=json <<<"$MATRIX_YAML")
 
           if [[ "$EVENT" == "push" && "$REF" != refs/tags/* ]]; then
-            # Branch push: build only images whose Dockerfile changed.
+            # Branch push: build only images whose Dockerfile changed, or that COPY a file under
+            # bin/ that changed (wrappers are baked into /opt/bin, so a wrapper fix must
+            # rebuild every image that carries it).
             CHANGED=$(git diff --name-only HEAD~1 HEAD -- Dockerfiles/ 2>/dev/null || true)
+            for f in $(git diff --name-only HEAD~1 HEAD -- bin/ 2>/dev/null || true); do
+              CHANGED=$(printf '%s\n%s' "$CHANGED" "$(grep -l "COPY ${f} " Dockerfiles/* || true)")
+            done
+            CHANGED=$(printf '%s\n' "$CHANGED" | sed '/^$/d' | sort -u)
             if [[ -z "$CHANGED" ]]; then
               echo "No Dockerfiles changed; nothing to build."
               echo "matrix=[]" >> "$GITHUB_OUTPUT"

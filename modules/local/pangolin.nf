@@ -19,6 +19,7 @@ process PANGOLIN {
     input:
     path input_variants
     path reference_fasta
+    path reference_fai      // <fasta>.fai staged beside the FASTA, or NO_FILE_FAI
     path annotation_db
 
     output:

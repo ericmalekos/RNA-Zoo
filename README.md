@@ -33,3 +33,10 @@ A Nextflow pipeline model zoo for RNA deep learning — 23 models across transla
 | [SpliceBERT](https://github.com/biomed-AI/SpliceBERT) | Splicing | Vertebrate primary-RNA embeddings (512-d) | [Brief. Bioinform. 2024](https://doi.org/10.1093/bib/bbae163) | BSD-3-Clause |
 | [MultiRM](https://github.com/Tsedao/MultiRM) | Modification | 12 RNA modification types | [Nat. Commun. 2021](https://doi.org/10.1038/s41467-021-24313-3) | MIT |
 | [UTR-LM](https://github.com/a96123155/UTR-LM) | mRNA Design | 5'UTR MRL / TE / expression | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00823-9) | GPL-3.0 |
+
+## License
+
+The RNA-Zoo pipeline code is released under the [MIT License](LICENSE). Each model keeps its own
+terms for its code, weights and container image, listed in the table above and in
+[docs/models/overview.md](docs/models/overview.md); several restrict commercial use. Please cite
+RNA-Zoo ([CITATION.cff](CITATION.cff)) and the paper of every model you run.

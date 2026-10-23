@@ -394,6 +394,14 @@ def main():
                         help="Early-stopping patience (epochs without val improvement)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument(
+        "--split-file", default=None,
+        help="Optional file with N lines, each 'train' or 'test' (same order as "
+             "labels). 'test' rows are held out of training AND early-stopping; the "
+             "val split is carved from the 'train' rows only. Adds a 'test' block to "
+             "metrics.json and marks 'test' rows in predictions.tsv. When omitted, "
+             "behavior is unchanged (random train/val split over all rows).",
+    )
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -454,15 +462,40 @@ def main():
     if names is None or len(names) != n:
         names = [f"row_{i}" for i in range(n)]
 
-    # Train/val split (deterministic)
+    # Train/val/test split (deterministic). With --split-file, 'test' rows are held
+    # out of training AND early-stopping; the val split is carved from the 'train'
+    # pool only. Without it, behavior is the original random train/val over all rows.
     rng = np.random.RandomState(args.seed)
-    idx = rng.permutation(n)
-    n_val = max(1, int(round(n * args.val_frac)))
-    val_idx = idx[:n_val]
-    train_idx = idx[n_val:]
+    test_idx = np.array([], dtype=int)
+    if args.split_file:
+        splits = [s.lower() for s in load_labels_raw(args.split_file)]
+        if len(splits) != n:
+            print(
+                f"ERROR: split-file rows ({len(splits)}) != embeddings rows ({n})",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        bad = set(splits) - {"train", "test"}
+        if bad:
+            print(
+                f"ERROR: split-file values must be 'train' or 'test'; got {sorted(bad)}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        all_idx = np.arange(n)
+        is_test = np.array([s == "test" for s in splits])
+        test_idx = all_idx[is_test]
+        pool = rng.permutation(all_idx[~is_test])
+        n_val = max(1, int(round(pool.size * args.val_frac)))
+        val_idx = pool[:n_val]
+        train_idx = pool[n_val:]
+    else:
+        idx = rng.permutation(n)
+        n_val = max(1, int(round(n * args.val_frac)))
+        val_idx = idx[:n_val]
+        train_idx = idx[n_val:]
     if train_idx.size < 1:
-        train_idx = idx
-        val_idx = idx[:1]
+        train_idx = val_idx
 
     os.makedirs(args.output, exist_ok=True)
     best_val_loss = float("nan")
@@ -530,6 +563,8 @@ def main():
     pred_path = os.path.join(args.output, "predictions.tsv")
     split_arr = np.full(n, "train", dtype=object)
     split_arr[val_idx] = "val"
+    if test_idx.size:
+        split_arr[test_idx] = "test"
 
     with open(pred_path, "w") as f:
         if task == "regression":
@@ -557,7 +592,11 @@ def main():
 
     val_mask = np.zeros(n, dtype=bool)
     val_mask[val_idx] = True
-    train_mask = ~val_mask
+    test_mask = np.zeros(n, dtype=bool)
+    if test_idx.size:
+        test_mask[test_idx] = True
+    train_mask = np.zeros(n, dtype=bool)
+    train_mask[train_idx] = True
 
     common = {
         "task": task,
@@ -566,6 +605,7 @@ def main():
         "n_total": n,
         "n_train": int(train_mask.sum()),
         "n_val": int(val_mask.sum()),
+        "n_test": int(test_mask.sum()),
         "best_val_loss": best_val_loss,
     }
     if task == "regression":
@@ -575,7 +615,11 @@ def main():
             "train": regression_block(y_orig[train_mask], all_pred[train_mask]),
             "val": regression_block(y_orig[val_mask], all_pred[val_mask]),
         }
-        summary = f"val_pearson={metrics['val']['pearson_r']:.3f}"
+        if test_mask.any():
+            metrics["test"] = regression_block(y_orig[test_mask], all_pred[test_mask])
+            summary = f"test_spearman={metrics['test']['spearman_r']:.3f}"
+        else:
+            summary = f"val_pearson={metrics['val']['pearson_r']:.3f}"
     else:
         metrics = {
             **common,
@@ -593,10 +637,21 @@ def main():
                 class_names,
             ),
         }
-        summary = (
-            f"val_acc={metrics['val']['accuracy']:.3f} "
-            f"val_macro_f1={metrics['val']['macro_f1']:.3f}"
-        )
+        if test_mask.any():
+            metrics["test"] = classification_block(
+                y_orig[test_mask], all_pred[test_mask],
+                all_probs[test_mask] if all_probs is not None else None,
+                class_names,
+            )
+            summary = (
+                f"test_acc={metrics['test']['accuracy']:.3f} "
+                f"test_macro_f1={metrics['test']['macro_f1']:.3f}"
+            )
+        else:
+            summary = (
+                f"val_acc={metrics['val']['accuracy']:.3f} "
+                f"val_macro_f1={metrics['val']['macro_f1']:.3f}"
+            )
 
     metrics_path = os.path.join(args.output, "metrics.json")
     with open(metrics_path, "w") as f:

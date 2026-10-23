@@ -8,9 +8,12 @@ RUN git clone --branch main --depth 1 https://github.com/Sanofi-Public/RiboNN.gi
 
 WORKDIR /app
 
-# Install the conda environment
-RUN mamba env create -f environment.yml -y && \
-    mamba clean -afy
+# Install the conda environment. CONDA_OVERRIDE_CUDA makes the solver pick the CUDA build of
+# pytorch=1.13.1 on a GPU-less build host; without it the image silently got a CPU-only torch
+# (torch.version.cuda None), so RiboNN never used the GPU.
+RUN CONDA_OVERRIDE_CUDA=11.3 mamba env create -f environment.yml -y && \
+    mamba clean -afy && \
+    /opt/conda/envs/RiboNN/bin/python -c "import torch; assert torch.version.cuda, 'CPU-only torch in the GPU image'; print('torch', torch.__version__, 'CUDA', torch.version.cuda)"
 
 # Downgrade setuptools for pkg_resources compatibility with lightning_utilities
 RUN /opt/conda/envs/RiboNN/bin/pip install --no-cache-dir 'setuptools<71'

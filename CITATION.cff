@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use RNA-Zoo, please cite it as below, together with the paper of each model you run (listed in docs/models/overview.md)."
+title: "RNA-Zoo: a Nextflow pipeline for RNA deep learning models"
+type: software
+authors:
+  - family-names: Malekos
+    given-names: Eric
+    email: ericmalekos@gmail.com
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/ericmalekos/RNA-Zoo"
+keywords:
+  - RNA
+  - deep learning
+  - Nextflow
+  - foundation models

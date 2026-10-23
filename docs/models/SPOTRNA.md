@@ -5,7 +5,9 @@ Predict RNA secondary structure including pseudoknots and non-canonical base pai
 - **Paper:** [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9)
 - **Upstream:** https://github.com/jaswindersingh2/SPOT-RNA
 - **License:** MPL-2.0
-- **Device:** CPU or GPU (5-model TensorFlow ensemble). Two image variants:
+- **Device:** CPU or GPU (5-model TensorFlow ensemble). Before 1.0.0 the wrapper always ran
+  SPOT-RNA on 4 CPU threads; it now uses the GPU under `-profile gpu` and the task's CPUs.
+  Two image variants:
     - `rnazoo-spotrna:latest` — CUDA-enabled (default, used with `-profile gpu`)
     - `rnazoo-spotrna-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 

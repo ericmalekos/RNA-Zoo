@@ -5,7 +5,8 @@ Predict translation efficiency (TE) from mRNA sequence across 78 human cell type
 - **Paper:** [Nature Biotechnology 2025](https://www.nature.com/articles/s41587-025-02712-x)
 - **Upstream:** https://github.com/Sanofi-Public/RiboNN
 - **License:** Sanofi academic, non-commercial license for both the code ([LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/LICENSE)) and the model weights ([MODEL WEIGHTS LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/MODEL%20WEIGHTS%20LICENSE.txt)). The grant covers use, copying, modification and merging for academic or non-profit, non-commercial purposes only. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
-- **Device:** CPU or GPU (CPU works, GPU faster)
+- **Device:** CPU or GPU (CPU works, GPU faster). Before 1.0.0 the GPU image held a CPU-only
+  PyTorch build and never used the GPU; the image now installs the CUDA build and checks it.
 
 ## What it does
 

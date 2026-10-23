@@ -4,7 +4,7 @@
 
 ## What's included
 
-22 models across 6 tracks. Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
+23 models across 6 tracks (13 task programs and 10 embedding models). Every container has its model weights baked in at build time — no runtime downloads. Image sizes below are the **compressed download size** from GHCR; on disk they roughly double after extraction.
 
 ### RNA Foundation Models
 

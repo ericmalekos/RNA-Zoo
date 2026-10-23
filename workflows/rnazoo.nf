@@ -105,7 +105,10 @@ workflow RNAZOO {
     if (params.saluki_input) {
         SALUKI(
             Channel.fromPath(params.saluki_input, checkIfExists: true),
-            params.saluki_species
+            params.saluki_species,
+            params.saluki_exons
+                ? Channel.fromPath(params.saluki_exons, checkIfExists: true)
+                : Channel.value(file("${projectDir}/assets/NO_FILE", checkIfExists: true))
         )
     }
 
@@ -323,6 +326,7 @@ workflow RNAZOO {
         PANGOLIN(
             Channel.fromPath(params.pangolin_variants, checkIfExists: true),
             Channel.fromPath(params.pangolin_reference_fasta, checkIfExists: true),
+            Channel.value(fasta_index(params.pangolin_reference_fasta)),
             Channel.fromPath(params.pangolin_annotation_db, checkIfExists: true)
         )
     }
@@ -343,6 +347,7 @@ workflow RNAZOO {
         SPLICEAI(
             Channel.fromPath(params.spliceai_vcf, checkIfExists: true),
             Channel.fromPath(params.spliceai_reference_fasta, checkIfExists: true),
+            Channel.value(fasta_index(params.spliceai_reference_fasta)),
             Channel.value([anno, anno_file])
         )
     }
@@ -460,4 +465,12 @@ workflow RNAZOO {
         }
         UTRLM_FINETUNE(Channel.fromPath(params.utrlm_finetune_input, checkIfExists: true))
     }
+}
+
+// The reference FASTA's .fai, staged beside the FASTA so the splicing tools do not rebuild the
+// index of a 3 GB genome in every run; a placeholder when no index exists (the tool then builds
+// one in the work directory, as before).
+def fasta_index(fasta) {
+    def fai = file("${fasta}.fai")
+    return fai.exists() ? fai : file("${projectDir}/assets/NO_FILE_FAI", checkIfExists: true)
 }

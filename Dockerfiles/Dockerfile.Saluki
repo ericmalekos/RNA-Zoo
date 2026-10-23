@@ -32,5 +32,8 @@ RUN wget -q --show-progress -O /tmp/datasets.zip \
 # Make models + output dirs writable for non-root Nextflow users
 RUN chmod -R 755 /opt/saluki_models
 
-ENV PATH="/opt/basenji/bin/archive:/opt/basenji/bin:$PATH"
+# RNA-Zoo wrapper: sets the splice-junction channel from exon lengths
+COPY bin/saluki_predict.py /opt/bin/saluki_predict.py
+RUN chmod +x /opt/bin/saluki_predict.py
+ENV PATH="/opt/bin:/opt/basenji/bin/archive:/opt/basenji/bin:$PATH"
 WORKDIR /opt/basenji

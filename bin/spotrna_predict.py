@@ -78,6 +78,14 @@ def main():
         "--plot", action="store_true",
         help="Generate contact map heatmap PNGs for each sequence",
     )
+    parser.add_argument(
+        "--gpu", type=int, default=-1,
+        help="GPU index passed to SPOT-RNA; -1 runs on CPU (default)",
+    )
+    parser.add_argument(
+        "--cpu", type=int, default=4,
+        help="CPU threads passed to SPOT-RNA (default 4)",
+    )
     args = parser.parse_args()
 
     os.makedirs(args.output, exist_ok=True)
@@ -98,6 +106,7 @@ def main():
     print(f"Processing {len(sequences)} sequences...", file=sys.stderr)
 
     structures_file = os.path.join(args.output, "structures.txt")
+    failed = []
 
     with open(structures_file, "w") as sf:
         for idx, (header, seq) in enumerate(sequences):
@@ -121,8 +130,8 @@ def main():
                 "/opt/SPOT-RNA/SPOT-RNA.py",
                 "--inputs", tmp_path,
                 "--outputs", tmp_outdir + "/",
-                "--gpu", "-1",
-                "--cpu", "4",
+                "--gpu", str(args.gpu),
+                "--cpu", str(args.cpu),
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True)
@@ -132,8 +141,9 @@ def main():
             prob_path = os.path.join(tmp_outdir, f"{safe_name}.prob")
 
             if result.returncode != 0 or not os.path.exists(bpseq_path):
+                failed.append(header)
                 print(
-                    f"  WARNING: SPOT-RNA failed for {header}", file=sys.stderr
+                    f"  ERROR: SPOT-RNA wrote no structure for {header}", file=sys.stderr
                 )
                 if result.stderr:
                     print(result.stderr[-300:], file=sys.stderr)
@@ -168,6 +178,15 @@ def main():
             os.unlink(tmp_path)
             shutil.rmtree(tmp_outdir, ignore_errors=True)
 
+    if failed:
+        # A missing structure is an error, not a warning: downstream steps would otherwise
+        # read a structures.txt that silently lacks these sequences.
+        print(
+            f"Error: SPOT-RNA failed for {len(failed)} of {len(sequences)} sequences: "
+            + ", ".join(failed[:10]) + (" ..." if len(failed) > 10 else ""),
+            file=sys.stderr,
+        )
+        sys.exit(1)
     print(f"Done. Results written to {args.output}/", file=sys.stderr)
 
 

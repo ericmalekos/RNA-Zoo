@@ -5,6 +5,7 @@ Takes a FASTA of amino acid sequences + organism name, outputs optimized DNA seq
 """
 
 import argparse
+import os
 import sys
 
 import torch
@@ -58,9 +59,12 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}", file=sys.stderr)
 
-    print("Loading CodonTransformer model...", file=sys.stderr)
-    tokenizer = AutoTokenizer.from_pretrained("adibvafa/CodonTransformer")
-    model = BigBirdForMaskedLM.from_pretrained("adibvafa/CodonTransformer").to(device)
+    # The image bakes the weights into $CODONTRANSFORMER_MODEL; outside the image the
+    # HuggingFace hub name is used (and downloaded on first use).
+    model_path = os.environ.get("CODONTRANSFORMER_MODEL", "adibvafa/CodonTransformer")
+    print(f"Loading CodonTransformer model from {model_path}...", file=sys.stderr)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = BigBirdForMaskedLM.from_pretrained(model_path).to(device)
 
     with open(args.output, "w") as out_f:
         for header, protein_seq in parse_fasta(args.input):
