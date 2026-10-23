@@ -4,12 +4,12 @@ Predict the effect of genetic variants on RNA splicing.
 
 - **Paper:** [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) — Jaganathan et al., "Predicting Splicing from Primary Sequence with Deep Learning"
 - **Upstream:** [github.com/Illumina/SpliceAI](https://github.com/Illumina/SpliceAI)
-- **License:** **Non-commercial only.** Source under [PolyForm Strict 1.0.0](https://github.com/Illumina/SpliceAI/blob/master/LICENSE); bundled weights under CC-BY-NC-4.0. Commercial use requires a license from Illumina. RNAZoo distributes the upstream pip package in the image; downstream users are bound by the same terms.
+- **License:** The image installs SpliceAI 1.3.1 from PyPI. At that release the source is GPL-3.0-or-later and the model weights carry no license statement. The current upstream repository is under [PolyForm Strict 1.0.0](https://github.com/Illumina/SpliceAI/blob/master/LICENSE) (non-commercial) and states that the model weights are CC BY-NC 4.0. Commercial users should obtain a license from Illumina. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
 - **Device:** CPU or GPU. Two image variants:
     - `rnazoo-spliceai:latest` — CUDA-enabled (default, used with `-profile gpu`)
     - `rnazoo-spliceai-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
 
-> **License heads-up:** SpliceAI is the only model in the zoo with non-commercial restrictions on both source and weights. If you are using RNAZoo in a commercial context (drug-development pipelines, paid clinical interpretation, etc.) you must either obtain a commercial license from Illumina or skip this model (don't pass `--spliceai_vcf`).
+> **License heads-up:** SpliceAI's current upstream terms are non-commercial for both source and weights, as are RiboNN's; TranslationAI's weights are CC BY-NC 4.0. If you are using RNAZoo in a commercial context (drug-development pipelines, paid clinical interpretation, etc.) you must either obtain a commercial license from Illumina or skip this model (don't pass `--spliceai_vcf`).
 
 ## What it does
 

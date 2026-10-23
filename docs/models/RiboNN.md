@@ -1,15 +1,15 @@
 # RiboNN
 
-Predict translation efficiency (TE) from mRNA sequence across 82 human cell types/tissues.
+Predict translation efficiency (TE) from mRNA sequence across 78 human cell types and tissues.
 
 - **Paper:** [Nature Biotechnology 2025](https://www.nature.com/articles/s41587-025-02712-x)
 - **Upstream:** https://github.com/Sanofi-Public/RiboNN
-- **License:** Apache 2.0
+- **License:** Sanofi academic, non-commercial license for both the code ([LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/LICENSE)) and the model weights ([MODEL WEIGHTS LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/MODEL%20WEIGHTS%20LICENSE.txt)). The grant covers use, copying, modification and merging for academic or non-profit, non-commercial purposes only. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
 - **Device:** CPU or GPU (CPU works, GPU faster)
 
 ## What it does
 
-RiboNN is a multi-task neural network that predicts translation efficiency from mRNA sequence (5'UTR + CDS + 3'UTR). It outputs TE predictions for 82 human (or mouse) cell types/tissues simultaneously.
+RiboNN is a multi-task neural network that predicts translation efficiency from mRNA sequence (5'UTR + CDS + 3'UTR). It outputs TE predictions for the 78 human cell types of its human model simultaneously (the mouse model has 68).
 
 ## Input format
 

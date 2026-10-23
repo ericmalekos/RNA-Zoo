@@ -20,8 +20,8 @@ The image bundles all seven checkpoints. Select with `--orthrus_variant`:
 
 | Variant flag | HuggingFace repo | Embed dim | Notes |
 |---|---|---|---|
-| `4track` *(default)* | `antichronology/orthrus-4-track` | 512-d | Canonical sequence-only model (Nature Methods publication) |
-| `large-4track` | `quietflamingo/orthrus-large-4-track` | 512-d | Alternative 512-d checkpoint |
+| `4track` | `antichronology/orthrus-4-track` | 512-d | Canonical sequence-only model (Nature Methods publication); the default before v1.0.0 |
+| `large-4track` *(default)* | `quietflamingo/orthrus-large-4-track` | 512-d | Default from v1.0.0. In the RNA-Zoo evaluations it retrieved human to mouse orthologs (recall at rank 1 0.89 against 0.04 for `4track`) and separated coding from lncRNA transcripts (AUROC 0.98 against 0.69) far better than `4track` |
 | `base-4track` | `quietflamingo/orthrus-base-4-track` | 256-d | Smaller/faster; half the embedding size |
 
 All three use one-hot nucleotide encoding (A/C/G/T, 4 channels) and require only a FASTA — no annotation.
@@ -151,7 +151,7 @@ Under `-profile cpu` the process logs a warning and skips. Results appear in `re
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--orthrus_variant` | `4track` | Model variant — see variant table above. |
+| `--orthrus_variant` | `large-4track` | Model variant; see the variant table above. |
 | `--orthrus_annotation` | `null` | Annotation TSV (name, cds_start, cds_end[, exon_lengths]) for 6-track variants. |
 | `--orthrus_gtf` | `null` | GTF/GFF file to auto-derive annotation for 6-track variants. |
 | `--orthrus_per_token` | `false` | Also output per-token (L × D) embeddings per sequence. |

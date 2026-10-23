@@ -3,9 +3,9 @@
 CLI wrapper for Orthrus mature-mRNA embedding extraction.
 
 4-track variants (sequence-only, FASTA input only):
-  4track       antichronology/orthrus-4-track       512-d  [default]
+  4track       antichronology/orthrus-4-track       512-d
   base-4track  quietflamingo/orthrus-base-4-track   256-d
-  large-4track quietflamingo/orthrus-large-4-track  512-d
+  large-4track quietflamingo/orthrus-large-4-track  512-d  [default]
 
 6-track variants (FASTA + CDS/splice annotation required):
   6track       antichronology/orthrus-6-track        512-d  contrastive
@@ -35,7 +35,7 @@ import torch
 from transformers import AutoModel
 
 WEIGHTS_ROOT = "/opt/orthrus_weights"
-DEFAULT_VARIANT = "4track"
+DEFAULT_VARIANT = "large-4track"
 
 VARIANTS = {
     # 4-track: sequence-only

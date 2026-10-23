@@ -6,7 +6,7 @@ Single-sequence ab initio RNA 3D structure prediction with a composite RNA langu
 - **GitHub:** [`leeyang/DRfold2`](https://github.com/leeyang/DRfold2)
 - **Source archive (citation):** [Zenodo 18401691](https://zenodo.org/records/18401691) (DRfold2-V1.02 source code, 836 kB — not the weights)
 - **Weights:** 1.3 GB `model_hub.tar.gz` baked into the image at build time from upstream's `zhanggroup.org` plain HTTPS endpoint; no Zenodo/HF mirror exists yet
-- **License:** MIT (declared in upstream README body; **no LICENSE file on the repo** — flagged for redistribution review). Bundled `Arena` refinement utility (cloned from [pylelab/Arena](https://github.com/pylelab/Arena)) has **no declared license** on its upstream — see "Limitations" below.
+- **License:** MIT, as stated in the upstream README (the repository has no LICENSE file); the model weights carry no license statement. The bundled `Arena` refinement utility ([pylelab/Arena](https://github.com/pylelab/Arena)) declares no license. The RNA-Zoo image is redistributed with the permission of the model's authors; see "Limitations" below.
 - **Device:** GPU only. Auto-skipped under `-profile cpu` with a warning.
     - `rnazoo-drfold2:latest` — single image; ~5 GB compressed
     - No CPU image (the 4-model ensemble + IPA + Arena refinement is not feasible on CPU)
