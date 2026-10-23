@@ -6,7 +6,7 @@ authors:
   - family-names: Malekos
     given-names: Eric
     email: ericmalekos@gmail.com
-version: 1.0.0
+version: 1.0.1
 license: MIT
 repository-code: "https://github.com/ericmalekos/RNA-Zoo"
 keywords:

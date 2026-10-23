@@ -1,6 +1,18 @@
 # Changelog
 
-## 1.0.0 (unreleased)
+## 1.0.1 (2026-10-23)
+
+### Fixed
+- The Saluki images failed to build for 1.0.0: basenji's `requirements.txt` pins nothing, and
+  pybedtools 0.12.1 (released 2026-08-26) does not build on the images' Python 3.8. The Saluki
+  Dockerfiles now check out basenji at a fixed commit (`06ce5d3`) and install its requirements
+  under `Dockerfiles/constraints/saluki.txt`, the package versions of the previously published
+  Saluki image. The model code is unchanged.
+- `bin/saluki_predict.py` was not executable, so the pipeline could not run the new Saluki
+  wrapper (the 1.0.0 pipeline test failed on this); `scripts/check_model_count.py` and
+  `scripts/pin_container_digests.py` are executable too.
+
+## 1.0.0 (2026-10-23)
 
 ### Changed
 - Orthrus loads the large 4-track checkpoint (`quietflamingo/orthrus-large-4-track`) by

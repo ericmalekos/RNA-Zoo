@@ -4,15 +4,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git wget unzip && \
     rm -rf /var/lib/apt/lists/*
 
-# Clone basenji (contains Saluki model code, inference scripts, and dependencies)
-RUN git clone --depth 1 https://github.com/calico/basenji.git /opt/basenji
+# Clone basenji (contains Saluki model code, inference scripts, and dependencies) at a fixed
+# commit; its model code (rnann.py, layers.py, blocks.py) is identical to the validated image's
+ARG BASENJI_COMMIT=06ce5d387e20b47184d05433b3983163c5f923cd
+RUN git init -q /opt/basenji && \
+    git -C /opt/basenji remote add origin https://github.com/calico/basenji.git && \
+    git -C /opt/basenji fetch -q --depth 1 origin ${BASENJI_COMMIT} && \
+    git -C /opt/basenji checkout -q FETCH_HEAD
 
 WORKDIR /opt/basenji
 
 # Install basenji deps, then add the source to PYTHONPATH directly.
 # `pip install .` (non-editable) doesn't copy source for this package, and
 # `-e .` creates .egg-link that Docker layers don't preserve reliably.
-RUN pip install --no-cache-dir -r requirements.txt
+# Versions held at the validated image's (see the constraints file).
+COPY Dockerfiles/constraints/saluki.txt /tmp/saluki_constraints.txt
+RUN pip install --no-cache-dir -r requirements.txt -c /tmp/saluki_constraints.txt
 ENV PYTHONPATH="/opt/basenji:$PYTHONPATH"
 
 # Download Saluki datasets.zip from Zenodo (~18.8 GB). Extract ONLY the model
