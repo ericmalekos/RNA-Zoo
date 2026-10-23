@@ -17,13 +17,16 @@ RUN mamba create -n tristan -c conda-forge -y \
 # Install CUDA-enabled PyTorch (>=2.4 required for
 # torch.serialization.add_safe_globals used by transcript_transformer v1.1.1).
 RUN /opt/conda/envs/tristan/bin/pip install --no-cache-dir \
-        "torch>=2.4" --index-url https://download.pytorch.org/whl/cu121
+        "torch==2.5.1" --index-url https://download.pytorch.org/whl/cu121
 
 # transcript_transformer ships its pretrained weights inside the wheel
 # (transcript_transformer/pretrained/{rt,tt}_models/*.ckpt, ~110 MB total),
 # so `pip install` alone bakes them into the image — no runtime download.
 # Installed from the v1.1.1 git tag for reproducibility.
+# Dependencies held at the validated image's versions (see the constraints file).
+COPY Dockerfiles/constraints/tristan.txt /tmp/tristan_constraints.txt
 RUN /opt/conda/envs/tristan/bin/pip install --no-cache-dir \
+        -c /tmp/tristan_constraints.txt \
         "git+https://github.com/TRISTAN-ORF/TRISTAN.git@v1.1.1"
 
 # Patch upstream bug in transcript_transformer/data.py:

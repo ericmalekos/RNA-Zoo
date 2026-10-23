@@ -20,8 +20,13 @@ RUN mamba create -n calm -c pytorch -c conda-forge -y \
 ENV PATH="/opt/conda/envs/calm/bin:$PATH"
 ENV CONDA_DEFAULT_ENV=calm
 
-RUN git clone --depth 1 https://github.com/oxpig/CaLM.git /opt/calm_repo && \
-    /opt/conda/envs/calm/bin/pip install --no-cache-dir --no-build-isolation -e /opt/calm_repo
+# CaLM at a fixed commit (upstream's last, 2024-10-20), its dependencies held at the validated
+# image's versions (see the constraints file).
+COPY Dockerfiles/constraints/calm.txt /tmp/calm_constraints.txt
+RUN git clone https://github.com/oxpig/CaLM.git /opt/calm_repo && \
+    git -C /opt/calm_repo checkout -q 24187ea44744ca548b747ad262058f3463589f8e && \
+    /opt/conda/envs/calm/bin/pip install --no-cache-dir --no-build-isolation \
+        -c /tmp/calm_constraints.txt -e /opt/calm_repo
 
 RUN mkdir -p /opt/calm_weights && \
     wget -q --tries=3 --timeout=120 \

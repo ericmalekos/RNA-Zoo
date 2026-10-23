@@ -8,6 +8,13 @@
   Dockerfiles now check out basenji at a fixed commit (`06ce5d3`) and install its requirements
   under `Dockerfiles/constraints/saluki.txt`, the package versions of the previously published
   Saluki image. The model code is unchanged.
+- The 1.0.0 rebuild of every image pulled the newest versions of unpinned dependencies. RiboTIE
+  broke (polars 2.0 removed an API that transcript_transformer uses), and CaLM's CPU image
+  replaced its CPU torch 2.2 with a CUDA build of torch 2.14. Both now install under
+  constraints holding every package at the version of the previously published image
+  (`Dockerfiles/constraints/{tristan,calm}.txt`), with torch pinned (RiboTIE 2.5.1, CaLM 2.2)
+  and CaLM's repository at a fixed commit. A test of the other rebuilt CPU images on the
+  pipeline's test data found no failure.
 - `bin/saluki_predict.py` was not executable, so the pipeline could not run the new Saluki
   wrapper (the 1.0.0 pipeline test failed on this); `scripts/check_model_count.py` and
   `scripts/pin_container_digests.py` are executable too.

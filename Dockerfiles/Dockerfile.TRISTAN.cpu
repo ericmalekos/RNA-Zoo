@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # remove `cpuonly`.
 RUN mamba create -n tristan -c pytorch -c conda-forge -y \
         python=3.10 \
-        "pytorch>=2.4" \
+        "pytorch=2.5.1" \
         "numpy<2" \
         cpuonly \
         pip \
@@ -22,7 +22,10 @@ RUN mamba create -n tristan -c pytorch -c conda-forge -y \
 # (transcript_transformer/pretrained/{rt,tt}_models/*.ckpt, ~110 MB total),
 # so `pip install` alone bakes them into the image — no runtime download.
 # We install from the v1.1.1 git tag for reproducibility.
+# Dependencies held at the validated image's versions (see the constraints file).
+COPY Dockerfiles/constraints/tristan.txt /tmp/tristan_constraints.txt
 RUN /opt/conda/envs/tristan/bin/pip install --no-cache-dir \
+        -c /tmp/tristan_constraints.txt \
         "git+https://github.com/TRISTAN-ORF/TRISTAN.git@v1.1.1"
 
 # Patch upstream bug in transcript_transformer/data.py:

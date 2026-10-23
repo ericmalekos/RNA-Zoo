@@ -1,0 +1,26 @@
+# pip constraints for the CaLM images (Dockerfile.CaLM and Dockerfile.CaLM.cpu).
+# The package versions of the validated rnazoo-calm image (pulled 2026-05-30), without torch
+# and its CUDA libraries, which each Dockerfile pins itself. Unpinned, the 1.0.0 rebuild
+# of the CPU image replaced its CPU torch 2.2 with a CUDA build of torch 2.14.
+torch<2.3
+absl-py==1.0.0
+biopython==1.87
+CaLM==0.1.2
+certifi==2026.4.22
+charset-normalizer==3.4.7
+docker==5.0.0
+einops==0.8.2
+filelock==3.25.2
+fsspec==2026.2.0
+idna==3.13
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+mpmath==1.3.0
+networkx==3.4.2
+numpy==1.26.4
+packaging==26.2
+requests==2.33.1
+rotary-embedding-torch==0.8.9
+sympy==1.14.0
+typing_extensions==4.15.0
+urllib3==2.6.3
