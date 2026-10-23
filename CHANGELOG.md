@@ -10,8 +10,8 @@
   input channel from exon lengths (`--saluki_exons`), as the model was trained, writes
   `predictions.tsv` beside `preds.npy`, and documents the output as Saluki's unitless
   consensus half-life score, not log2 half-life. Outputs move to `saluki/saluki_out/`.
-- TranslationAI uses its CPU image under both profiles: its TensorFlow 1.15 GPU image does no
-  work on current GPUs.
+- TranslationAI uses its CPU image under both profiles: its command-line entry point sets
+  `CUDA_VISIBLE_DEVICES=-1`, so the GPU image never used a GPU.
 - Every process requests `--task_cpus` CPUs (default 4), and the thread limits of OpenMP, MKL,
   OpenBLAS, NumExpr, TensorFlow, Rayon and Numba inside each container follow it.
   `TF_FORCE_GPU_ALLOW_GROWTH`, `TMPDIR=/tmp` and `TRITON_CACHE_DIR` are set in every
