@@ -4,7 +4,9 @@ Extract codon-level embeddings from a 12-layer transformer pretrained on cross-o
 
 - **Paper:** [Nature Machine Intelligence 2024](https://doi.org/10.1038/s42256-024-00791-0) — Outeiral & Deane, "Codon language embeddings provide strong signals for use in protein engineering"
 - **GitHub:** [`oxpig/CaLM`](https://github.com/oxpig/CaLM)
-- **License:** BSD-3-Clause (code + weights)
+- **License:** BSD-3-Clause (code). The weights, downloaded from opig.stats.ox.ac.uk, carry no
+  license statement in the repository or the paper, so their commercial use and redistribution
+  are unclear.
 - **Device:** CPU or GPU. Two image variants:
     - `rnazoo-calm:latest` — CUDA-enabled (default, used with `-profile gpu`)
     - `rnazoo-calm-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)
@@ -104,13 +106,13 @@ for label, emb in zip(labels, embeddings):
 
 | Model | Embedding | Pooling | Tokenization | Training set | Max input | Bundled license |
 |-------|-----------|---------|--------------|--------------|-----------|-----------------|
-| RNA-FM | 640-d | Mean (excl CLS+EOS) | Single nt | 23M ncRNAs (RNAcentral) | 1022 nt | MIT |
-| RiNALMo | 1280-d | Mean (excl CLS+EOS) | Single nt | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | Apache-2.0 |
-| ERNIE-RNA | 768-d | [CLS] | Single nt | 20M ncRNAs (RNAcentral) | 1022 nt | MIT |
+| RNA-FM | 640-d | Mean (excl CLS+EOS) | Single nt | 23M ncRNAs (RNAcentral) | 1022 nt | MIT (code) + Apache-2.0 (weights) |
+| RiNALMo | 1280-d | Mean (excl CLS+EOS) | Single nt | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | Apache-2.0 (code) + CC BY 4.0 (weights) |
+| ERNIE-RNA | 768-d | [CLS] | Single nt | 20M ncRNAs (RNAcentral) | 1022 nt | MIT (code); weights: none stated |
 | RNAErnie | 768-d | Mean (excl CLS+SEP) | Single nt | 23M ncRNAs (RNAcentral) | 2046 nt | Apache-2.0 |
 | Orthrus | 512-d | Mean (`mean_unpadded`) | Single nt (Mamba SSM) | 32.7M mRNAs (GENCODE+RefSeq) | unbounded (linear mem) | MIT |
 | PlantRNA-FM | 480-d | Mean (excl CLS+EOS) | Single nt | ~25M plant RNAs (1124 species) | 1024 nt | MIT |
-| **CaLM** | **768-d** | **Mean (excl CLS+EOS)** | **Codon (3-letter)** | **Cross-organism CDSs (ENA codingseqs)** | **1024 codons (~3 kb)** | **BSD-3-Clause** |
+| **CaLM** | **768-d** | **Mean (excl CLS+EOS)** | **Codon (3-letter)** | **Cross-organism CDSs (ENA codingseqs)** | **1024 codons (~3 kb)** | **BSD-3-Clause (code); weights: none stated** |
 
 CaLM is the zoo's only **codon-level** foundation model. The other six tokenize at the nucleotide level — which loses reading-frame structure unless the downstream head reconstructs it. For protein-engineering and CDS-level tasks (translation efficiency, expression, solubility, thermal stability), codon tokenization is the natural inductive bias.
 

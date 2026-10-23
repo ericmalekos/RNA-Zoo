@@ -12,6 +12,16 @@
   wrapper (the 1.0.0 pipeline test failed on this); `scripts/check_model_count.py` and
   `scripts/pin_container_digests.py` are executable too.
 
+### Documentation
+- The license statements in the README, the model overview and the model pages now separate
+  code from weights wherever their terms differ, as the overview's license table already did:
+  CaLM, ERNIE-RNA and SPOT-RNA state no license for their weights (CaLM's page had applied
+  BSD-3-Clause to them); RNA-FM's weights are Apache-2.0, RiNALMo's and SpliceBERT's CC BY 4.0;
+  Riboformer and RiboTIE are MIT for code and weights. The same corrections reach the module
+  and wrapper comments (CaLM, DRfold2, SpliceAI) and the images' `licenses` labels: images
+  whose weights state no terms (CaLM, DRfold2, SpliceAI) are labeled `NOASSERTION` with the
+  details in their description, SpliceBERT `BSD-3-Clause AND CC-BY-4.0`.
+
 ## 1.0.0 (2026-10-23)
 
 ### Changed

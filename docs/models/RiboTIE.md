@@ -4,7 +4,7 @@ Detect translated ORFs from ribo-seq + genomic sequence using a transformer mode
 
 - **Paper:** [Nature Communications 2025](https://www.nature.com/articles/s41467-025-56543-0)
 - **Upstream:** https://github.com/TRISTAN-ORF/TRISTAN (v1.1.1)
-- **License:** Upstream repository license
+- **License:** MIT (code and weights)
 - **Device:** CPU or GPU. Two image variants:
     - `rnazoo-tristan:latest` — CUDA-enabled (default, used with `-profile gpu`, recommended for real datasets)
     - `rnazoo-tristan-cpu:latest` — CPU-only (smaller, used with `-profile cpu`, viable for small datasets)

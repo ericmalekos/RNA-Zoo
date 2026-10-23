@@ -89,4 +89,4 @@ See the [Direct Docker guide](direct-docker.md) for invocations of every model.
 
 ## License
 
-RNAZoo pipeline code is open source. Individual models carry their own licenses — see each model's page for details. Most are MIT/Apache-2.0; some have non-commercial restrictions noted on their pages.
+The RNA-Zoo pipeline code is released under the MIT License. Each model keeps its own terms for its code, weights and container image, stated on its page: some forbid commercial use, and for some the weights carry no license statement, which leaves their use unclear.

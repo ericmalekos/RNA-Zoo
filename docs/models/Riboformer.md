@@ -4,7 +4,7 @@ Predict and refine codon-level ribosome densities from ribo-seq data.
 
 - **Paper:** [Nature Communications 2024](https://www.nature.com/articles/s41467-024-46241-8)
 - **Upstream:** https://github.com/lingxusb/Riboformer
-- **License:** Upstream repository license
+- **License:** MIT (code and weights)
 - **Device:** CPU or GPU. Two image variants:
     - `rnazoo-riboformer:latest` — CUDA-enabled (default, used with `-profile gpu`)
     - `rnazoo-riboformer-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)

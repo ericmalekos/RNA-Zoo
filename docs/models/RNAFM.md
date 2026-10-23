@@ -4,7 +4,7 @@ Extract general-purpose RNA embeddings from sequence using a pretrained foundati
 
 - **Paper:** [arXiv 2022](https://arxiv.org/abs/2204.00300) — "Interpretable RNA Foundation Model from Unannotated Data for Highly Accurate RNA Structure and Function Predictions" (Chen et al.)
 - **Upstream:** https://github.com/ml4bio/RNA-FM
-- **License:** MIT
+- **License:** MIT (code), Apache-2.0 (weights)
 - **Device:** CPU or GPU. Two image variants:
     - `rnazoo-rnafm:latest` — CUDA-enabled (default, used with `-profile gpu`)
     - `rnazoo-rnafm-cpu:latest` — CPU-only (smaller, used with `-profile cpu`)

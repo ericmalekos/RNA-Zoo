@@ -12,9 +12,11 @@ Inputs:
 Output:
 - Annotated VCF where the INFO field carries SpliceAI delta scores + positions
 
-License note: SpliceAI's source is PolyForm Strict 1.0.0 and the bundled
-weights are CC BY-NC 4.0. This image is for non-commercial use only;
-contact AI_licensing@illumina.com for commercial use.
+License note: the image installs SpliceAI 1.3.1, whose source is GPL-3.0-or-later
+and whose bundled weights carry no license statement. Later upstream releases
+are PolyForm Strict 1.0.0 (code) and CC BY-NC 4.0 (weights), non-commercial;
+Illumina (AI_licensing@illumina.com) licenses them for commercial use. The
+RNA-Zoo image is redistributed with the authors' permission.
 """
 
 import argparse

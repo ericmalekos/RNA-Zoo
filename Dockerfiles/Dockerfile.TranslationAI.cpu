@@ -5,7 +5,7 @@ FROM tensorflow/tensorflow:1.15.5-py3
 # Pretrained model weights: CC BY-NC 4.0 (non-commercial only)
 # See: https://github.com/rnasys/TranslationAI/blob/main/LICENSE
 LABEL org.opencontainers.image.source="https://github.com/rnasys/TranslationAI"
-LABEL org.opencontainers.image.licenses="AGPL-3.0-only AND LicenseRef-CC-BY-NC-4.0"
+LABEL org.opencontainers.image.licenses="AGPL-3.0-only AND CC-BY-NC-4.0"
 LABEL org.opencontainers.image.title="TranslationAI"
 LABEL org.opencontainers.image.description="Predict TIS/TTS/ORFs from mRNA sequence. Model weights are CC BY-NC 4.0 (non-commercial only)."
 

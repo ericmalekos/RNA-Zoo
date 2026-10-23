@@ -4,7 +4,9 @@ Extract structure-aware RNA embeddings using a pretrained language model with 2D
 
 - **Paper:** [Nature Communications 2025](https://www.nature.com/articles/s41467-025-64972-0)
 - **Upstream:** https://github.com/Bruce-ywj/ERNIE-RNA
-- **License:** MIT
+- **License:** MIT (code). The pretrained weights carry no license statement (the README's
+  license sentence names the source code only), so their commercial use and redistribution are
+  unclear.
 - **Device:** CPU or GPU (~86M params, 12 layers, 768-d embeddings). Single image — fairseq 0.12.2's `torchaudio` dep upgrades torch to a CUDA-enabled wheel during the pip install, so the image works on both CPU and GPU at runtime despite the conda spec declaring `cpuonly`.
 
 ## What it does

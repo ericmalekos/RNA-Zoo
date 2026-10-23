@@ -103,9 +103,9 @@ for label, emb in zip(labels, embeddings):
 
 | Model | Embedding | Pooling | Architecture | Training set | Max input | Bundled license |
 |-------|-----------|---------|--------------|--------------|-----------|-----------------|
-| RNA-FM | 640-d | Mean (excl CLS+EOS) | 12-layer transformer | 23M ncRNAs (RNAcentral) | 1022 nt | MIT |
-| RiNALMo | 1280-d | Mean (excl CLS+EOS) | 33-layer transformer (650M params) | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | Apache-2.0 |
-| ERNIE-RNA | 768-d | [CLS] | 12-layer + structure-aware attention | 20M ncRNAs (RNAcentral) | 1022 nt | MIT |
+| RNA-FM | 640-d | Mean (excl CLS+EOS) | 12-layer transformer | 23M ncRNAs (RNAcentral) | 1022 nt | MIT (code) + Apache-2.0 (weights) |
+| RiNALMo | 1280-d | Mean (excl CLS+EOS) | 33-layer transformer (650M params) | 36M ncRNAs (RNAcentral) | ~11k nt (memory-bound) | Apache-2.0 (code) + CC BY 4.0 (weights) |
+| ERNIE-RNA | 768-d | [CLS] | 12-layer + structure-aware attention | 20M ncRNAs (RNAcentral) | 1022 nt | MIT (code); weights: none stated |
 | RNAErnie | 768-d | Mean (excl CLS+SEP) | 12-layer transformer + motif-aware MLM | 23M ncRNAs (RNAcentral) | 2046 nt | Apache-2.0 |
 | Orthrus | 512-d | Mean (`mean_unpadded`) | Mamba SSM (10M params) | 32.7M mRNAs (GENCODE+RefSeq) | unbounded (linear mem) | MIT |
 | **PlantRNA-FM** | **480-d** | **Mean (excl CLS+EOS)** | **12-layer ESM transformer (35M params)** | **~25M plant RNAs (1124 species)** | **1024 nt** | **MIT** |

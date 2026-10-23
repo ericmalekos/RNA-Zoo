@@ -5,8 +5,8 @@
     Paper: Li et al., 2025 (preprint; "Ab initio RNA structure prediction with
            composite language model and denoised end-to-end learning")
     License: MIT (declared in upstream README; no LICENSE file on the repo).
-             Bundled Arena binary has NO LICENSE on its upstream repo (pylelab/Arena)
-             — flag in docs before pushing to ghcr.
+             The weights and the bundled Arena (pylelab/Arena) carry no license
+             statement; the image is redistributed with the authors' permission.
     Input: FASTA of RNA sequences. GPU-only.
     Output: <safe_label>.pdb per sequence
 ========================================================================================

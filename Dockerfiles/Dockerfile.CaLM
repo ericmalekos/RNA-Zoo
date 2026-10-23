@@ -1,9 +1,9 @@
 FROM condaforge/miniforge3:latest
 
 LABEL org.opencontainers.image.source="https://github.com/oxpig/CaLM"
-LABEL org.opencontainers.image.licenses="BSD-3-Clause"
+LABEL org.opencontainers.image.licenses="NOASSERTION"
 LABEL org.opencontainers.image.title="calm"
-LABEL org.opencontainers.image.description="Codon adaptation Language Model (Outeiral & Deane, NMI 2024). 12-layer 768-dim codon-level RNA LM trained on cross-organism CDS sequences."
+LABEL org.opencontainers.image.description="Codon adaptation Language Model (Outeiral & Deane, NMI 2024). 12-layer 768-dim codon-level RNA LM trained on cross-organism CDS sequences. Code BSD-3-Clause; the weights carry no license statement."
 
 RUN apt-get update && apt-get install -y --no-install-recommends git wget ca-certificates && \
     rm -rf /var/lib/apt/lists/*

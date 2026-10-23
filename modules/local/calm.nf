@@ -3,7 +3,8 @@
     CALM module: extract codon-level embeddings from CaLM (Codon adaptation LM).
     Upstream: https://github.com/oxpig/CaLM
     Paper: Outeiral & Deane, Nature Machine Intelligence 2024 (s42256-024-00791-0)
-    License: BSD-3-Clause (code), BSD-3-Clause (weights, OPIG redistribution OK)
+    License: BSD-3-Clause (code); the weights carry no license statement, so their
+             commercial use and redistribution are unclear
     Input: FASTA of RNA / CDS sequences (max 1024 codons each)
     Output: sequence_embeddings.npy (N x 768), labels.txt
 ========================================================================================

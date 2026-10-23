@@ -4,7 +4,9 @@ Predict RNA secondary structure including pseudoknots and non-canonical base pai
 
 - **Paper:** [Nature Communications 2019](https://doi.org/10.1038/s41467-019-13395-9)
 - **Upstream:** https://github.com/jaswindersingh2/SPOT-RNA
-- **License:** MPL-2.0
+- **License:** MPL-2.0 (code). The model archive is hosted outside the repository and states no
+  terms of its own; the README names MPL-2.0 for the project without saying whether it covers
+  the archive, so commercial use and redistribution of the weights are unclear.
 - **Device:** CPU or GPU (5-model TensorFlow ensemble). Before 1.0.0 the wrapper always ran
   SPOT-RNA on 4 CPU threads; it now uses the GPU under `-profile gpu` and the task's CPUs.
   Two image variants:

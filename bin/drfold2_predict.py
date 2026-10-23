@@ -11,10 +11,9 @@ followed by Selection.py + Optimization.py + Arena. Single-sequence runtime
 on a consumer GPU is ~10-30 min for 30-50 nt and scales nonlinearly with
 length — see docs/models/DRfold2.md for details.
 
-License: MIT (DRfold2 itself, declared in upstream README body — no LICENSE
-file on the repo). Arena is bundled at build time with NO LICENSE on its
-upstream — flagged for documentation, not pushed to ghcr until a license
-is confirmed.
+License: MIT for DRfold2's code, as stated in the upstream README (no LICENSE
+file). The weights and Arena, which is bundled at build time, carry no license
+statement; the RNA-Zoo image is redistributed with the authors' permission.
 """
 
 import argparse

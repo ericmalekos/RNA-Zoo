@@ -12,21 +12,21 @@ RNAZoo includes 23 RNA deep learning models across 6 tracks: 13 task programs an
 | [TranslationAI](TranslationAI.md) | Translation | TIS/TTS/ORF prediction | FASTA (mRNA) | TIS/TTS/ORF text files | CPU/GPU | AGPL-3.0 + CC BY-NC 4.0 |
 | [Saluki](Saluki.md) | Translation | mRNA half-life (consensus score) | FASTA (case=UTR/CDS) + optional exon lengths | TSV + NumPy array | CPU/GPU | Apache-2.0 + CC BY 4.0 |
 | [CodonTransformer](CodonTransformer.md) | Translation | Codon optimization | FASTA (protein) | FASTA (DNA) | CPU/GPU | Apache 2.0 |
-| [RNA-FM](RNAFM.md) | Foundation | RNA embeddings (640-d) | FASTA (RNA) | NumPy (N x 640) | CPU/GPU | MIT |
-| [RiNALMo](RiNALMo.md) | Foundation | RNA embeddings (1280-d) | FASTA (RNA) | NumPy (N x 1280) | CPU/GPU | Apache 2.0 |
-| [ERNIE-RNA](ERNIERNA.md) | Foundation | Structure-aware embeddings (768-d) | FASTA (RNA) | NumPy (N x 768) | CPU/GPU | MIT |
+| [RNA-FM](RNAFM.md) | Foundation | RNA embeddings (640-d) | FASTA (RNA) | NumPy (N x 640) | CPU/GPU | MIT (code) + Apache-2.0 (weights) |
+| [RiNALMo](RiNALMo.md) | Foundation | RNA embeddings (1280-d) | FASTA (RNA) | NumPy (N x 1280) | CPU/GPU | Apache-2.0 (code) + CC BY 4.0 (weights) |
+| [ERNIE-RNA](ERNIERNA.md) | Foundation | Structure-aware embeddings (768-d) | FASTA (RNA) | NumPy (N x 768) | CPU/GPU | MIT (code); weights: none stated |
 | [Orthrus](Orthrus.md) | Foundation | Mamba mRNA embeddings (3 variants: 256–512-d) | FASTA (RNA) | NumPy (N x D) | **GPU only** | MIT |
 | [HydraRNA](HydraRNA.md) | Foundation | Hybrid Hydra-SSM + MHA full-length RNA embeddings (1024-d) | FASTA (RNA; 10,240-nt chunks, averaged) | NumPy (N x 1024) | **GPU only** | MIT |
 | [RNAErnie](RNAErnie.md) | Foundation | Motif-aware RNA embeddings (768-d) | FASTA (RNA) | NumPy (N x 768) | CPU/GPU | Apache-2.0 (HF port) |
 | [PlantRNA-FM](PlantRNAFM.md) | Foundation | Plant-only RNA embeddings (480-d) | FASTA (RNA) | NumPy (N x 480) | CPU/GPU | MIT |
-| [CaLM](CaLM.md) | Foundation | Codon-level RNA embeddings (768-d) | FASTA (CDS, codon-aligned) | NumPy (N x 768) | CPU/GPU | BSD-3-Clause |
+| [CaLM](CaLM.md) | Foundation | Codon-level RNA embeddings (768-d) | FASTA (CDS, codon-aligned) | NumPy (N x 768) | CPU/GPU | BSD-3-Clause (code); weights: none stated |
 | [mRNABERT](mRNABERT.md) | Foundation | Hybrid UTR/CDS mRNA embeddings (768-d) | FASTA (mRNA, auto-ORF) | NumPy (N x 768) | CPU/GPU | Apache-2.0 |
 | [RhoFold](RhoFold.md) | Structure | 3D structure prediction | FASTA (RNA) | PDB + CT | CPU/GPU | Apache 2.0 |
-| [SPOT-RNA](SPOTRNA.md) | Structure | 2D structure + pseudoknots | FASTA (RNA) | bpseq + CT + prob + dot-bracket | CPU/GPU | MPL-2.0 |
-| [DRfold2](DRfold2.md) | Structure (Tier 2) | Single-seq ab initio 3D | FASTA (RNA) | PDB | **GPU only** | MIT (README) |
+| [SPOT-RNA](SPOTRNA.md) | Structure | 2D structure + pseudoknots | FASTA (RNA) | bpseq + CT + prob + dot-bracket | CPU/GPU | MPL-2.0 (code); weights: none stated |
+| [DRfold2](DRfold2.md) | Structure (Tier 2) | Single-seq ab initio 3D | FASTA (RNA) | PDB | **GPU only** | MIT (README); weights and Arena: none stated |
 | [Pangolin](Pangolin.md) | Splicing | Tissue-specific variant-effect splice scores | VCF/CSV + reference FASTA + gffutils DB | Annotated VCF/CSV | CPU/GPU | GPL-3.0 |
 | [SpliceAI](SpliceAI.md) | Splicing | Variant-effect splicing predictions | VCF + reference FASTA + annotation | Annotated VCF (4-class delta) | CPU/GPU | GPL-3.0-or-later (release 1.3.1) |
-| [SpliceBERT](SpliceBERT.md) | Splicing | Vertebrate primary-RNA embeddings (512-d) | FASTA (RNA) | NumPy (N x 512) | CPU/GPU | BSD-3-Clause |
+| [SpliceBERT](SpliceBERT.md) | Splicing | Vertebrate primary-RNA embeddings (512-d) | FASTA (RNA) | NumPy (N x 512) | CPU/GPU | BSD-3-Clause (code) + CC BY 4.0 (weights) |
 | [MultiRM](MultiRM.md) | Modification | 12 RNA modification types | FASTA (RNA, min 51 nt) | TSV (probabilities + p-values) | CPU/GPU | MIT |
 | [UTR-LM](UTRLM.md) | mRNA Design | MRL / TE / expression level | FASTA (5'UTR DNA) | TSV (predictions) | CPU/GPU | GPL-3.0 |
 
@@ -47,14 +47,14 @@ Models for predicting translation efficiency, ribosome profiling, ORF detection,
 
 General-purpose RNA language models that produce embeddings for downstream tasks.
 
-- **[RNA-FM](RNAFM.md)** — 99M params, 640-d embeddings, max 1022 nt (MIT)
-- **[RiNALMo](RiNALMo.md)** — 650M params, 1280-d embeddings, no hard length limit (Apache 2.0)
-- **[ERNIE-RNA](ERNIERNA.md)** — 86M params, 768-d embeddings, structure-aware attention (MIT)
+- **[RNA-FM](RNAFM.md)** — 99M params, 640-d embeddings, max 1022 nt (MIT code, Apache-2.0 weights)
+- **[RiNALMo](RiNALMo.md)** — 650M params, 1280-d embeddings, no hard length limit (Apache-2.0 code, CC BY 4.0 weights)
+- **[ERNIE-RNA](ERNIERNA.md)** — 86M params, 768-d embeddings, structure-aware attention (MIT code; no license stated for the weights)
 - **[Orthrus](Orthrus.md)** — Mamba SSM (~10M params), 256–512-d embeddings (3 4-track variants), unbounded input (linear memory), **GPU only** (MIT)
 - **[HydraRNA](HydraRNA.md)**: hybrid Hydra-SSM + MHA (~84M params), 1024-d embeddings, 10,240 nt per pass with longer inputs chunked and averaged, **GPU only** (MIT)
 - **[RNAErnie](RNAErnie.md)** — 12-layer transformer, 768-d embeddings, motif-aware MLM, max 2046 nt (Apache-2.0 HF port)
 - **[PlantRNA-FM](PlantRNAFM.md)**: 34M-param ESM transformer, 480-d embeddings, plant-only training (1124 species), max 1024 nt (MIT)
-- **[CaLM](CaLM.md)** — 12-layer codon-level transformer (~86M params), 768-d embeddings, max 1024 codons (~3 kb) (BSD-3-Clause)
+- **[CaLM](CaLM.md)** — 12-layer codon-level transformer (~86M params), 768-d embeddings, max 1024 codons (~3 kb) (BSD-3-Clause code; no license stated for the weights)
 - **[mRNABERT](mRNABERT.md)**: 12-layer MosaicBERT (113M params) with hybrid UTR/CDS tokenization + ALiBi extrapolation, 768-d embeddings, max 1,022 tokens, one per UTR nucleotide or CDS codon (Apache-2.0)
 
 ### RNA Structure (3 models)
@@ -69,7 +69,7 @@ Secondary and 3D structure prediction from sequence.
 
 - **[Pangolin](Pangolin.md)** — Variant-effect splicing predictor trained on 4 tissues (heart/liver/brain/testis) across human + mouse + rhesus + rat; complements SpliceAI with tissue-aware scores (GPL-3.0)
 - **[SpliceAI](SpliceAI.md)** — 32-layer dilated CNN, ±5 kb context per variant; 4-class delta scores (acceptor/donor gain/loss) on annotated genes (release 1.3.1: GPL-3.0-or-later code, no license stated for the weights; later upstream releases: PolyForm Strict 1.0.0 + CC BY-NC 4.0)
-- **[SpliceBERT](SpliceBERT.md)** — 6-layer/512-d BERT pretrained on 2M+ vertebrate primary RNAs (72 species), 1024 nt context (BSD-3-Clause)
+- **[SpliceBERT](SpliceBERT.md)** — 6-layer/512-d BERT pretrained on 2M+ vertebrate primary RNAs (72 species), 1024 nt context (BSD-3-Clause code, CC BY 4.0 weights)
 
 ### RNA Modification (1 model)
 

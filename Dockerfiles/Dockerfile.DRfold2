@@ -1,9 +1,9 @@
 FROM condaforge/miniforge3:latest
 
 LABEL org.opencontainers.image.source="https://github.com/leeyang/DRfold2"
-LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.licenses="NOASSERTION"
 LABEL org.opencontainers.image.title="drfold2"
-LABEL org.opencontainers.image.description="Single-sequence ab initio RNA 3D structure prediction (Li et al. 2025). 4-model deep-learning ensemble + IPA-based geometry optimization + Arena coarse-grain-to-atomic refinement."
+LABEL org.opencontainers.image.description="Single-sequence ab initio RNA 3D structure prediction (Li et al. 2025). 4-model deep-learning ensemble + IPA-based geometry optimization + Arena coarse-grain-to-atomic refinement. Code MIT as stated in the upstream README (no LICENSE file); the weights and the bundled Arena carry no license statement; redistributed with the authors' permission."
 
 # build-essential + clang for Arena (a C++ chain refinement utility
 # that DRfold2 calls at the final relaxation step). Arena's Makefile
