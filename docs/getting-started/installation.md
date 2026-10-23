@@ -70,6 +70,13 @@ for img in ribonn-cpu riboformer-cpu tristan-cpu translationai-cpu saluki-cpu \
 done
 ```
 
+The `:latest` tags move with every change. To run the exact images of a release, add its
+digest-pinned config, which works with either profile:
+
+```bash
+nextflow -c conf/containers_v1.0.1.config run main.nf -profile docker,cpu --rnafm_input input.fa
+```
+
 To run the images without Nextflow, see [Direct Docker usage](../direct-docker.md).
 
 ## Profiles

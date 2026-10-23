@@ -10,6 +10,12 @@
   and are not tested.
 - Removed the benchmark page and its weekly workflow, which had been disabled after 16 failed runs.
 
+### Added
+- `conf/containers_v1.0.1.config` pins every image to its v1.0.1 registry digest; pass it with
+  `nextflow -c` to run exactly the release images. `scripts/pin_container_digests.py` now writes
+  each choice between the CPU and GPU image as a closure: written as a plain expression, a config
+  given with `-c` picked the GPU images even under `-profile cpu`.
+
 ## 1.0.1 (2026-10-23)
 
 ### Fixed

@@ -7,7 +7,8 @@ registry for the manifest digest of --tag (read-only, anonymous) and writes a co
 overrides each process's container with image@sha256:<digest>, so a run is reproducible even
 after the moving tags change. A missing tag is an error; nothing is written in that case.
 
-usage: pin_container_digests.py --tag 1.0.0 [--out conf/containers_v1.0.0.config]
+usage: pin_container_digests.py --tag v1.0.1 --out conf/containers_v1.0.1.config
+       then run with: nextflow -c conf/containers_v1.0.1.config run main.nf -profile ...
 """
 import argparse
 import json
@@ -61,8 +62,10 @@ def main() -> int:
             except Exception as e:  # report every failure, write nothing
                 errors.append(f"{repo}:{a.tag}: {e}")
         if len(pinned) == 2:
-            lines.append(f"    withName: '{name}' {{ container = params.device == 'cpu' "
-                         f"? '{pinned[0]}' : '{pinned[1]}' }}")
+            # A closure, evaluated per task: in a file given with -c, a plain expression is
+            # evaluated before -profile cpu sets params.device and would pick the GPU image.
+            lines.append(f"    withName: '{name}' {{ container = {{ params.device == 'cpu' "
+                         f"? '{pinned[0]}' : '{pinned[1]}' }} }}")
         elif len(pinned) == 1:
             lines.append(f"    withName: '{name}' {{ container = '{pinned[0]}' }}")
     lines.append("}")
