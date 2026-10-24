@@ -6,7 +6,9 @@ Predict translation initiation sites (TIS), translation termination sites (TTS),
 - **Upstream:** https://github.com/rnasys/TranslationAI
 - **License:** AGPL-3.0 (source code) + CC BY-NC 4.0 (model weights, non-commercial only)
 - **Device:** CPU. The pipeline runs `rnazoo-translationai-cpu` under both profiles, because
-  TranslationAI's command-line entry point hides every GPU (`CUDA_VISIBLE_DEVICES=-1`).
+  TranslationAI's command-line entry point hides every GPU (`CUDA_VISIBLE_DEVICES=-1`). Leave
+  it hidden: in a test with the GPU visible (TensorFlow 1.15, NVIDIA RTX A5500), every transcript
+  got the same wrong scores, with no error, and the run was about ten times slower.
 
 ## What it does
 
