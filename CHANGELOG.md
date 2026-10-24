@@ -28,6 +28,11 @@
   which the backbone's names carry an `esm2.` prefix. Such a file now loads into the backbone;
   whole-predictor checkpoints load as before. The log reports how many tensors loaded, and the
   run stops with an error before training when any backbone tensor does not load.
+- Orthrus stopped before running whenever neither `--orthrus_annotation` nor `--orthrus_gtf`
+  was given, which is the default, with `input file name collision -- There are multiple input
+  files for each of the following file names: NO_FILE`: the workflow gave both optional inputs
+  the same placeholder. Each now has its own (`assets/NO_FILE`, `assets/NO_FILE_GTF`). The GPU
+  test profile, which runs Orthrus without either file, failed the same way.
 
 ### Changed
 - UTR-LM fine-tuning trains as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...`

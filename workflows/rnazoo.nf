@@ -206,12 +206,14 @@ workflow RNAZOO {
         if (params.device == 'cpu') {
             log.warn "Orthrus requires a GPU — skipping under CPU mode"
         } else {
+            // Two distinct placeholders: two inputs both named NO_FILE are an input file
+            // name collision, which stopped every Orthrus run given neither file.
             def orthrus_annotation_ch = params.orthrus_annotation
                 ? Channel.fromPath(params.orthrus_annotation, checkIfExists: true)
-                : Channel.of(file('NO_FILE'))
+                : Channel.of(file("${projectDir}/assets/NO_FILE", checkIfExists: true))
             def orthrus_gtf_ch = params.orthrus_gtf
                 ? Channel.fromPath(params.orthrus_gtf, checkIfExists: true)
-                : Channel.of(file('NO_FILE'))
+                : Channel.of(file("${projectDir}/assets/NO_FILE_GTF", checkIfExists: true))
             ORTHRUS(
                 Channel.fromPath(params.orthrus_input, checkIfExists: true),
                 orthrus_annotation_ch,
