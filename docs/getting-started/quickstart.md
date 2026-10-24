@@ -92,7 +92,8 @@ nextflow run main.nf -profile docker,cpu \
   --rnafm_finetune_label te
 ```
 
-See [Fine Tuning](../finetuning.md). The fine-tuning modules of RiboNN and UTR-LM currently fail.
+See [Fine Tuning](../finetuning.md), which also covers the fine-tuning modules of RiboNN and
+UTR-LM.
 
 ## Without Nextflow
 

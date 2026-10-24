@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from esm.data import Alphabet
+from esm.data import Alphabet, FastaBatchedDataset
 from esm.model.esm2_secondarystructure import ESM2 as ESM2_SISS
 from esm.model.esm2_supervised import ESM2 as ESM2_SI
 from torch.utils.data import DataLoader, Dataset
@@ -70,10 +70,12 @@ class UTRDataset(Dataset):
 
     def collate(self, batch):
         seqs, labels = zip(*batch, strict=True)
-        # Use alphabet batch converter (returns 6 items)
+        # UTR-LM's batch converter takes each sequence as the 4 fields that its
+        # FastaBatchedDataset yields (label, sequence, masked sequence, masked positions);
+        # mask_prob=0 leaves the sequences unmasked, as in upstream fine-tuning.
+        records = FastaBatchedDataset(labels, seqs, mask_prob=0.0)
         bc = self.alphabet.get_batch_converter()
-        dummy_labels = list(range(len(seqs)))
-        result = bc(list(zip(dummy_labels, seqs, strict=True)))
+        result = bc([records[i] for i in range(len(records))])  # returns 6 items
         tokens = result[3]  # index 3 = tokens
         return tokens, torch.tensor(labels, dtype=torch.float32)
 

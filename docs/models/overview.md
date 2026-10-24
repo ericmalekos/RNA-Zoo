@@ -78,8 +78,8 @@ The nine foundation models can train a linear, MLP or XGBoost head on their froz
 and your labels; see the [Fine Tuning guide](../finetuning.md). SpliceBERT has no fine-tuning
 parameters. RiboTIE fine-tunes its pretrained models on each sample's reads in every run.
 [RiboNN](RiboNN.md#fine-tuning-on-your-own-data) and
-[UTR-LM](UTRLM.md#fine-tuning-on-your-own-data) have their own fine-tuning modules, but both
-currently fail and are not tested; a fix is planned for a later release.
+[UTR-LM](UTRLM.md#fine-tuning-on-your-own-data) have their own fine-tuning modules, and the
+test profile runs both.
 
 ## Licenses
 

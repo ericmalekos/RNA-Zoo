@@ -214,18 +214,22 @@ def main():
 
         # Save predictions for test fold. Manual inference avoids a Lightning
         # dataloader re-instantiation bug that fires against RiboNN's custom
-        # DataLoader subclass.
+        # DataLoader subclass. trainer.test() returns the model in train mode
+        # (dropout on, BatchNorm on batch statistics), so switch back to eval.
+        # Read the fold's rows from the test loader (data_test order), not from
+        # dm.predict_dataloader(): upstream's make_dataloader sets
+        # dm.target_column_pattern to None for it, after which every later fold's
+        # batches have no targets and validation_step fails ("too many values to
+        # unpack").
+        model.eval()
         preds_list = []
         with torch.no_grad():
-            for batch in dm.predict_dataloader():
-                out = model(batch)
-                preds_list.append(out.cpu())
+            for x, _ in dm.test_dataloader():
+                preds_list.append(model(x).cpu().reshape(-1))
         if preds_list:
             fold_preds = data_test[["tx_id"]].copy()
             fold_preds["fold"] = test_fold
-            fold_preds[f"predicted_{args.target}"] = (
-                torch.cat([p.squeeze() for p in preds_list]).numpy()[: len(data_test)]
-            )
+            fold_preds[f"predicted_{args.target}"] = torch.cat(preds_list).numpy()
             all_predictions.append(fold_preds)
 
     # Save combined predictions

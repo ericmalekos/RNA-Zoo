@@ -59,6 +59,12 @@ jobs:
           test -f results_test/splicebert/splicebert_out/sequence_embeddings.npy
           ls results_test/spliceai/spliceai_out/*.spliceai.vcf
           ls results_test/pangolin/pangolin_out/
+          # Fine-tuning: RiboNN (one checkpoint per fold) and UTR-LM
+          test -f results_test/ribonn_finetune/ribonn_finetune_out/predictions.tsv
+          ls results_test/ribonn_finetune/ribonn_finetune_out/fold0/*.ckpt
+          ls results_test/ribonn_finetune/ribonn_finetune_out/fold1/*.ckpt
+          test -f results_test/utrlm_finetune/utrlm_finetune_out/predictions.tsv
+          test -f results_test/utrlm_finetune/utrlm_finetune_out/best_model.pt
           echo "All 20 model outputs verified."
 
       - name: Upload test results

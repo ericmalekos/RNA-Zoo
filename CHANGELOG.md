@@ -8,13 +8,37 @@
   encoded as `<unk>`. The wrapper now turns U into T, as upstream's own example does, and the
   model sees all four bases. Embeddings from earlier releases differ from the corrected ones and
   should be recomputed.
+- RiboNN fine-tuning stopped at the start of the second cross-validation fold, with
+  `ValueError: too many values to unpack (expected 2)` in upstream RiboNN's `validation_step`.
+  The wrapper predicted each held-out fold through upstream's `predict_dataloader()`, which also
+  clears the data module's target column, so from the second fold on every batch came without
+  its targets. The wrapper now predicts the held-out fold from the test loader, which leaves
+  the target column in place. It also switches the model back to eval mode before predicting: Lightning's
+  `trainer.test()` returns the model in training mode, and held-out predictions made with
+  dropout on did not reproduce the fold's own test metrics. On the test data, the metrics of
+  `predictions.tsv` now match the test metrics that each fold logs. The two-phase transfer
+  learning itself is unchanged.
+- UTR-LM fine-tuning failed at the first batch with `ValueError: not enough values to unpack
+  (expected 4, got 2)`: the wrapper gave UTR-LM's batch converter two fields per sequence, but
+  the converter reads the four that UTR-LM's `FastaBatchedDataset` yields. The wrapper now
+  builds each batch through `FastaBatchedDataset`, unmasked, as upstream's fine-tuning does.
+  Training is unchanged.
+
+### Changed
+- The test profile, and with it the CI pipeline test, runs RiboNN fine-tuning (2 folds, 1 epoch
+  per phase) on `tests/data/ribonn_finetune.tsv` and UTR-LM fine-tuning (2 epochs) on
+  `tests/data/utrlm_finetune.csv`; the CI step checks their outputs.
 
 ### Documentation
 - The home page, model overview, fine-tuning guide, quickstart, installation and direct-Docker
   pages were checked against the code and the model pages, corrected and shortened. The
   direct-Docker commands for Saluki, TranslationAI, RiboNN and SPOT-RNA on a GPU were wrong; the
-  GPU-only models are Orthrus, HydraRNA and DRfold2; RiboNN and UTR-LM fine-tuning currently fail
-  and are not tested.
+  GPU-only models are Orthrus, HydraRNA and DRfold2.
+- The RiboNN and UTR-LM pages, the fine-tuning guide, the quickstart and the model overview no
+  longer say that RiboNN and UTR-LM fine-tuning fail. The UTR-LM page states that
+  `--utrlm_finetune_pretrained` takes a checkpoint of the whole predictor: the pretraining
+  checkpoints in `/opt/utrlm/Model/Pretrained/` match none of its parameter names, so none of
+  their weights load.
 - Removed the benchmark page and its weekly workflow, which had been disabled after 16 failed runs.
 
 ### Added

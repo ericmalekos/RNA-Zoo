@@ -103,5 +103,7 @@ holds `tx_id` and `predicted_<target>` only.
 ## Limitations
 
 - Fine-tuning starts from the human model only.
-- Fine-tuning is not in the test profile: `conf/test.config` records that it failed on
-  `tests/data/ribonn_finetune.tsv` in upstream RiboNN's `validation_step`.
+- The test profile fine-tunes on `tests/data/ribonn_finetune.tsv` (200 synthetic transcripts,
+  2 folds, 1 epoch per phase). This checks that the module runs, not what it learns. Releases
+  up to 1.0.1 stopped at the second fold; see the
+  [changelog](https://github.com/ericmalekos/RNA-Zoo/blob/main/CHANGELOG.md).

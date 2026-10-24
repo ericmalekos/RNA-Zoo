@@ -106,12 +106,17 @@ absolute path as `--utrlm_checkpoint` with the same `--utrlm_task`.
 | `--utrlm_finetune_val_frac` | `0.2` | Fraction of rows held out for validation |
 | `--utrlm_finetune_pretrained` | `null` | Checkpoint to start from; without it, training starts from random weights |
 
-**Known issue:** fine-tuning fails at the first batch (`ValueError: not enough values to unpack
-(expected 4, got 2)`): `bin/utrlm_finetune.py` gives UTR-LM's batch converter two fields per
-sequence instead of four. The [head trainer](../finetuning.md) on foundation-model embeddings is
-an alternative.
+The test profile fine-tunes on `tests/data/utrlm_finetune.csv` (200 synthetic 5' UTRs, 2
+epochs). This checks that the module runs, not what it learns. Releases up to 1.0.1 failed at
+the first batch; see the
+[changelog](https://github.com/ericmalekos/RNA-Zoo/blob/main/CHANGELOG.md).
 
 ## Limitations
 
+- `--utrlm_finetune_pretrained` loads checkpoints of the whole predictor, such as a
+  `best_model.pt` from an earlier run or the bundled files in `/opt/utrlm/Model/Downstream/`.
+  The pretraining checkpoints in `/opt/utrlm/Model/Pretrained/` hold the transformer alone,
+  under other parameter names: none of their weights load, although the log reports them
+  loaded, and training starts from random weights.
 - For `el` with `Muscle`, two checkpoints match each fold; the wrapper takes whichever the file
   system lists first.

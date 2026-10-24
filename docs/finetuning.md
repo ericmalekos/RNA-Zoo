@@ -161,6 +161,6 @@ tests check that every step runs and the metrics are finite, not how well the he
 - **[UTR-LM](models/UTRLM.md#fine-tuning-on-your-own-data):** trains the model and its head on
   5' UTRs with a numeric label.
 
-RiboNN and UTR-LM fine-tuning currently fail, and neither is in a test profile:
-`conf/test.config` records a shape mismatch in upstream RiboNN's validation step and a
-batch-format error in the UTR-LM script. A fix is planned for a later release.
+The test profile runs RiboNN and UTR-LM fine-tuning on small synthetic tables. In releases up
+to 1.0.1 neither ran to the end; see the
+[changelog](https://github.com/ericmalekos/RNA-Zoo/blob/main/CHANGELOG.md).
