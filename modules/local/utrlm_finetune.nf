@@ -30,6 +30,7 @@ process UTRLM_FINETUNE {
         --lr ${params.utrlm_finetune_lr} \
         --batch-size ${params.utrlm_finetune_batch_size} \
         --val-frac ${params.utrlm_finetune_val_frac} \
+        --seed ${params.utrlm_finetune_seed} \
         --model-dir /opt/utrlm/Model \
         ${pretrained_flag}
     """

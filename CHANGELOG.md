@@ -41,6 +41,10 @@
   GC fraction of the scored 50 nt: standard deviation 0.0001 against the labels' 0.62); at the
   new defaults the model learns that label (validation Pearson correlation 0.99). The UTR-LM
   page lists where the training still differs from upstream's scripts.
+- UTR-LM fine-tuning seeds every random draw with `--utrlm_finetune_seed` (default 1337, the seed
+  of upstream's fine-tuning scripts): the train/validation split, the initialization of new
+  weights, the batch order and dropout. A run with the same seed, input, CPU model and number of
+  CPU threads now repeats exactly. The split follows the seed; it used a fixed seed of 42 before.
 - The test profile, and with it the CI pipeline test, runs RiboNN fine-tuning (2 folds, 1 epoch
   per phase) on `tests/data/ribonn_finetune.tsv` and UTR-LM fine-tuning (2 epochs) on
   `tests/data/utrlm_finetune.csv`; the CI step checks their outputs.

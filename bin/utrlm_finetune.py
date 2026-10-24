@@ -12,6 +12,7 @@ Output: fine-tuned model checkpoint + predictions on held-out test set
 
 import argparse
 import os
+import random
 import sys
 
 import numpy as np
@@ -201,10 +202,24 @@ def main():
         "--model-dir", default="/opt/utrlm/Model",
         help="Path to Model directory",
     )
+    parser.add_argument(
+        "--seed", type=int, default=1337,
+        help="Seed of every random draw: the train/validation split, initialization, batch "
+        "order and dropout (default: 1337, upstream's)",
+    )
     args = parser.parse_args()
 
+    # Upstream's fine-tuning seeds Python, NumPy and torch with `--seed`, default 1337 (MJ3 lines
+    # 43 and 79 to 85, MJ4 lines 45 and 78 to 84). Here the seed also draws the train/validation
+    # split and the order of the training batches, so a run repeats exactly given the same seed,
+    # input, CPU model and number of CPU threads (other ones change the rounding).
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)  # the CPU and every CUDA device
+    torch.backends.cudnn.deterministic = True
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}", file=sys.stderr)
+    print(f"Using device: {device}, seed {args.seed}", file=sys.stderr)
 
     os.makedirs(args.output, exist_ok=True)
 
@@ -229,7 +244,7 @@ def main():
     # Train/val split
     n = len(sequences)
     n_val = max(1, int(n * args.val_frac))
-    indices = np.random.RandomState(42).permutation(n)
+    indices = np.random.RandomState(args.seed).permutation(n)
     val_idx = indices[:n_val]
     train_idx = indices[n_val:]
 
@@ -246,8 +261,12 @@ def main():
         alphabet, inp_len,
     )
 
+    # The batch order comes from a generator of its own, so it does not depend on how many
+    # numbers initialization and dropout take from torch's global one. Batches are built in the
+    # main process (no loader workers), so there is nothing else to seed.
     train_loader = DataLoader(
-        train_ds, batch_size=args.batch_size, shuffle=True, collate_fn=train_ds.collate
+        train_ds, batch_size=args.batch_size, shuffle=True, collate_fn=train_ds.collate,
+        generator=torch.Generator().manual_seed(args.seed),
     )
     val_loader = DataLoader(
         val_ds, batch_size=args.batch_size, shuffle=False, collate_fn=val_ds.collate

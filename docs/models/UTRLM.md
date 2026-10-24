@@ -89,6 +89,11 @@ CSV), as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...` for TE 
   `ESM2SI_3.1_..._MLMLossMin.pkl` for `te` and `el`.
 - The whole model trains with SGD (momentum 0.9, weight decay 1e-4) on the Huber loss, without a
   learning-rate schedule.
+- Every random draw (the train/validation split, the initialization of new weights, the batch
+  order and dropout) follows `--utrlm_finetune_seed`, 1337 by default as in upstream's scripts.
+  A run with the same seed, input, CPU model and number of CPU threads repeats exactly; another
+  thread count or CPU model changes the rounding of the arithmetic, and with it the results
+  slightly (by about 2e-6 in the predictions on the test data).
 
 ```bash
 nextflow run main.nf -profile docker,cpu \
@@ -113,6 +118,7 @@ absolute path as `--utrlm_checkpoint` with the same `--utrlm_task`.
 | `--utrlm_finetune_batch_size` | `32` | Batch size |
 | `--utrlm_finetune_val_frac` | `0.2` | Fraction of rows held out for validation |
 | `--utrlm_finetune_pretrained` | `null` | Starting weights: `null` for the task's pretrained backbone, `none` for random weights, or a file (below) |
+| `--utrlm_finetune_seed` | `1337` | Seed of every random draw: split, initialization, batch order, dropout |
 
 `--utrlm_finetune_pretrained` also takes a pretraining checkpoint, which holds the backbone alone
 (for example another file in `/opt/utrlm/Model/Pretrained/`), or a whole predictor, whose head is
@@ -132,7 +138,6 @@ Where training still differs from upstream's scripts, and why:
 - **Stopping and selection:** at most 100 epochs, stopping after 20 without a lower validation
   loss and keeping the weights with the lowest one, which bounds the run time; upstream runs 300
   epochs and keeps the weights with the highest validation Spearman correlation.
-- **Seeds:** none are set, so runs differ; upstream seeds every random generator with 1337.
 
 The test profile fine-tunes on `tests/data/utrlm_finetune.csv` (200 synthetic 5' UTRs, 2
 epochs). This checks that the module runs, not what it learns. Releases up to 1.0.1 failed at
