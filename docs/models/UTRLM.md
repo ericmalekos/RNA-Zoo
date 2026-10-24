@@ -79,8 +79,16 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/utrlm/utrlm_
 
 ## Fine-tuning on your own data
 
-Trains the backbone and head on a table with a `utr` column and a numeric label column (read as
-tab-separated only if the file name ends in `.tsv`, otherwise as CSV):
+Fine-tunes UTR-LM's pretrained backbone and a new head on a table with a `utr` column and a
+numeric label column (read as tab-separated only if the file name ends in `.tsv`, otherwise as
+CSV), as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...` for TE and EL, in
+`Scripts/UTRLM_downstream/`):
+
+- Training starts from the pretrained backbone that upstream's README fine-tunes for the task,
+  in `/opt/utrlm/Model/Pretrained/`: `ESM2SISS_FS4.1_..._epoch93.pkl` for `mrl`,
+  `ESM2SI_3.1_..._MLMLossMin.pkl` for `te` and `el`.
+- The whole model trains with SGD (momentum 0.9, weight decay 1e-4) on the Huber loss, without a
+  learning-rate schedule.
 
 ```bash
 nextflow run main.nf -profile docker,cpu \
@@ -98,13 +106,33 @@ absolute path as `--utrlm_checkpoint` with the same `--utrlm_task`.
 |-----------|---------|-------------|
 | `--utrlm_finetune_input` | `null` | Training table |
 | `--utrlm_finetune_label` | `null` (required) | Label column |
-| `--utrlm_finetune_task` | `mrl` | `mrl`, `te` or `el`; sets the backbone variant and scored length |
+| `--utrlm_finetune_task` | `mrl` | `mrl`, `te` or `el`; sets the backbone variant, its pretrained weights and the scored length |
 | `--utrlm_finetune_epochs` | `100` | Maximum epochs |
 | `--utrlm_finetune_patience` | `20` | Early-stopping patience (epochs) |
-| `--utrlm_finetune_lr` | `0.01` | Adam learning rate |
+| `--utrlm_finetune_lr` | `0.01` | SGD learning rate |
 | `--utrlm_finetune_batch_size` | `32` | Batch size |
 | `--utrlm_finetune_val_frac` | `0.2` | Fraction of rows held out for validation |
-| `--utrlm_finetune_pretrained` | `null` | Checkpoint to start from; without it, training starts from random weights |
+| `--utrlm_finetune_pretrained` | `null` | Starting weights: `null` for the task's pretrained backbone, `none` for random weights, or a file (below) |
+
+`--utrlm_finetune_pretrained` also takes a pretraining checkpoint, which holds the backbone alone
+(for example another file in `/opt/utrlm/Model/Pretrained/`), or a whole predictor, whose head is
+loaded too: a `best_model.pt` from an earlier run or a file in `/opt/utrlm/Model/Downstream/`.
+The log reports how many tensors loaded, and the run stops before training if any backbone
+tensor does not load. Only the output layers of the pretraining objectives
+(`supervised_linear`, `structure_linear`), which the predictor does not use, may be missing from
+the file or left over. The path must be visible inside the container.
+
+Where training still differs from upstream's scripts, and why:
+
+- **Split:** one random split by `--utrlm_finetune_val_frac`, since the module returns one
+  model; upstream cross-validates over 10 folds (the README's MRL command trains the first only).
+- **Batches:** `--utrlm_finetune_batch_size` UTRs per batch, as the parameter has always meant;
+  upstream fills each batch with up to 4,096 tokens of UTRs of similar length (about 80 UTRs of
+  50 nt, or 40 of 100 nt).
+- **Stopping and selection:** at most 100 epochs, stopping after 20 without a lower validation
+  loss and keeping the weights with the lowest one, which bounds the run time; upstream runs 300
+  epochs and keeps the weights with the highest validation Spearman correlation.
+- **Seeds:** none are set, so runs differ; upstream seeds every random generator with 1337.
 
 The test profile fine-tunes on `tests/data/utrlm_finetune.csv` (200 synthetic 5' UTRs, 2
 epochs). This checks that the module runs, not what it learns. Releases up to 1.0.1 failed at
@@ -113,10 +141,5 @@ the first batch; see the
 
 ## Limitations
 
-- `--utrlm_finetune_pretrained` loads checkpoints of the whole predictor, such as a
-  `best_model.pt` from an earlier run or the bundled files in `/opt/utrlm/Model/Downstream/`.
-  The pretraining checkpoints in `/opt/utrlm/Model/Pretrained/` hold the transformer alone,
-  under other parameter names: none of their weights load, although the log reports them
-  loaded, and training starts from random weights.
 - For `el` with `Muscle`, two checkpoints match each fold; the wrapper takes whichever the file
   system lists first.

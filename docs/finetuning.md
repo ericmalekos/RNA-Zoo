@@ -158,8 +158,8 @@ tests check that every step runs and the metrics are finite, not how well the he
   training.
 - **[RiboNN](models/RiboNN.md#fine-tuning-on-your-own-data):** transfer learning from the
   pretrained human model to a new TE column, with cross-validation.
-- **[UTR-LM](models/UTRLM.md#fine-tuning-on-your-own-data):** trains the model and its head on
-  5' UTRs with a numeric label.
+- **[UTR-LM](models/UTRLM.md#fine-tuning-on-your-own-data):** fine-tunes the pretrained model
+  and a new head on 5' UTRs with a numeric label, as upstream's fine-tuning scripts do.
 
 The test profile runs RiboNN and UTR-LM fine-tuning on small synthetic tables. In releases up
 to 1.0.1 neither ran to the end; see the

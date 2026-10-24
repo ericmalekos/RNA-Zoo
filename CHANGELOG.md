@@ -13,18 +13,34 @@
   The wrapper predicted each held-out fold through upstream's `predict_dataloader()`, which also
   clears the data module's target column, so from the second fold on every batch came without
   its targets. The wrapper now predicts the held-out fold from the test loader, which leaves
-  the target column in place. It also switches the model back to eval mode before predicting: Lightning's
-  `trainer.test()` returns the model in training mode, and held-out predictions made with
-  dropout on did not reproduce the fold's own test metrics. On the test data, the metrics of
-  `predictions.tsv` now match the test metrics that each fold logs. The two-phase transfer
+  the target column in place. It also switches the model back to eval mode before predicting:
+  Lightning's `trainer.test()` returns the model in training mode, and held-out predictions made
+  with dropout on did not reproduce the fold's own test metrics. On the test data, the metrics
+  of `predictions.tsv` now match the test metrics that each fold logs. The two-phase transfer
   learning itself is unchanged.
 - UTR-LM fine-tuning failed at the first batch with `ValueError: not enough values to unpack
   (expected 4, got 2)`: the wrapper gave UTR-LM's batch converter two fields per sequence, but
   the converter reads the four that UTR-LM's `FastaBatchedDataset` yields. The wrapper now
   builds each batch through `FastaBatchedDataset`, unmasked, as upstream's fine-tuning does.
-  Training is unchanged.
+- `--utrlm_finetune_pretrained` with one of the pretraining checkpoints in
+  `/opt/utrlm/Model/Pretrained/` loaded none of its weights (0 of 121 tensors) and still logged
+  them as loaded: the wrapper matched the file's tensor names against the whole predictor, in
+  which the backbone's names carry an `esm2.` prefix. Such a file now loads into the backbone;
+  whole-predictor checkpoints load as before. The log reports how many tensors loaded, and the
+  run stops with an error before training when any backbone tensor does not load.
 
 ### Changed
+- UTR-LM fine-tuning trains as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...`
+  for TE and EL). It uses SGD with momentum 0.9 and weight decay 1e-4 instead of Adam, at the
+  same default learning rate of 0.01, so `--utrlm_finetune_lr` is now an SGD learning rate. By
+  default it starts from the task's pretrained backbone in `/opt/utrlm/Model/Pretrained/`
+  instead of random weights: `ESM2SISS_FS4.1_..._epoch93.pkl` for `mrl` and
+  `ESM2SI_3.1_..._MLMLossMin.pkl` for `te` and `el`, the files of upstream's README.
+  `--utrlm_finetune_pretrained none` keeps random weights. With Adam at 0.01 the predictions
+  collapsed to a near-constant value even for a label computed from the sequence (10 times the
+  GC fraction of the scored 50 nt: standard deviation 0.0001 against the labels' 0.62); at the
+  new defaults the model learns that label (validation Pearson correlation 0.99). The UTR-LM
+  page lists where the training still differs from upstream's scripts.
 - The test profile, and with it the CI pipeline test, runs RiboNN fine-tuning (2 folds, 1 epoch
   per phase) on `tests/data/ribonn_finetune.tsv` and UTR-LM fine-tuning (2 epochs) on
   `tests/data/utrlm_finetune.csv`; the CI step checks their outputs.
@@ -35,10 +51,9 @@
   direct-Docker commands for Saluki, TranslationAI, RiboNN and SPOT-RNA on a GPU were wrong; the
   GPU-only models are Orthrus, HydraRNA and DRfold2.
 - The RiboNN and UTR-LM pages, the fine-tuning guide, the quickstart and the model overview no
-  longer say that RiboNN and UTR-LM fine-tuning fail. The UTR-LM page states that
-  `--utrlm_finetune_pretrained` takes a checkpoint of the whole predictor: the pretraining
-  checkpoints in `/opt/utrlm/Model/Pretrained/` match none of its parameter names, so none of
-  their weights load.
+  longer say that RiboNN and UTR-LM fine-tuning fail. The UTR-LM page describes the starting
+  weights and the choices of `--utrlm_finetune_pretrained`, and where the fine-tuning still
+  differs from upstream's scripts.
 - Removed the benchmark page and its weekly workflow, which had been disabled after 16 failed runs.
 
 ### Added
