@@ -149,8 +149,9 @@ def main():
             # Get last layer embeddings: shape [1, 1, L+2, 768]
             output = model(one_d, two_d, layer_idx=1)
 
-        # CLS token embedding from last layer
-        cls_emb = output[0, 0, 0, :].cpu().numpy()  # (768,)
+        # CLS token embedding from last layer, copied: on the CPU .cpu() returns the same tensor,
+        # and a numpy view would keep each sequence's whole output alive until the end
+        cls_emb = output[0, 0, 0, :].cpu().numpy().copy()  # (768,)
         all_seq_embeddings.append(cls_emb)
         all_labels.append(header)
 

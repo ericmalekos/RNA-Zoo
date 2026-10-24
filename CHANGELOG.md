@@ -33,6 +33,12 @@
   files for each of the following file names: NO_FILE`: the workflow gave both optional inputs
   the same placeholder. Each now has its own (`assets/NO_FILE`, `assets/NO_FILE_GTF`). The GPU
   test profile, which runs Orthrus without either file, failed the same way.
+- ERNIE-RNA's memory under the CPU profile grew by about 18 MiB per sequence (20 GB for 1,000
+  sequences of 512 nt, against 2.4 GB for 10): on the CPU, `.cpu()` returns the same tensor,
+  so each stored embedding was a numpy view that kept its sequence's whole model output
+  alive. The wrapper now copies the 768 values. On 300 sequences the peak fell from 7.3 GB to
+  2.4 GB with identical embeddings. The GPU profile, where `.cpu()` already copies, was not
+  affected.
 
 ### Changed
 - UTR-LM fine-tuning trains as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...`
