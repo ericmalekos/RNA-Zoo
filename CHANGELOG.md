@@ -39,6 +39,14 @@
   alive. The wrapper now copies the 768 values. On 300 sequences the peak fell from 7.3 GB to
   2.4 GB with identical embeddings. The GPU profile, where `.cpu()` already copies, was not
   affected.
+- Saluki's memory grew by about 5 MiB per sequence under both profiles (6.4 GB of RAM and
+  8.9 GB of GPU memory for 1,000 sequences): the wrapper ran Keras `predict()` on one array of
+  every input for each of the 50 ensemble members. It now predicts fixed batches of 32,
+  Keras' own default, through `predict_on_batch()`, and keeps the encoded inputs as booleans
+  until each batch is predicted. For 1,000 sequences on an RTX A5500, GPU memory fell from
+  8.9 GB to 1.4 GB and RAM from 6.5 GB to 1.1 GB, at the same speed; on the CPU the
+  predictions are identical, and on the GPU they differ by about as much as two runs of the
+  released wrapper do (ensemble-mean scores by at most 0.00002).
 
 ### Changed
 - UTR-LM fine-tuning trains as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...`

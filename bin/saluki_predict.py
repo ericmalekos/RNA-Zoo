@@ -130,7 +130,8 @@ def main():
               "splice-junction channel is left at zero, which differs from Saluki's training "
               "input. Give --exons (name, exon_lengths) to set it. First few: "
               + ", ".join(missing[:5]), file=sys.stderr)
-    X = np.stack(rows).astype("float32")
+    X = np.stack(rows)  # bool; each batch is made float32 as it is predicted
+    del rows
 
     model_str = f"model{a.data_head}_best.h5"
     folds = len(glob.glob(f"{a.models}/f*_c0/train/{model_str}"))
@@ -143,7 +144,11 @@ def main():
         for ci in range(crosses):
             model.restore(f"{a.models}/f{fi}_c{ci}/train/{model_str}", a.data_head)
             model.build_ensemble("0")
-            preds.append(model.predict(X))
+            # Fixed batches of 32 (Keras predict's default) through predict_on_batch: predict() on
+            # the whole array held memory that grew with the number of sequences (about 5 MiB
+            # each, under both profiles)
+            preds.append(np.concatenate([model.model.predict_on_batch(X[i:i + 32].astype("float32"))
+                                         for i in range(0, len(X), 32)]))
     P = np.transpose(np.array(preds), [1, 2, 0])      # (N, 1, members)
     np.save(os.path.join(a.output, "preds.npy"), P)
     with open(os.path.join(a.output, "names.txt"), "w") as fh:
