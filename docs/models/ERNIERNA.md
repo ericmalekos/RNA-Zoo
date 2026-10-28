@@ -13,8 +13,8 @@ Extract structure-aware RNA embeddings from a language model with a base-pairing
 
 ERNIE-RNA is a 12-layer BERT-style encoder (width 768, 86 million parameters) whose attention
 carries a base-pairing bias. It was pretrained by masked language modeling on 20.4 million
-non-coding RNAs from RNAcentral. The wrapper returns the last layer's CLS token as a 768-d
-sequence embedding, and optionally one embedding per nucleotide.
+non-coding RNAs from RNAcentral. The wrapper returns a 768-d sequence embedding, the last layer
+averaged over the nucleotides, and optionally one embedding per nucleotide.
 
 ## Input
 
@@ -58,7 +58,8 @@ docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
 ```
 
 For a GPU, add `--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all` (same image).
-Add `--per-token` for per-nucleotide embeddings.
+Add `--per-token` for per-nucleotide embeddings and `--pooling cls` for the CLS token
+instead of the mean.
 
 ## Run with Nextflow
 
@@ -85,6 +86,10 @@ required, and `--ernierna_finetune_embeddings` reuses saved embeddings.
 
 ## Limitations
 
-- The sequence embedding is the CLS token; the other RNA-Zoo embedding models average over
-  positions.
+- Before release 1.0.2 the sequence embedding was the CLS token, as upstream's extraction
+  script returns it. That vector records mostly the first nucleotide of the input: on 5,000 human
+  and mouse transcripts a linear classifier recovers it for every sequence, and the vectors
+  cluster by it. From 1.0.2 the default is the mean over nucleotides, as for the other RNA-Zoo
+  embedding models; `--ernierna_pooling cls` (or `--pooling cls` in the container) restores
+  the CLS token.
 - Upstream's secondary structure, 3D closeness and mean ribosome load models are not included.

@@ -102,6 +102,14 @@ def main():
         default=1022,
         help="Maximum sequence length (default: 1022)",
     )
+    parser.add_argument(
+        "--pooling",
+        choices=("mean", "cls"),
+        default="mean",
+        help="Sequence embedding: the last layer averaged over the nucleotides (default), or the "
+        "CLS token, which upstream's extraction script returns but which records mostly the "
+        "first nucleotide of the input",
+    )
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -149,10 +157,14 @@ def main():
             # Get last layer embeddings: shape [1, 1, L+2, 768]
             output = model(one_d, two_d, layer_idx=1)
 
-        # CLS token embedding from last layer, copied: on the CPU .cpu() returns the same tensor,
-        # and a numpy view would keep each sequence's whole output alive until the end
-        cls_emb = output[0, 0, 0, :].cpu().numpy().copy()  # (768,)
-        all_seq_embeddings.append(cls_emb)
+        # Sequence embedding from the last layer: the mean over the nucleotides (CLS and EOS
+        # excluded) or the CLS token. Copied: on the CPU .cpu() returns the same tensor, and a
+        # numpy view would keep each sequence's whole output alive until the end.
+        if args.pooling == "cls":
+            seq_emb = output[0, 0, 0, :]
+        else:
+            seq_emb = output[0, 0, 1 : seq_len + 1, :].mean(dim=0)
+        all_seq_embeddings.append(seq_emb.cpu().numpy().copy())  # (768,)
         all_labels.append(header)
 
         if args.per_token:

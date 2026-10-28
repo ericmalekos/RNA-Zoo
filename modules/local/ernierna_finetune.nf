@@ -28,7 +28,8 @@ process ERNIERNA_FINETUNE {
         --label-col '${params.ernierna_finetune_label}'
     ernierna_predict.py \\
         -i ernierna_finetune_input.fa \\
-        -o ernierna_embed_dir
+        -o ernierna_embed_dir \\
+        --pooling ${params.ernierna_pooling}
     ${projectDir}/bin/finetune_head.py \\
         -e ernierna_embed_dir/sequence_embeddings.npy \\
         -l ernierna_finetune_input_labels.txt \\

@@ -27,6 +27,7 @@ process ERNIERNA {
         -i ${input_fasta} \
         -o ernierna_out \
         --max-len ${params.ernierna_max_len} \
+        --pooling ${params.ernierna_pooling} \
         ${per_token_flag}
     """
 }

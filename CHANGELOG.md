@@ -49,6 +49,10 @@
   released wrapper do (ensemble-mean scores by at most 0.00002).
 
 ### Changed
+- ERNIE-RNA's sequence embedding is now the last layer averaged over the nucleotides, as for the
+  other embedding models. It was the CLS token, which upstream's extraction script returns but
+  which records mostly the input's first nucleotide (a linear classifier recovers it for all of
+  5,000 human and mouse transcripts). `--ernierna_pooling cls` keeps the old vector.
 - UTR-LM fine-tuning trains as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...`
   for TE and EL). It uses SGD with momentum 0.9 and weight decay 1e-4 instead of Adam, at the
   same default learning rate of 0.01, so `--utrlm_finetune_lr` is now an SGD learning rate. By
