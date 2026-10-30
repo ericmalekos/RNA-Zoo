@@ -48,7 +48,9 @@ def load_model():
 
 def embed_sequence(model, task, seq, device):
     """Return mean-pooled 1024-d embedding; chunks sequences > CHUNK_SIZE."""
-    seq = seq.upper().replace("T", "U")
+    # HydraRNA's dictionary spells RNA with T (dict.txt: A, T, G, C, N, IUPAC codes; no U), so
+    # U becomes T here; a U would encode as <unk>
+    seq = seq.upper().replace("U", "T")
     chunks = [
         seq[i - CHUNK_SIZE: i]
         for i in range(CHUNK_SIZE, len(seq) + CHUNK_SIZE, CHUNK_SIZE)
@@ -119,7 +121,7 @@ def main():
         all_labels.append(header)
 
         if args.per_token:
-            chunk = seq.upper().replace("T", "U")[:CHUNK_SIZE]
+            chunk = seq.upper().replace("U", "T")[:CHUNK_SIZE]
             tokenized = "<s> " + " ".join(list(chunk))
             tokens = task.source_dictionary.encode_line(tokenized, add_if_not_exist=False)
             batch = data.monolingual_dataset.collate(

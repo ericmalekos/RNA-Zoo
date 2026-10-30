@@ -19,8 +19,9 @@ per nucleotide.
 
 ## Input
 
-FASTA; T becomes U. The model reads at most 10,240 nt per pass, so longer sequences are split
-into 10,240 nt chunks and their embeddings averaged. Nothing is truncated.
+FASTA; U becomes T, the alphabet HydraRNA was trained on (its dictionary has no U). The model
+reads at most 10,240 nt per pass, so longer sequences are split into 10,240 nt chunks and their
+embeddings averaged. Nothing is truncated.
 
 Example (`tests/data/rnafm_test.fa`, sequences shortened):
 

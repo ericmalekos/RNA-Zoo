@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+- HydraRNA read every U and T of its input as an unknown token: the wrapper turned T into U, but
+  HydraRNA's dictionary spells RNA with T (A, T, G, C, N and IUPAC codes; no U), so each U was
+  encoded as `<unk>`. The wrapper now turns U into T, as upstream's own example does, and the
+  model sees all four bases. Embeddings from earlier releases differ from the corrected ones and
+  should be recomputed.
+
 ### Documentation
 - The home page, model overview, fine-tuning guide, quickstart, installation and direct-Docker
   pages were checked against the code and the model pages, corrected and shortened. The
