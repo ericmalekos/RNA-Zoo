@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.2 (2026-11-01)
 
 ### Fixed
 - HydraRNA read every U and T of its input as an unknown token: the wrapper turned T into U, but
