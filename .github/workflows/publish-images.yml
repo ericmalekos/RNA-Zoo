@@ -23,13 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - id: set
         env:
           IMAGES: ${{ inputs.images || 'all' }}
           EVENT: ${{ github.event_name }}
           REF: ${{ github.ref }}
+          BEFORE: ${{ github.event.before }}
         run: |
           MATRIX_YAML=$(cat <<'YAML'
           # Translation
@@ -134,8 +135,15 @@ jobs:
             # Branch push: build only images whose Dockerfile changed, or that COPY a file under
             # bin/ that changed (wrappers are baked into /opt/bin, so a wrapper fix must
             # rebuild every image that carries it).
-            CHANGED=$(git diff --name-only HEAD~1 HEAD -- Dockerfiles/ 2>/dev/null || true)
-            for f in $(git diff --name-only HEAD~1 HEAD -- bin/ 2>/dev/null || true); do
+            # Compare the whole push (every commit since the branch's previous head), not only its
+            # last commit; fall back to the parent for a new branch or an unknown previous head.
+            BASE=HEAD~1
+            if [[ -n "$BEFORE" && ! "$BEFORE" =~ ^0+$ ]] && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+              BASE=$BEFORE
+            fi
+            echo "Changes since $BASE"
+            CHANGED=$(git diff --name-only "$BASE" HEAD -- Dockerfiles/ 2>/dev/null || true)
+            for f in $(git diff --name-only "$BASE" HEAD -- bin/ 2>/dev/null || true); do
               CHANGED=$(printf '%s\n%s' "$CHANGED" "$(grep -l "COPY ${f} " Dockerfiles/* || true)")
             done
             CHANGED=$(printf '%s\n' "$CHANGED" | sed '/^$/d' | sort -u)
