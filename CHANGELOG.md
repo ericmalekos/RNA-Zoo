@@ -3,6 +3,11 @@
 ## 1.0.2 (2026-11-01)
 
 ### Fixed
+- ERNIE-RNA returned its second layer, not its last: the wrapper passed `layer_idx=1`, which
+  upstream's `ErnieRNAOnestage` reads as an index into its 12 layer outputs (0 is the first;
+  12 returns all of them). Sequence embeddings, the CLS token and per-token outputs now come from
+  the last layer (`layer_idx=11`), checked against the encoder's final hidden state. Embeddings
+  from earlier releases differ and should be recomputed.
 - HydraRNA read every U and T of its input as an unknown token: the wrapper turned T into U, but
   HydraRNA's dictionary spells RNA with T (A, T, G, C, N and IUPAC codes; no U), so each U was
   encoded as `<unk>`. The wrapper now turns U into T, as upstream's own example does, and the
@@ -50,9 +55,9 @@
 
 ### Changed
 - ERNIE-RNA's sequence embedding is now the last layer averaged over the nucleotides, as for the
-  other embedding models. It was the CLS token, which upstream's extraction script returns but
-  which records mostly the input's first nucleotide (a linear classifier recovers it for all of
-  5,000 human and mouse transcripts). `--ernierna_pooling cls` keeps the old vector.
+  other embedding models. It was the CLS token of the second layer (see Fixed), which records
+  mostly the input's first nucleotide (a linear classifier recovers it for all of 5,000 human and
+  mouse transcripts). `--ernierna_pooling cls` gives the last layer's CLS token.
 - UTR-LM fine-tuning trains as upstream's fine-tuning scripts do (`MJ3_...` for MRL, `MJ4_...`
   for TE and EL). It uses SGD with momentum 0.9 and weight decay 1e-4 instead of Adam, at the
   same default learning rate of 0.01, so `--utrlm_finetune_lr` is now an SGD learning rate. By

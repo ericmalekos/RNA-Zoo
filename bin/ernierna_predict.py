@@ -107,8 +107,7 @@ def main():
         choices=("mean", "cls"),
         default="mean",
         help="Sequence embedding: the last layer averaged over the nucleotides (default), or the "
-        "CLS token, which upstream's extraction script returns but which records mostly the "
-        "first nucleotide of the input",
+        "last layer's CLS token",
     )
     args = parser.parse_args()
 
@@ -154,8 +153,10 @@ def main():
         two_d = two_d.to(device)
 
         with torch.no_grad():
-            # Get last layer embeddings: shape [1, 1, L+2, 768]
-            output = model(one_d, two_d, layer_idx=1)
+            # The last of the 12 layers, shape [1, 1, L+2, 768]: upstream's ErnieRNAOnestage indexes
+            # its 12 layer outputs from 0 (12 returns all of them), so 11 is the last. Releases up
+            # to 1.0.1 passed 1, which is the second layer.
+            output = model(one_d, two_d, layer_idx=11)
 
         # Sequence embedding from the last layer: the mean over the nucleotides (CLS and EOS
         # excluded) or the CLS token. Copied: on the CPU .cpu() returns the same tensor, and a

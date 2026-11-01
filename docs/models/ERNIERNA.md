@@ -86,10 +86,11 @@ required, and `--ernierna_finetune_embeddings` reuses saved embeddings.
 
 ## Limitations
 
-- Before release 1.0.2 the sequence embedding was the CLS token, as upstream's extraction
-  script returns it. That vector records mostly the first nucleotide of the input: on 5,000 human
+- Before release 1.0.2 the sequence embedding was the CLS token of the second of the 12
+  layers: the wrapper passed `layer_idx=1`, which upstream's model reads as an index into its
+  layer outputs. That vector records mostly the first nucleotide of the input: on 5,000 human
   and mouse transcripts a linear classifier recovers it for every sequence, and the vectors
-  cluster by it. From 1.0.2 the default is the mean over nucleotides, as for the other RNA-Zoo
-  embedding models; `--ernierna_pooling cls` (or `--pooling cls` in the container) restores
-  the CLS token.
+  cluster by it. From 1.0.2 every output comes from the last layer, and the default is the mean
+  over nucleotides, as for the other RNA-Zoo embedding models; `--ernierna_pooling cls` (or
+  `--pooling cls` in the container) gives the last layer's CLS token.
 - Upstream's secondary structure, 3D closeness and mean ribosome load models are not included.

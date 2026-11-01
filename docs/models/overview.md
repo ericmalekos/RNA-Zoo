@@ -59,7 +59,7 @@ sequence in `sequence_embeddings.npy`, the names in `labels.txt`, and one vector
 | [SpliceBERT](SpliceBERT.md) | 19.4M | 512 | Over 2M primary RNAs from 72 vertebrates | 1,024 nt |
 
 Inputs over the limit are truncated with a warning. The sequence embedding is the mean over
-positions, without the start and end tokens; ERNIE-RNA instead returns its CLS token.
+positions, without the start and end tokens (ERNIE-RNA can return its CLS token instead).
 
 ### RNA structure
 
