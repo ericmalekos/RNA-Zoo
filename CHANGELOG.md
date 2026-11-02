@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.4 (2026-11-02)
 
 ### Fixed
 - Orthrus `--per-token` (`--orthrus_per_token true`) stopped with an AttributeError for the default
