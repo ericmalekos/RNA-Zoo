@@ -74,15 +74,17 @@ Use `-profile docker,gpu` for a GPU. Results go to `results/ernierna/ernierna_ou
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--ernierna_input` | `null` | FASTA file |
-| `--ernierna_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--ernierna_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
 | `--ernierna_max_len` | `1022` | Truncate longer sequences to this many nt |
+| `--ernierna_pooling` | `mean` | Sequence embedding: `mean` over nucleotides or `cls` for the CLS token |
 
 ## Fine-tuning
 
 Train a linear, MLP or XGBoost head on frozen ERNIE-RNA embeddings, as the [Fine Tuning
 guide](../finetuning.md) describes. Its [common parameters](../finetuning.md#common-parameters)
 take the prefix `ernierna`: `--ernierna_finetune_input` and `--ernierna_finetune_label` are
-required, and `--ernierna_finetune_embeddings` reuses saved embeddings.
+required, and `--ernierna_finetune_embeddings` reuses saved embeddings. Embedding and training
+in one run uses the pooling that `--ernierna_pooling` sets.
 
 ## Limitations
 
@@ -91,6 +93,6 @@ required, and `--ernierna_finetune_embeddings` reuses saved embeddings.
   layer outputs. That vector records mostly the first nucleotide of the input: on 5,000 human
   and mouse transcripts a linear classifier recovers it for every sequence, and the vectors
   cluster by it. From 1.0.2 every output comes from the last layer, and the default is the mean
-  over nucleotides, as for the other RNA-Zoo embedding models; `--ernierna_pooling cls` (or
+  over nucleotides, as for the other RNA Zoo foundation models; `--ernierna_pooling cls` (or
   `--pooling cls` in the container) gives the last layer's CLS token.
 - Upstream's secondary structure, 3D closeness and mean ribosome load models are not included.

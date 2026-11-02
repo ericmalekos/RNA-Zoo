@@ -1,4 +1,4 @@
-# RNAZoo
+# RNA Zoo
 
 [![CI (Lint)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml/badge.svg)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci.yml)
 [![CI (Pipeline)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/ericmalekos/RNA-Zoo/actions/workflows/ci-pipeline.yml)
@@ -25,18 +25,18 @@ A Nextflow pipeline model zoo for RNA deep learning: 23 models across translatio
 | [PlantRNA-FM](https://huggingface.co/yangheng/PlantRNA-FM) | Foundation | Plant-only RNA embeddings (480-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00946-z) | MIT |
 | [CaLM](https://github.com/oxpig/CaLM) | Foundation | Codon-level RNA embeddings (768-d) | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00791-0) | BSD-3-Clause (code); weights: none stated |
 | [mRNABERT](https://huggingface.co/YYLY66/mRNABERT) | Foundation | Hybrid UTR/CDS mRNA embeddings (768-d) | [Nature Comms 2025](https://doi.org/10.1038/s41467-025-65340-8) | Apache-2.0 |
-| [RhoFold](https://github.com/ml4bio/RhoFold) | Structure | 3D structure (PDB output) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) | Apache 2.0 |
+| [RhoFold+](https://github.com/ml4bio/RhoFold) | Structure | 3D structure (PDB output) | [Nature Methods 2024](https://doi.org/10.1038/s41592-024-02487-0) | Apache 2.0 |
 | [SPOT-RNA](https://github.com/jaswindersingh2/SPOT-RNA) | Structure | 2D structure + pseudoknots | [Nature Comms 2019](https://doi.org/10.1038/s41467-019-13395-9) | MPL-2.0 (code); weights: none stated |
 | [DRfold2](https://github.com/leeyang/DRfold2) | Structure | Single-seq ab initio 3D (GPU) | [PLOS Biology 2026](https://doi.org/10.1371/journal.pbio.3003659) | MIT (stated in README; no LICENSE file); weights: none stated; bundled Arena: none stated |
 | [Pangolin](https://github.com/tkzeng/Pangolin) | Splicing | Tissue-specific variant-effect splice scores | [Genome Biology 2022](https://doi.org/10.1186/s13059-022-02664-4) | GPL-3.0 |
-| [SpliceAI](https://github.com/Illumina/SpliceAI) | Splicing | Variant-effect splicing scores (4-class delta) | [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) | Installed 1.3.1: GPL-3.0-or-later, weights none stated; upstream now PolyForm Strict + CC BY-NC 4.0 |
+| [SpliceAI](https://github.com/Illumina/SpliceAI) | Splicing | Variant-effect splicing scores (four delta scores) | [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015) | Installed 1.3.1: GPL-3.0-or-later, weights none stated; upstream now PolyForm Strict + CC BY-NC 4.0 |
 | [SpliceBERT](https://github.com/biomed-AI/SpliceBERT) | Splicing | Vertebrate primary-RNA embeddings (512-d) | [Brief. Bioinform. 2024](https://doi.org/10.1093/bib/bbae163) | BSD-3-Clause (code) + CC BY 4.0 (weights) |
 | [MultiRM](https://github.com/Tsedao/MultiRM) | Modification | 12 RNA modification types | [Nat. Commun. 2021](https://doi.org/10.1038/s41467-021-24313-3) | MIT |
 | [UTR-LM](https://github.com/a96123155/UTR-LM) | mRNA Design | 5'UTR MRL / TE / expression | [Nature Mach Intell 2024](https://doi.org/10.1038/s42256-024-00823-9) | GPL-3.0 |
 
 ## License
 
-The RNA-Zoo pipeline code is released under the [MIT License](LICENSE). Each model keeps its own
+The RNA Zoo pipeline code is released under the [MIT License](LICENSE). Each model keeps its own
 terms for its code, weights and container image, listed in the table above and in
 [docs/models/overview.md](docs/models/overview.md); several restrict commercial use. Please cite
-RNA-Zoo ([CITATION.cff](CITATION.cff)) and the paper of every model you run.
+RNA Zoo ([CITATION.cff](CITATION.cff)) and the paper of every model you run.

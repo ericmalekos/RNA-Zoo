@@ -18,8 +18,8 @@ sequence (the mean over nucleotides) and optionally one per nucleotide.
 ## Input
 
 FASTA. Letters are uppercased and T becomes U. Sequences over 1,024 nt are truncated with a
-warning (1,026 tokens with the start and end tokens, the maximum the paper set for
-fine-tuning); empty sequences are skipped.
+warning (1,026 tokens with the start and end tokens; the paper gives 1,026 nt as the model's
+maximum length); empty sequences are skipped.
 
 Example (`tests/data/rnafm_test.fa`, used by the test profile; sequences shortened):
 
@@ -73,7 +73,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/plantrnafm/p
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--plantrnafm_input` | `null` | FASTA file |
-| `--plantrnafm_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--plantrnafm_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
 | `--plantrnafm_max_len` | `1024` | Truncate longer sequences to this many nt |
 | `--plantrnafm_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 

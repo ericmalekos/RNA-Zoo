@@ -37,7 +37,8 @@ In `multirm_out/`:
   p-value is the fraction of upstream's stored null scores (`neg_prob.csv`) above the score
 - with plotting on: a heatmap per sequence, `<header>_modifications.png` (`/` and spaces become `_`)
 
-Example rows, from a run on ATF4 (ENST00000674920.3):
+Example rows, from a GPU run on ATF4 (ENST00000674920.3); the CPU image gives the same sites, with scores
+up to 3e-5 apart:
 
 ```
 header	position	base	Am	Cm	Gm	...	m7G	Psi	AtoI
@@ -79,5 +80,9 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/multirm/mult
 ## Limitations
 
 - Scores differ from those of upstream's `Scripts/main.py`, which transposes the 3-mer input so
-  that each score depends only on the window's first 3-mer. The RNA-Zoo wrapper passes the whole
+  that each score depends only on the window's first 3-mer. The RNA Zoo wrapper passes the whole
   window.
+- Letters other than A, C, G, T and U can stop the run with a TypeError: MultiRM's vocabulary
+  holds the 64 3-mers of A, C, G and T, only 30 of the 61 3-mers with N and none with other
+  letters, and a window with any other 3-mer cannot be encoded. Replace or remove such sequences
+  first.

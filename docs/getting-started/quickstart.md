@@ -15,7 +15,7 @@ nextflow run main.nf -profile docker,cpu --rnafm_input my_rna.fa
 # Translation efficiency (RiboNN): a TSV of 5' UTR, CDS and 3' UTR sequences
 nextflow run main.nf -profile docker,cpu --ribonn_input my_transcripts.tsv
 
-# RNA 3D structure (RhoFold)
+# RNA 3D structure (RhoFold+)
 nextflow run main.nf -profile docker,cpu --rhofold_input my_rna.fa
 
 # RNA modifications (MultiRM)
@@ -84,7 +84,8 @@ nextflow run main.nf -profile docker,cpu -params-file my_params.yml
 
 ## Fine-tuning
 
-The nine foundation models can train a prediction head on your labeled sequences:
+Nine of the ten foundation models (all but SpliceBERT) can train a prediction head on your
+labeled sequences:
 
 ```bash
 nextflow run main.nf -profile docker,cpu \

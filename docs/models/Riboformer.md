@@ -27,8 +27,10 @@ target-condition density at that codon. Upstream's `data_processing.py` builds t
 A directory with the WIGs `<reference>_f.wig`, `<reference>_r.wig`, `<target>_f.wig` and
 `<target>_r.wig`, one genome ending in `.fasta` and one annotation ending in `.gff3`. WIG
 headers must keep the layout of the bundled files, `fixedStep  chrom=<FASTA id>  start=1  step=1`
-with two spaces between fields, as upstream reads the name by position. Only CDSs over 200 nt
-in the top `--riboformer_threshold` percent by reference coverage are scored. The target WIGs
+with two spaces between fields, as upstream reads the name by position. Upstream also skips
+the first line of each WIG (a track line in the bundled files), removes "chr" from WIG
+chromosome names, so FASTA IDs must not start with it, and ignores a FASTA record named `Mito`.
+Only CDSs over 200 nt in the top `--riboformer_threshold` percent by reference coverage are scored. The target WIGs
 must exist, though prediction reads only the reference. Example: `tests/data/riboformer/`.
 
 ## Output
@@ -101,5 +103,5 @@ nextflow run main.nf -profile docker,cpu \
 - `transfer.py` predicts every `*xc.txt` in the dataset folder, and each bundled dataset already
   holds one, so bundled runs mix precomputed windows into the output. Keep no other `*xc.txt` in
   your own input.
-- Preprocessing fails if too few genes pass the filters; use five or more, or lower
+- Preprocessing fails if too few genes pass the filters; use five or more, or raise
   `--riboformer_threshold`.

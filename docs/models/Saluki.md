@@ -11,7 +11,7 @@ Predict mRNA half-life from sequence.
 
 Saluki is a convolutional and recurrent (GRU) network trained on consensus half-lives of 13,921
 human and 14,463 mouse genes. Per nucleotide it reads A, C, G, U, a codon-frame bit (first
-nucleotide of each CDS codon) and a splice bit (last nucleotide of each exon). RNA-Zoo averages
+nucleotide of each CDS codon) and a splice bit (last nucleotide of each exon). RNA Zoo averages
 50 models. The score is the first principal component of standardized log half-lives: unitless,
 not hours or log2 units. Higher means more stable.
 

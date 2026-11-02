@@ -2,7 +2,7 @@
 
 The nine RNA foundation models can train a small prediction head on your labeled sequences. The
 model itself stays frozen: its embeddings feed a linear, MLP or XGBoost head, for regression or
-classification. SpliceBERT, the tenth embedding model, has no fine-tuning parameters. RiboNN,
+classification. SpliceBERT, the tenth foundation model, has no fine-tuning parameters. RiboNN,
 UTR-LM and RiboTIE fine-tune in their own ways; see
 [Other fine-tuning](#other-fine-tuning).
 
@@ -136,7 +136,9 @@ nextflow run main.nf -profile test_finetune_classify,docker,cpu
 
 Each covers eight of the nine models (all but HydraRNA) on 30 sequences whose labels follow GC
 content; under `cpu`, `test_finetune` skips Orthrus. Path B uses a random embedding file, so the
-tests check that every step runs and the metrics are finite, not how well the heads learn.
+tests check that every step runs and writes finite metrics, not how well the heads learn. The
+exception is `test_finetune_classify`: its six validation rows all have one label, so its validation
+AUROC is `NaN`.
 
 ## Limitations
 

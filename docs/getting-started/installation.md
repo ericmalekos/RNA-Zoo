@@ -70,11 +70,11 @@ for img in ribonn-cpu riboformer-cpu tristan-cpu translationai-cpu saluki-cpu \
 done
 ```
 
-The `:latest` tags move with every change. To run the exact images of a release, add its
-digest-pinned config, which works with either profile:
+The `:latest` tags move with every change. To run the exact images of release 1.0.2, add its
+digest-pinned config and run that release's code, with either profile:
 
 ```bash
-nextflow -c conf/containers_v1.0.1.config run main.nf -profile docker,cpu --rnafm_input input.fa
+nextflow -c conf/containers_v1.0.2.config run ericmalekos/RNA-Zoo -r v1.0.2 -profile docker,cpu --rnafm_input input.fa
 ```
 
 To run the images without Nextflow, see [Direct Docker usage](../direct-docker.md).
@@ -90,8 +90,8 @@ Combine a container engine, a device and, optionally, a test profile, for exampl
 | `singularity` | Run the images with Singularity or Apptainer |
 | `gpu` | GPU images, with the GPU passed to the containers |
 | `cpu` | CPU images; GPU-only models are skipped with a warning |
-| `test` | Test inputs from `tests/data/` for 19 models: all but Orthrus, HydraRNA, RhoFold and DRfold2 |
-| `test_gpu` | `test` plus RhoFold and Orthrus |
+| `test` | Test inputs from `tests/data/` for 19 models (all but Orthrus, HydraRNA, RhoFold+ and DRfold2), and RiboNN and UTR-LM fine-tuning |
+| `test_gpu` | `test` plus RhoFold+ and Orthrus |
 | `test_singularity` | Test inputs for five models (RiboNN, RNA-FM, SpliceBERT, MultiRM, UTR-LM) |
 | `test_finetune`, `test_finetune_from_emb`, `test_finetune_classify` | Fine-tuning tests; see [Fine Tuning](../finetuning.md#test-profiles) |
 
@@ -112,5 +112,5 @@ nextflow run main.nf -profile test_singularity,singularity,cpu
 ```
 
 Every process should finish with a check mark, and the outputs land in `results_test/`.
-RhoFold is left out of `test` because it is slow on the CPU. HydraRNA and DRfold2 are in no
+RhoFold+ is left out of `test` because it is slow on the CPU. HydraRNA and DRfold2 are in no
 test profile.

@@ -80,7 +80,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/mrnabert/mrn
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--mrnabert_input` | `null` | FASTA file |
-| `--mrnabert_per_token` | `false` | Also write per-token embeddings |
+| `--mrnabert_per_token` | `false` | Also write per-token embeddings (a command-line `false` also turns this on) |
 | `--mrnabert_max_tokens` | `1024` | Maximum tokens, `[CLS]` and `[SEP]` included (ALiBi sets no hard limit; the paper tested 3,066) |
 
 ## Fine-tuning

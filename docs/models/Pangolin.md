@@ -12,7 +12,8 @@ Predict how genetic variants change splice-site strength, with models trained on
 Pangolin is a dilated residual convolutional network trained on splice-site usage from RNA-seq
 of heart, liver, brain and testis in human, rhesus macaque, mouse and rat. Twelve models (three
 per tissue) read 5,000 nt on each side of a variant and score each position within
-`--pangolin_distance` of it; each position keeps its largest change across tissues.
+`--pangolin_distance` of it; each position keeps its largest increase and its largest decrease
+across tissues.
 
 ## Input
 
@@ -47,7 +48,8 @@ chr17	41276135	.	T	G	.	.	.
 
 `pangolin_out/<input name>.pangolin.vcf` (or `.csv`): the input, with a `Pangolin` INFO field
 (VCF) or column (CSV) holding one entry per overlapping gene,
-`gene_id|pos:largest_increase|pos:largest_decrease|Warnings:`. Positions are relative to the
+`gene_id|pos:largest_increase|pos:largest_decrease|Warnings:`, joined by commas (in a CSV, each
+entry after the first lands in an extra, unnamed column). Positions are relative to the
 variant. With `--pangolin_score_cutoff`, every position whose change reaches the cutoff is
 listed instead of the largest two.
 
@@ -91,14 +93,15 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/pangolin/pan
 | `--pangolin_reference_fasta` | `null` | Reference FASTA; required |
 | `--pangolin_annotation_db` | `null` | gffutils database; required |
 | `--pangolin_distance` | `50` | Positions scored on each side of the variant |
-| `--pangolin_mask` | `'True'` | `True` sets gains at annotated sites and losses at unannotated sites to 0 |
+| `--pangolin_mask` | `'True'` | `True` sets gains at annotated sites and losses at unannotated sites to 0; write `True` or `False` (a lowercase `false` stops the run) |
 | `--pangolin_score_cutoff` | `null` | List every position with an absolute change at or above this value |
 | `--pangolin_column_ids` | `null` | CSV only: chromosome, position, REF and ALT column names (`CHROM,POS,REF,ALT` when unset) |
 
 ## Limitations
 
-- Only substitutions and simple indels (REF or ALT a single base) are scored, and in a VCF only
-  the first ALT allele of each record.
-- Variants get no scores when they lie outside annotated genes, within 5,000 nt of a chromosome
-  end, are deletions longer than twice `--pangolin_distance`, or do not match the reference.
+- Only substitutions (REF and ALT of equal length) and simple indels (REF or ALT a single base)
+  are scored, and in a VCF only the first ALT allele of each record.
+- Variants get no scores when they lie outside annotated genes, within 5,000 nt plus
+  `--pangolin_distance` of a chromosome end, are deletions longer than twice
+  `--pangolin_distance`, or do not match the reference.
 - Scores are not reported per tissue.

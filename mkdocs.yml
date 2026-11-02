@@ -1,4 +1,4 @@
-site_name: RNAZoo
+site_name: RNA Zoo
 site_description: A Nextflow pipeline model zoo for RNA deep learning
 site_url: https://ericmalekos.github.io/RNA-Zoo
 repo_url: https://github.com/ericmalekos/RNA-Zoo
@@ -73,7 +73,7 @@ nav:
       - CaLM: models/CaLM.md
       - mRNABERT: models/mRNABERT.md
     - RNA Structure:
-      - RhoFold: models/RhoFold.md
+      - RhoFold+: models/RhoFold.md
       - SPOT-RNA: models/SPOTRNA.md
       - DRfold2: models/DRfold2.md
     - RNA Modification:

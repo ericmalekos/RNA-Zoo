@@ -4,7 +4,7 @@ Predict translation efficiency (TE) from mRNA sequence for 78 human cell types a
 
 - **Paper:** [Nature Biotechnology 2025](https://www.nature.com/articles/s41587-025-02712-x)
 - **Upstream:** https://github.com/Sanofi-Public/RiboNN
-- **License:** Sanofi academic, non-commercial license for the code ([LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/LICENSE)) and the weights ([MODEL WEIGHTS LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/MODEL%20WEIGHTS%20LICENSE.txt)). The grant covers use, copying, modification and merging for academic or non-profit, non-commercial purposes only. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
+- **License:** Sanofi academic, non-commercial license for the code ([LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/LICENSE)) and the weights ([MODEL WEIGHTS LICENSE](https://github.com/Sanofi-Public/RiboNN/blob/main/MODEL%20WEIGHTS%20LICENSE.txt)). The grant covers use, copying, modification and merging for academic or non-profit, non-commercial purposes only. The RNA Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
 - **Device:** CPU or GPU (images `rnazoo-ribonn-cpu` and `rnazoo-ribonn`).
 
 ## What it does
@@ -89,7 +89,7 @@ nextflow run main.nf -profile docker,cpu \
 | `--ribonn_finetune_phase1_epochs` | `50` | Phase 1: new head on frozen convolution layers |
 | `--ribonn_finetune_phase2_epochs` | `150` | Phase 2: all layers, learning rate cut tenfold to 1e-5 |
 | `--ribonn_finetune_patience` | `50` | Phase 2 early stopping on validation R² |
-| `--ribonn_finetune_folds` | `5` | Cross-validation folds |
+| `--ribonn_finetune_folds` | `5` | Cross-validation folds, at least 2 |
 
 Outputs in `results/ribonn_finetune/ribonn_finetune_out/`:
 

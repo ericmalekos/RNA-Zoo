@@ -11,12 +11,14 @@ Predict RNA 3D structure from a single sequence.
 
 RhoFold+ predicts a full-atom 3D structure with a transformer and an invariant point attention
 structure module, fed by a built-in RNA-FM language model, over 10 recycling passes (126.9
-million parameters). RNA-Zoo runs the single-sequence mode: no MSA is built or read.
+million parameters). RNA Zoo runs the single-sequence mode: no MSA is built or read.
 
 ## Input
 
 FASTA. Letters are uppercased and T becomes U. Each sequence must be at most 1,022 nt, the limit
-of the built-in RNA-FM; the wrapper does not truncate.
+of the built-in RNA-FM; the wrapper does not truncate. In the RNA Zoo paper's benchmark a
+100-nt sequence took 68 s on 8 CPU cores (1.7 GB of RAM) and 7 s on one RTX A5500 (1.7 GB of
+GPU memory); at 400 nt RhoFold+ used 11.6 GB of RAM or 13.4 GB of GPU memory.
 
 Example (`tests/data/rhofold_test.fa`):
 
@@ -30,7 +32,8 @@ GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA
 One directory per sequence, named after the first word of its header (`/` and `:` become `_`):
 
 - `unrelaxed_model.pdb`: the 3D model, with pLDDT × 100 in the B-factor column
-- `ss.ct`: the secondary structure (pairs with probability above 0.5)
+- `ss.ct`: the secondary structure (Watson-Crick and GU pairs with probability above 0.5, at
+  most one partner per base)
 - `results.npz`: distograms (`dist_n`, `dist_p`, `dist_c`), the base-pair probability map
   (`ss_prob_map`) and per-residue pLDDT from 0 to 1 (`plddt`)
 - `log.txt`: the run log

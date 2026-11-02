@@ -74,7 +74,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/splicebert/s
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--splicebert_input` | `null` | FASTA file |
-| `--splicebert_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--splicebert_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
 | `--splicebert_max_len` | `1024` | Truncate longer sequences to this many nt |
 | `--splicebert_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 
@@ -82,6 +82,6 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/splicebert/s
 
 - Pretraining used vertebrate sequences only.
 - Only embeddings are exposed: upstream's splice-site and branchpoint prediction examples are not
-  wired in, and RNA-Zoo has no fine-tuning flags for SpliceBERT.
+  wired in, and RNA Zoo has no fine-tuning flags for SpliceBERT.
 - A warning at load time that the pooler weights are newly initialized is expected; the wrapper
   does not use the pooler.

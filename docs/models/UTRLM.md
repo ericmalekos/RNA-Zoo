@@ -117,7 +117,7 @@ absolute path as `--utrlm_checkpoint` with the same `--utrlm_task`.
 | `--utrlm_finetune_lr` | `0.01` | SGD learning rate |
 | `--utrlm_finetune_batch_size` | `32` | Batch size |
 | `--utrlm_finetune_val_frac` | `0.2` | Fraction of rows held out for validation |
-| `--utrlm_finetune_pretrained` | `null` | Starting weights: `null` for the task's pretrained backbone, `none` for random weights, or a file (below) |
+| `--utrlm_finetune_pretrained` | `null` | Starting weights: leave unset for the task's pretrained backbone, `none` for random weights, or a file (below) |
 | `--utrlm_finetune_seed` | `1337` | Seed of every random draw: split, initialization, batch order, dropout |
 
 `--utrlm_finetune_pretrained` also takes a pretraining checkpoint, which holds the backbone alone

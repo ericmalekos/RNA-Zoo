@@ -4,7 +4,7 @@ Predict the effect of genetic variants on RNA splicing.
 
 - **Paper:** [Cell 2019](https://doi.org/10.1016/j.cell.2018.12.015)
 - **Upstream:** https://github.com/Illumina/SpliceAI
-- **License:** The image installs SpliceAI 1.3.1 from PyPI. At that release the source is GPL-3.0-or-later and the model weights carry no license statement. The current upstream repository is under [PolyForm Strict 1.0.0](https://github.com/Illumina/SpliceAI/blob/master/LICENSE) (non-commercial) and states that the weights are CC BY-NC 4.0. Commercial users should obtain a license from Illumina. The RNA-Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
+- **License:** The image installs SpliceAI 1.3.1 from PyPI. At that release the source is GPL-3.0-or-later and the model weights carry no license statement. The current upstream repository is under [PolyForm Strict 1.0.0](https://github.com/Illumina/SpliceAI/blob/master/LICENSE) (non-commercial) and states that the weights are CC BY-NC 4.0. Commercial users should obtain a license from Illumina. The RNA Zoo image is redistributed with the permission of the model's authors; anyone using it is bound by these terms.
 - **Device:** CPU or GPU (images `rnazoo-spliceai-cpu` and `rnazoo-spliceai`).
 
 ## What it does
@@ -20,8 +20,9 @@ the use of nearby positions as splice acceptors and donors.
    work directory on each run.
 3. A gene annotation: `grch37` (bundled GENCODE V24lift37 canonical transcripts), `grch38`
    (bundled GENCODE V24 canonical transcripts), or a custom tab-separated file with the columns
-   `#NAME CHROM STRAND TX_START TX_END EXON_START EXON_END` and exon coordinates comma-separated
-   with a trailing comma, as in upstream's `spliceai/annotations/grch37.txt`.
+   `#NAME CHROM STRAND TX_START TX_END EXON_START EXON_END`, 0-based starts and 1-based ends,
+   and exon coordinates comma-separated with a trailing comma, as in upstream's
+   `spliceai/annotations/grch37.txt`.
 
 Example (upstream `examples/input.vcf`, GRCh37, annotation `grch37`):
 
@@ -86,6 +87,6 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/spliceai/spl
 
 - Only SNVs and simple indels (REF or ALT a single base) get scores. Other REF and ALT pairs get
   an entry of dots; symbolic, missing and `*` alleles get none.
-- Records get no `SpliceAI` field when the variant is outside every annotated gene, within 5 kb
-  of a chromosome end, has a REF allele longer than twice `--spliceai_distance`, or does not
-  match the reference FASTA.
+- Records get no `SpliceAI` field when the variant is outside every annotated gene, within 5,000
+  nt plus `--spliceai_distance` of a chromosome end, has a REF allele longer than twice
+  `--spliceai_distance`, or does not match the reference FASTA.

@@ -6,7 +6,7 @@ Predict RNA 3D structure from a single sequence, without alignments or templates
 - **Upstream:** https://github.com/leeyang/DRfold2
 - **License:** MIT, as stated in the upstream README (the repository has no LICENSE file). The
   model weights carry no license statement, and the bundled [Arena](https://github.com/pylelab/Arena)
-  refinement tool declares no license. The RNA-Zoo image is redistributed with the permission of
+  refinement tool declares no license. The RNA Zoo image is redistributed with the permission of
   the model's authors.
 - **Device:** GPU only (image `rnazoo-drfold2`); skipped with a warning under `-profile cpu`.
 
@@ -15,13 +15,15 @@ Predict RNA 3D structure from a single sequence, without alignments or templates
 DRfold2 combines a pretrained RNA composite language model (RCLM) with a denoising structure
 module. Four configurations of 20 checkpoints each predict end-to-end models and geometry
 restraints (334.9 million parameters with the RCLM). A post-processing step selects the best model and
-optimizes it with those potentials, and Arena rebuilds the full-atom model. RNA-Zoo runs each
+optimizes it with those potentials, and Arena rebuilds the full-atom model. RNA Zoo runs each
 FASTA record as a separate DRfold2 job.
 
 ## Input
 
 FASTA. Letters are uppercased and T becomes U; empty sequences are skipped. There is no length
-cap; time and memory grow with length.
+cap; time and memory grow with length. On one RTX A5500 a 50-nt sequence took about 7 minutes
+(1.7 GB of GPU memory) and a 200-nt sequence about 65 minutes (3.2 GB) in the RNA Zoo paper's
+benchmark.
 
 Example (`tests/data/drfold2_test.fa`, a 24-nt UUCG hairpin):
 
@@ -67,8 +69,8 @@ Results go to `results/drfold2/drfold2_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--drfold2_input` | `null` | FASTA file |
-| `--drfold2_cluster` | `false` | Also write alternative models from a clustering pass |
-| `--drfold2_keep_intermediate` | `false` | Keep each sequence's working directory; it stays in the Nextflow task directory and is not published |
+| `--drfold2_cluster` | `false` | Also write alternative models from a clustering pass (a command-line `false` also turns this on) |
+| `--drfold2_keep_intermediate` | `false` | Keep each sequence's working directory; it stays in the Nextflow task directory and is not published (a command-line `false` also turns this on) |
 
 ## Limitations
 

@@ -23,7 +23,7 @@ Choose a checkpoint with `--orthrus_variant`.
 | Variant | Hugging Face repo | Width | Notes |
 |---------|-------------------|-------|-------|
 | `large-4track` (default) | `quietflamingo/orthrus-large-4-track` | 512 | |
-| `4track` | `antichronology/orthrus-4-track` | 512 | Fails at ortholog retrieval and at coding versus noncoding classification |
+| `4track` | `antichronology/orthrus-4-track` | 512 | Far below `large-4track` in the RNA Zoo paper's tests: ortholog recall at rank 1 0.066 against 0.947, coding against lncRNA AUROC 0.687 against 0.977 |
 | `base-4track` | `quietflamingo/orthrus-base-4-track` | 256 | |
 | `6track` | `antichronology/orthrus-6-track` | 512 | |
 | `small-6track` | `antichronology/orthrus-small-6-track` | 256 | |
@@ -46,10 +46,11 @@ Example: `tests/data/orthrus_test.fa`, two synthetic mRNAs of 457 and 439 nt.
 
 Give one of:
 
-- `--orthrus_annotation`: a TSV (or CSV) with a header row and the columns `name`, `cds_start`
-  and `cds_end` (0-based transcript coordinates, end exclusive), plus optional `exon_lengths`
-  (comma-separated, in transcript order; without it the splice track is all zeros). `name` is
-  the FASTA ID (the header's first word, before any `|`) without a version suffix.
+- `--orthrus_annotation`: a TSV (or a CSV without `exon_lengths`) with a header row and the
+  columns `name`, `cds_start` and `cds_end` (0-based transcript coordinates, end exclusive), plus
+  optional `exon_lengths` (comma-separated, in transcript order; without it the splice track is
+  all zeros). `name` is the FASTA ID (the header's first word, before any `|`) without a version
+  suffix.
 - `--orthrus_gtf`: a GENCODE or Ensembl GTF (plain or `.gz`), from which the wrapper derives
   each transcript's CDS and exon lengths, matching IDs without version suffixes.
 
@@ -115,7 +116,7 @@ Results go to `results/orthrus/orthrus_out/`.
 | `--orthrus_variant` | `large-4track` | Checkpoint (see [Variants](#variants)) |
 | `--orthrus_annotation` | `null` | Annotation TSV for 6-track variants |
 | `--orthrus_gtf` | `null` | GTF for 6-track variants |
-| `--orthrus_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--orthrus_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
 | `--orthrus_min_len` | `200` | Warn about sequences shorter than this many nt |
 
 ## Fine-tuning

@@ -76,7 +76,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/calm/calm_ou
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--calm_input` | `null` | FASTA file of coding sequences |
-| `--calm_per_token` | `false` | Also write per-codon embeddings |
+| `--calm_per_token` | `false` | Also write per-codon embeddings (a command-line `false` also turns this on) |
 | `--calm_max_codons` | `1024` | Truncate longer sequences to this many codons |
 
 ## Fine-tuning

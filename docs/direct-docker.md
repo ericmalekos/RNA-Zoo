@@ -31,11 +31,16 @@ or `--gpus all`; both need the NVIDIA Container Toolkit.
   `-e OMP_NUM_THREADS=4` on a shared machine.
 - **Log output.** If the log appears only at the end when piped or redirected, add
   `-e PYTHONUNBUFFERED=1`.
+- **Singularity.** Singularity mounts your home folder in the container, so add
+  `--env PYTHONNOUSERSITE=1` to `singularity exec`; otherwise Python can load packages from
+  `~/.local` in place of the image's (RiNALMo then stops with `No module named 'six'`).
+  Riboformer also needs `--pwd /opt/Riboformer/Riboformer`, as `singularity exec` does not use
+  the image's working directory.
 
 ## Per-model commands
 
 These commands use the mounts of the common recipe. Image names leave out the prefix
-`ghcr.io/ericmalekos/rnazoo-` and the tag `:latest`. The embedding models also take
+`ghcr.io/ericmalekos/rnazoo-` and the tag `:latest`. The foundation models also take
 `--per-token`.
 
 | Model | CPU image | GPU image | Command |
@@ -50,14 +55,14 @@ These commands use the mounts of the common recipe. Image names leave out the pr
 | [CaLM](models/CaLM.md) | `calm-cpu` | `calm` | `calm_predict.py -i /data/input.fa -o /out` |
 | [mRNABERT](models/mRNABERT.md) | `mrnabert-cpu` | `mrnabert` | `mrnabert_predict.py -i /data/input.fa -o /out` |
 | [SpliceBERT](models/SpliceBERT.md) | `splicebert-cpu` | `splicebert` | `splicebert_predict.py -i /data/input.fa -o /out` |
-| [RhoFold](models/RhoFold.md) | `rhofold-cpu` | `rhofold` | `rhofold_predict.py -i /data/input.fa -o /out` |
+| [RhoFold+](models/RhoFold.md) | `rhofold-cpu` | `rhofold` | `rhofold_predict.py -i /data/input.fa -o /out` |
 | [SPOT-RNA](models/SPOTRNA.md) | `spotrna-cpu` | `spotrna` | `spotrna_predict.py -i /data/input.fa -o /out --cpu 4`; on the GPU image, `--gpu 0` instead of `--cpu 4` |
 | [DRfold2](models/DRfold2.md) | none | `drfold2` | `drfold2_predict.py -i /data/input.fa -o /out` |
 | [MultiRM](models/MultiRM.md) | `multirm-cpu` | `multirm` | `multirm_predict.py -i /data/input.fa -o /out` |
 | [UTR-LM](models/UTRLM.md) | `utrlm-cpu` | `utrlm` | `utrlm_predict.py -i /data/input.fa -o /out --task mrl --model-dir /opt/utrlm/Model` |
 | [CodonTransformer](models/CodonTransformer.md) | `codontransformer-cpu` | `codontransformer` | `codon_transformer_predict.py -i /data/input.fa -o /out/optimized_codons.fa --organism "Homo sapiens"` |
 | [Saluki](models/Saluki.md) | `saluki-cpu` | `saluki` | `saluki_predict.py -i /data/input.fa -o /out`; to set the splice track, mount an exon-length TSV and add `--exons /data/exons.tsv` |
-| [TranslationAI](models/TranslationAI.md) | `translationai-cpu` | none (the tool hides the GPU) | `bash -c "cp /data/input.fa /tmp/input.fa && translationai -I /tmp/input.fa -t 0.5,0.5 && cp /tmp/input_pred*.txt /out/"` |
+| [TranslationAI](models/TranslationAI.md) | `translationai-cpu` | `translationai`, which runs on the CPU too (the tool hides the GPU) | `bash -c "cp /data/input.fa /tmp/input.fa && translationai -I /tmp/input.fa -t 0.5,0.5 && cp /tmp/input_pred*.txt /out/"` |
 
 Orthrus, HydraRNA and DRfold2 have no CPU image; run them with the GPU options.
 
@@ -111,7 +116,7 @@ docker run --rm -u $(id -u):$(id -g) -e HOME=/tmp -e USER=$(whoami) \
 
 ## Help and debugging
 
-Each RNA-Zoo wrapper lists its options with `--help`:
+Each RNA Zoo wrapper lists its options with `--help`:
 
 ```bash
 docker run --rm ghcr.io/ericmalekos/rnazoo-rnafm-cpu:latest rnafm_predict.py --help

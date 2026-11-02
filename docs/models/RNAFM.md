@@ -72,7 +72,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/rnafm/rnafm_
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--rnafm_input` | `null` | FASTA file |
-| `--rnafm_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--rnafm_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
 | `--rnafm_max_len` | `1022` | Truncate longer sequences to this many nt |
 | `--rnafm_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 

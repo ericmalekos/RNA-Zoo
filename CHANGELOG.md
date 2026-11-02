@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- `conf/containers_v1.0.2.config` pins every image to its v1.0.2 registry digest; pass it with
+  `nextflow -c` and run the v1.0.2 code (`-r v1.0.2`) to run exactly the release images.
+
+### Documentation
+- The model pages and the general pages were checked against the v1.0.2 images by running their
+  CPU examples, and corrected. They now say that a command-line `false` also turns on DRfold2's
+  `--drfold2_cluster` and `--drfold2_keep_intermediate` and every `--<model>_per_token` flag (a
+  `false` in a `-params-file` does not), that `--pangolin_mask` takes `True` or `False`, that
+  MultiRM stops on 3-mers outside its vocabulary, what `test_finetune_classify` reports, and how to
+  run the images directly with Singularity. The installation page names release 1.0.2 and its
+  pinned config; the structure model is called RhoFold+, its published name.
+
 ## 1.0.2 (2026-11-01)
 
 ### Fixed

@@ -75,7 +75,7 @@ Results go to `results/hydrarna/hydrarna_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--hydrarna_input` | `null` | FASTA file |
-| `--hydrarna_per_token` | `false` | Also write per-nucleotide embeddings |
+| `--hydrarna_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
 | `--hydrarna_max_len` | `10000` | Print a note for sequences longer than this (no truncation) |
 
 ## Fine-tuning
