@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Orthrus `--per-token` (`--orthrus_per_token true`) stopped with an AttributeError for the default
+  `large-4track` and for `base-4track` and `large-6track`, whose model code has no
+  `representation_unpooled`. The wrapper now takes the model's forward output, which is what that
+  method returns for the other checkpoints.
+- DRfold2 `--cluster` could run without end: upstream's clustering step moves its RMSD cutoff in
+  0.2 Å steps and on some inputs, the test hairpin among them, alternates between two cutoffs. The
+  wrapper now stops it once the top model has been written for `--drfold2_cluster_timeout` seconds
+  (default 600) without a cluster list, keeps the top model and warns.
+- HydraRNA run directly with `singularity exec --no-home` stopped when Triton wrote its kernel cache
+  to the read-only home folder; the image now sets `TRITON_CACHE_DIR=/tmp/triton`, as the pipeline does.
+
 ## 1.0.3 (2026-11-02)
 
 ### Added

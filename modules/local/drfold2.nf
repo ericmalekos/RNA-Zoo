@@ -25,7 +25,8 @@ process DRFOLD2 {
     script:
     // toString().toBoolean(): a command-line "--drfold2_cluster false" arrives as a String,
     // which Groovy treats as true
-    def cluster_flag = params.drfold2_cluster.toString().toBoolean() ? '--cluster' : ''
+    def cluster_flag = params.drfold2_cluster.toString().toBoolean() ?
+        "--cluster --cluster-timeout ${params.drfold2_cluster_timeout}" : ''
     def keep_flag    = params.drfold2_keep_intermediate.toString().toBoolean() ? '--keep-intermediate' : ''
     """
     drfold2_predict.py \\

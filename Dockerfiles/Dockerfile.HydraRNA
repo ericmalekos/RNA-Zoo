@@ -97,5 +97,8 @@ ENV PYTHONPATH="/opt/hydrarna_repo/fairseq:$PYTHONPATH"
 # a host with CUDA 12.x ptxas on PATH can produce PTX incompatible with the
 # container's 11.8 runtime, causing exit code 2 at first kernel JIT.
 ENV TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas
+# Triton's kernel cache goes to /tmp, as the pipeline sets it: its default (~/.triton) fails under
+# `singularity exec --no-home`, where the home folder is read-only.
+ENV TRITON_CACHE_DIR=/tmp/triton
 
 WORKDIR /opt/hydrarna_repo

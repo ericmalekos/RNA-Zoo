@@ -53,8 +53,9 @@ docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all \
   drfold2_predict.py -i /data/input.fa -o /out
 ```
 
-Add `--cluster` for the alternative models, and `--keep-intermediate` to keep each sequence's
-working directory (`_drfold2_work_<name>/` in the output directory).
+Add `--cluster` for the alternative models (`--cluster-timeout`, default 600 s, limits its
+clustering step; see [Limitations](#limitations)), and `--keep-intermediate` to keep each
+sequence's working directory (`_drfold2_work_<name>/` in the output directory).
 
 ## Run with Nextflow
 
@@ -70,10 +71,17 @@ Results go to `results/drfold2/drfold2_out/`.
 |-----------|---------|-------------|
 | `--drfold2_input` | `null` | FASTA file |
 | `--drfold2_cluster` | `false` | Also write alternative models from a clustering pass |
+| `--drfold2_cluster_timeout` | `600` | Seconds the clustering step may run after the top model is written; then it is stopped and only the top model is written |
 | `--drfold2_keep_intermediate` | `false` | Keep each sequence's working directory; it stays in the Nextflow task directory and is not published |
 
 ## Limitations
 
 - An error on any sequence stops the run.
+- Upstream's clustering step (`PotentialFold/Clust.py`) moves its RMSD cutoff in 0.2 Å steps
+  until the largest cluster holds 15 to 50% of the 80 models, and on some inputs it alternates
+  between two cutoffs without end: for `tests/data/drfold2_test.fa`, 47 and 11 of the 80. The
+  search takes seconds when it settles, so the wrapper stops it once the top model has been
+  written for `--drfold2_cluster_timeout` seconds without a cluster list, keeps the top model
+  and warns; the alternative models, built after the cluster list, are not timed.
 - Upstream's optional OpenMM refinement (`script/refine.py`) is not available: the image has no
   OpenMM.

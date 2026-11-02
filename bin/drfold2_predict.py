@@ -19,11 +19,58 @@ statement; the RNA-Zoo image is redistributed with the authors' permission.
 import argparse
 import os
 import shutil
+import signal
 import subprocess
 import sys
+import time
 
 REPO_DIR = "/opt/drfold2_repo"
 INFER_SCRIPT = f"{REPO_DIR}/DRfold_infer.py"
+
+
+def run_infer(cmd, workdir, out_subdir, cluster_timeout):
+    """Run DRfold_infer.py, its output in workdir/drfold_infer.log; return (exit code, stopped).
+
+    With cluster_timeout set, the run is stopped once relax/model_1.pdb has existed that long
+    without folds/clu.txt: upstream's clustering step (PotentialFold/Clust.py) moves its RMSD
+    cutoff in 0.2 A steps until the largest cluster holds 15 to 50% of the models, and on some
+    inputs it alternates between two cutoffs without end. The search itself takes seconds; the
+    alternative models built after clu.txt is written are not timed."""
+    model1 = os.path.join(out_subdir, "relax", "model_1.pdb")
+    clufile = os.path.join(out_subdir, "folds", "clu.txt")
+    log = open(os.path.join(workdir, "drfold_infer.log"), "w")
+    # its own session, so that stopping it also stops the Clust.py process it started
+    proc = subprocess.Popen(cmd, cwd=REPO_DIR, stdout=log, stderr=subprocess.STDOUT,
+                            start_new_session=True)
+    seen = None
+    while True:
+        try:
+            rc = proc.wait(timeout=5)
+            break
+        except subprocess.TimeoutExpired:
+            pass
+        if cluster_timeout is None or os.path.exists(clufile):
+            continue
+        if seen is None:
+            if os.path.exists(model1):
+                seen = time.monotonic()
+            continue
+        if time.monotonic() - seen > cluster_timeout:
+            os.killpg(proc.pid, signal.SIGTERM)
+            try:
+                proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                os.killpg(proc.pid, signal.SIGKILL)
+                proc.wait()
+            log.close()
+            return proc.returncode, True
+    log.close()
+    return rc, False
+
+
+def log_tail(workdir, n=2000):
+    with open(os.path.join(workdir, "drfold_infer.log")) as f:
+        return f.read()[-n:]
 
 
 def parse_fasta(path):
@@ -60,6 +107,14 @@ def main():
         help="Run additional clustering pass to emit alternative models "
              "(produces model_2.pdb, model_3.pdb, … in addition to model_1.pdb). "
              "Doubles or more wall-clock time.",
+    )
+    parser.add_argument(
+        "--cluster-timeout",
+        type=int,
+        default=600,
+        help="With --cluster: seconds to wait for upstream's clustering step after the top model "
+             "is written (default 600). Its search can cycle without end; if it has not finished "
+             "by then, it is stopped and only the top model is written, with a warning.",
     )
     parser.add_argument(
         "--keep-intermediate",
@@ -107,11 +162,11 @@ def main():
             cmd.append("1")
 
         print(f"  {header} ({len(seq)} nt): running {' '.join(cmd)}", file=sys.stderr)
-        result = subprocess.run(cmd, cwd=REPO_DIR, capture_output=True, text=True)
-        if result.returncode != 0:
+        returncode, stopped = run_infer(cmd, seq_workdir, out_subdir,
+                                        args.cluster_timeout if args.cluster else None)
+        if returncode != 0 and not stopped:
             print(f"  ERROR for {header}:", file=sys.stderr)
-            print(result.stdout[-2000:], file=sys.stderr)
-            print(result.stderr[-2000:], file=sys.stderr)
+            print(log_tail(seq_workdir), file=sys.stderr)
             sys.exit(1)
 
         # Copy primary model PDB. DRfold2 writes <out>/relax/model_*.pdb;
@@ -119,11 +174,16 @@ def main():
         relax_dir = os.path.join(out_subdir, "relax")
         if not os.path.isdir(relax_dir):
             print(f"  ERROR for {header}: no relax/ dir produced", file=sys.stderr)
-            print(result.stdout[-1000:], file=sys.stderr)
+            print(log_tail(seq_workdir, 1000), file=sys.stderr)
             sys.exit(1)
 
         pdb_files = sorted(os.listdir(relax_dir))
         pdb_files = [p for p in pdb_files if p.endswith(".pdb")]
+        if stopped:
+            print(f"  Warning for {header}: the clustering step did not finish within "
+                  f"{args.cluster_timeout} s of the top model and was stopped; only the top "
+                  "model is written", file=sys.stderr)
+            pdb_files = [p for p in pdb_files if p == "model_1.pdb"]
         if not pdb_files:
             print(f"  ERROR for {header}: no PDB produced", file=sys.stderr)
             sys.exit(1)

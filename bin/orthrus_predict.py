@@ -424,8 +424,11 @@ def main():
         all_labels.append(header)
 
         if args.per_token:
+            # representation_unpooled is the model's forward pass under another name; the code
+            # shipped with large-4track, base-4track and large-6track has only the forward pass
+            unpooled = getattr(model, "representation_unpooled", model)
             with torch.no_grad():
-                tokens = model.representation_unpooled(x_t, channel_last=True)  # (1, L, D)
+                tokens = unpooled(x_t, channel_last=True)  # (1, L, D)
             safe = header.replace("/", "_").replace(" ", "_")
             np.save(
                 os.path.join(args.output, f"{safe}_tokens.npy"),
