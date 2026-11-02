@@ -72,7 +72,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/rinalmo/rina
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--rinalmo_input` | `null` | FASTA file |
-| `--rinalmo_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
+| `--rinalmo_per_token` | `false` | Also write per-nucleotide embeddings |
 | `--rinalmo_batch_size` | `1` | Sequences per forward pass; kept at 1 to limit memory |
 
 ## Fine-tuning

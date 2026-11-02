@@ -52,9 +52,12 @@ process RIBOTIE {
     cp ${config_yml} config.yml
     # Remove `data : true` if present (that makes it skip inference).
     sed -i '/^data *: *true/d' config.yml
-    # Override h5_path + out_prefix so outputs land in ribotie_out/
+    # Set h5_path + out_prefix so outputs land in ribotie_out/: replace the lines, or add them
+    # when the config has none
     sed -i 's|^h5_path *:.*|h5_path : ribotie_out/dbs/ribotie.h5|'  config.yml
     sed -i 's|^out_prefix *:.*|out_prefix : ribotie_out/out/ribotie|' config.yml
+    grep -q '^h5_path *:' config.yml    || printf '\nh5_path : ribotie_out/dbs/ribotie.h5\n'  >> config.yml
+    grep -q '^out_prefix *:' config.yml || printf '\nout_prefix : ribotie_out/out/ribotie\n' >> config.yml
     # Optionally rewrite every transfer_checkpoint line to reuse a saved
     # fine-tuned checkpoint (from a previous ribotie run).
     ${checkpoint_override}

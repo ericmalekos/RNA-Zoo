@@ -22,7 +22,7 @@ process RNAERNIE {
     path "rnaernie_out/*_tokens.npy",            emit: token_embeddings, optional: true
 
     script:
-    def per_token_flag = params.rnaernie_per_token ? '--per-token' : ''
+    def per_token_flag = params.rnaernie_per_token.toString().toBoolean() ? '--per-token' : ''
     """
     rnaernie_predict.py \
         -i ${input_fasta} \

@@ -21,6 +21,10 @@ LAYERS = 6
 HEADS = 16
 EMBED_DIM = 128
 BATCH_TOKS = 4096
+# Tensors that every bundled checkpoint holds and CNNLinear has no use for
+UNUSED_IN_CHECKPOINTS = {
+    "conv1.weight", "conv1.bias", "conv2.weight", "conv2.bias", "linear.weight", "linear.bias",
+}
 
 
 class CNNLinear(nn.Module):
@@ -207,7 +211,18 @@ def main():
         state = torch.load(ckpt_path, map_location=device, weights_only=False)
         # Remove 'module.' prefix from DDP-trained state dicts
         state = {k.replace("module.", ""): v for k, v in state.items()}
-        model.load_state_dict(state, strict=False)
+        # strict=False for the unused tensors above; anything else that does not fit stops the
+        # run, as a checkpoint whose names do not match would otherwise load nothing and predict
+        # from random weights
+        missing, unexpected = model.load_state_dict(state, strict=False)
+        unknown = sorted(set(unexpected) - UNUSED_IN_CHECKPOINTS)
+        if missing or unknown:
+            sys.exit(
+                f"Error: {ckpt_path} does not fit the {args.task} model: {len(missing)} of "
+                f"{len(model.state_dict())} model tensors missing {missing[:3]}, {len(unknown)} "
+                f"tensors unknown {unknown[:3]}. A checkpoint works only with the --task it was "
+                "trained for."
+            )
         model.eval()
 
         # get_batch_indices groups sequences by length, so batches do not come in input order:

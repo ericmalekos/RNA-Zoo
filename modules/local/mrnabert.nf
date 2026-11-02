@@ -22,7 +22,7 @@ process MRNABERT {
     path "mrnabert_out/*_tokens.npy",            emit: token_embeddings, optional: true
 
     script:
-    def per_token_flag = params.mrnabert_per_token ? '--per-token' : ''
+    def per_token_flag = params.mrnabert_per_token.toString().toBoolean() ? '--per-token' : ''
     """
     mrnabert_predict.py \\
         -i ${input_fasta} \\

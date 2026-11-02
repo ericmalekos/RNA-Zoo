@@ -50,7 +50,11 @@ def main():
     )
     args = parser.parse_args()
 
-    device = "cuda:0" if os.path.exists("/dev/nvidia0") else "cpu"
+    # Ask PyTorch, not the device files: Singularity mounts the host /dev, so /dev/nvidia0 exists
+    # on a GPU node even when the container has no CUDA (CPU image, or no --nv)
+    import torch
+
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}", file=sys.stderr)
 
     os.makedirs(args.output, exist_ok=True)

@@ -26,6 +26,7 @@ The backbone model is NOT loaded here — the head trains on pre-computed embedd
 
 import argparse
 import json
+import math
 import os
 import sys
 
@@ -213,6 +214,17 @@ def classification_block(y_true_int, y_pred_int, probs, class_names):
 
 
 # -------------------------- Training paths --------------------------
+
+def json_safe(obj):
+    """NaN and infinities as null: json.dump would write a bare NaN, which strict JSON rejects."""
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return None
+    if isinstance(obj, dict):
+        return {k: json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):  # noqa: UP038 (ERNIE-RNA's image runs Python 3.9)
+        return [json_safe(v) for v in obj]
+    return obj
+
 
 def train_torch_head(X, y, val_idx, train_idx, args, head_type, task, num_classes):
     """Shared train loop for linear/mlp.
@@ -466,6 +478,24 @@ def main():
     # out of training AND early-stopping; the val split is carved from the 'train'
     # pool only. Without it, behavior is the original random train/val over all rows.
     rng = np.random.RandomState(args.seed)
+
+    def carve_val(pool):
+        """Validation and training rows from a shuffled pool. For classification the validation
+        rows are drawn per class, so every class with two or more rows is in both sets (a
+        validation set of one class has no AUROC); for regression, the first rows of the pool."""
+        n_val = max(1, int(round(pool.size * args.val_frac)))
+        if task != "classification":
+            return pool[:n_val], pool[n_val:]
+        in_val = np.zeros(pool.size, dtype=bool)
+        for c in range(num_classes):
+            members = np.flatnonzero(y_orig[pool] == c)
+            if members.size >= 2:
+                k = min(members.size - 1, max(1, int(round(members.size * args.val_frac))))
+                in_val[members[:k]] = True
+        if not in_val.any():
+            in_val[:n_val] = True
+        return pool[in_val], pool[~in_val]
+
     test_idx = np.array([], dtype=int)
     if args.split_file:
         splits = [s.lower() for s in load_labels_raw(args.split_file)]
@@ -485,15 +515,9 @@ def main():
         all_idx = np.arange(n)
         is_test = np.array([s == "test" for s in splits])
         test_idx = all_idx[is_test]
-        pool = rng.permutation(all_idx[~is_test])
-        n_val = max(1, int(round(pool.size * args.val_frac)))
-        val_idx = pool[:n_val]
-        train_idx = pool[n_val:]
+        val_idx, train_idx = carve_val(rng.permutation(all_idx[~is_test]))
     else:
-        idx = rng.permutation(n)
-        n_val = max(1, int(round(n * args.val_frac)))
-        val_idx = idx[:n_val]
-        train_idx = idx[n_val:]
+        val_idx, train_idx = carve_val(rng.permutation(n))
     if train_idx.size < 1:
         train_idx = val_idx
 
@@ -655,7 +679,7 @@ def main():
 
     metrics_path = os.path.join(args.output, "metrics.json")
     with open(metrics_path, "w") as f:
-        json.dump(metrics, f, indent=2)
+        json.dump(json_safe(metrics), f, indent=2)
 
     print(
         f"Done. head={head_path} predictions={pred_path} metrics={metrics_path} {summary}",

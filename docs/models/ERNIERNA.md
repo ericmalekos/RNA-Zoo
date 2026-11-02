@@ -74,7 +74,7 @@ Use `-profile docker,gpu` for a GPU. Results go to `results/ernierna/ernierna_ou
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--ernierna_input` | `null` | FASTA file |
-| `--ernierna_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
+| `--ernierna_per_token` | `false` | Also write per-nucleotide embeddings |
 | `--ernierna_max_len` | `1022` | Truncate longer sequences to this many nt |
 | `--ernierna_pooling` | `mean` | Sequence embedding: `mean` over nucleotides or `cls` for the CLS token |
 

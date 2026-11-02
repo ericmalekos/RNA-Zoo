@@ -73,7 +73,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/plantrnafm/p
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--plantrnafm_input` | `null` | FASTA file |
-| `--plantrnafm_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
+| `--plantrnafm_per_token` | `false` | Also write per-nucleotide embeddings |
 | `--plantrnafm_max_len` | `1024` | Truncate longer sequences to this many nt |
 | `--plantrnafm_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 

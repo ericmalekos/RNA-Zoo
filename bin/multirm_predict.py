@@ -211,11 +211,18 @@ def main():
         for idx, (header, seq) in enumerate(sequences):
             check_pos = len(seq) - WINDOW + 1
             probs = np.zeros((NUM_TASK, check_pos))
+            unscored = 0
 
             with torch.no_grad():
                 for pos in range(check_pos):
                     window_seq = seq[pos : pos + WINDOW]
                     kmers_idx = seq2index([window_seq], embeddings_dict)
+                    if kmers_idx.dtype == object:
+                        # A 3-mer outside MultiRM's vocabulary (the 64 of A, C, G and T and 30 of
+                        # the 61 with N) has no index, so the window cannot be encoded: no score
+                        probs[:, pos] = np.nan
+                        unscored += 1
+                        continue
                     # seq2index returns (batch, n_kmers) = (1, 49), which is what the model
                     # expects: its LSTM is batch_first=True. Do NOT transpose to (49, 1), as
                     # upstream MultiRM's Scripts/main.py does: the model then sees 49
@@ -230,11 +237,16 @@ def main():
             # Write per-position probabilities (center position of each window)
             for pos in range(check_pos):
                 center = pos + 25  # 0-indexed center of 51-nt window
-                vals = "\t".join(f"{probs[k, pos]:.6f}" for k in range(NUM_TASK))
+                vals = "\t".join(
+                    "NA" if np.isnan(probs[k, pos]) else f"{probs[k, pos]:.6f}"
+                    for k in range(NUM_TASK)
+                )
                 sf.write(f"{header}\t{center + 1}\t{seq[center]}\t{vals}\n")
 
             # Compute p-values and write significant sites
             for pos in range(check_pos):
+                if np.isnan(probs[0, pos]):
+                    continue
                 center = pos + 25
                 for k in range(NUM_TASK):
                     p_val = np.sum(neg_prob.iloc[k, :] > probs[k, pos]) / len(
@@ -265,6 +277,12 @@ def main():
                     mod_names=RMS,
                 )
 
+            if unscored:
+                print(
+                    f"Warning: {header}: {unscored} of {check_pos} windows hold a 3-mer outside "
+                    "MultiRM's vocabulary; their scores are NA",
+                    file=sys.stderr,
+                )
             print(
                 f"  [{idx + 1}/{len(sequences)}] {header} ({len(seq)} nt)",
                 file=sys.stderr,

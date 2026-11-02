@@ -74,7 +74,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/rnaernie/rna
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--rnaernie_input` | `null` | FASTA file |
-| `--rnaernie_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
+| `--rnaernie_per_token` | `false` | Also write per-nucleotide embeddings |
 | `--rnaernie_max_len` | `2046` | Truncate longer sequences to this many nt (2,046 at most) |
 | `--rnaernie_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 

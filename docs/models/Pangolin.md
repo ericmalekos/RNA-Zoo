@@ -93,7 +93,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/pangolin/pan
 | `--pangolin_reference_fasta` | `null` | Reference FASTA; required |
 | `--pangolin_annotation_db` | `null` | gffutils database; required |
 | `--pangolin_distance` | `50` | Positions scored on each side of the variant |
-| `--pangolin_mask` | `'True'` | `True` sets gains at annotated sites and losses at unannotated sites to 0; write `True` or `False` (a lowercase `false` stops the run) |
+| `--pangolin_mask` | `'True'` | `True` sets gains at annotated sites and losses at unannotated sites to 0; `false` turns this off |
 | `--pangolin_score_cutoff` | `null` | List every position with an absolute change at or above this value |
 | `--pangolin_column_ids` | `null` | CSV only: chromosome, position, REF and ALT column names (`CHROM,POS,REF,ALT` when unset) |
 

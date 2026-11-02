@@ -75,7 +75,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/utrlm/utrlm_
 | `--utrlm_input` | `null` | FASTA of 5' UTRs |
 | `--utrlm_task` | `mrl` | `mrl`, `te` or `el` |
 | `--utrlm_cell_line` | `HEK` | `HEK`, `pc3` or `Muscle`; used by `te` and `el` |
-| `--utrlm_checkpoint` | `null` | Absolute path to a fine-tuned `.pt`, used instead of the bundled weights |
+| `--utrlm_checkpoint` | `null` | Absolute path to a fine-tuned `.pt`, used instead of the bundled weights; the run stops if it does not fit the task's model |
 
 ## Fine-tuning on your own data
 

@@ -20,7 +20,8 @@ process CODONTRANSFORMER {
     path "optimized_codons.fa", emit: optimized_sequences
 
     script:
-    def deterministic_flag = params.codontransformer_deterministic ? '--deterministic' : '--no-deterministic'
+    // toString().toBoolean(): a command-line "false" arrives as a String, which Groovy treats as true
+    def deterministic_flag = params.codontransformer_deterministic.toString().toBoolean() ? '--deterministic' : '--no-deterministic'
     """
     codon_transformer_predict.py \\
         -i ${input_fasta} \\

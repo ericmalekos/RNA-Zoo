@@ -18,8 +18,8 @@ the called ORFs.
 
 A directory with the genome FASTA, a GTF and, per sample, a BAM or SAM of reads mapped to the
 transcriptome; plus a YAML config. The module copies the directory to `data/`, so config paths
-start with `data/`, and overwrites the config's `h5_path` and `out_prefix` lines, so the config
-must have both. Transcripts over 30,000 nt are skipped.
+start with `data/`, and sets `h5_path` and `out_prefix` itself, replacing those lines or adding
+them. Transcripts over 30,000 nt are skipped.
 
 Example (`tests/data/ribotie_config.yml`, shortened):
 

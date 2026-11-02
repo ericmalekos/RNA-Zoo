@@ -6,14 +6,42 @@
 - `conf/containers_v1.0.2.config` pins every image to its v1.0.2 registry digest; pass it with
   `nextflow -c` and run the v1.0.2 code (`-r v1.0.2`) to run exactly the release images.
 
+### Fixed
+- A command-line `false` turned on flags it should leave off: every `--<model>_per_token`, DRfold2's
+  `--drfold2_cluster` and `--drfold2_keep_intermediate`, and `--codontransformer_deterministic false`
+  kept CodonTransformer deterministic. Nextflow passes command-line values as strings, and the
+  string "false" counts as true; the modules now convert the value first, as SPOT-RNA's and MultiRM's
+  plot flags already did.
+- `--pangolin_mask false` stopped the run, as upstream accepts only `True` or `False`; the module now
+  takes either value in any case, or a params-file boolean, and passes upstream its spelling.
+- MultiRM stopped with a TypeError on any window holding a 3-mer outside its vocabulary (any letter
+  but A, C, G, T or U, and some 3-mers with N). Such windows now get `NA` scores and no site calls,
+  with a warning per sequence; the other windows score as before (identical output on the test data).
+- RhoFold+ took the GPU whenever `/dev/nvidia0` existed, which Singularity also shows to the CPU image
+  on a GPU node; upstream then failed on every sequence and the task on its missing output. The
+  wrapper now asks PyTorch whether CUDA works.
+- `--utrlm_checkpoint` loaded a checkpoint whose tensor names did not match the model without an error
+  and predicted from random weights. The run now stops unless every model tensor loads (six tensors
+  that every bundled checkpoint holds and the model does not use are allowed), which also catches a
+  checkpoint fine-tuned for another `--utrlm_task`. Predictions with the bundled weights are unchanged.
+- RiboNN fine-tuning: `--ribonn_finetune_folds 1` ended in a bare numpy error and now stops with a
+  message (at least 2 folds); torch is seeded (42) as well as numpy, so the new head's initialization
+  repeats; and both training phases use the GPU under `-profile gpu` (PyTorch Lightning 1.8 trains on
+  the CPU unless told otherwise).
+- RiboTIE: the module replaced the config's `h5_path` and `out_prefix` lines but did not add them,
+  so a config without `h5_path` stopped RiboTIE with a TypeError in `process_seq_data`. The module
+  now adds both lines when the config has none.
+- Fine-tuning heads: for classification the validation rows are now drawn per class, so every class
+  with two or more rows is in both training and validation. A random split could leave validation
+  with one class and no AUROC, as in all eight runs of `test_finetune_classify`. `metrics.json` writes
+  a metric that cannot be computed as `null` instead of `NaN`, which strict JSON readers reject.
+  Regression splits are unchanged.
+
 ### Documentation
-- The model pages and the general pages were checked against the v1.0.2 images by running their
-  CPU examples, and corrected. They now say that a command-line `false` also turns on DRfold2's
-  `--drfold2_cluster` and `--drfold2_keep_intermediate` and every `--<model>_per_token` flag (a
-  `false` in a `-params-file` does not), that `--pangolin_mask` takes `True` or `False`, that
-  MultiRM stops on 3-mers outside its vocabulary, what `test_finetune_classify` reports, and how to
-  run the images directly with Singularity. The installation page names release 1.0.2 and its
-  pinned config; the structure model is called RhoFold+, its published name.
+- The model pages and the general pages were checked against the v1.0.2 images by running their CPU
+  examples, and corrected. They describe how to run the images directly with Singularity, the
+  installation page names release 1.0.2 and its pinned config, and the structure model is called
+  RhoFold+, its published name.
 
 ## 1.0.2 (2026-11-01)
 

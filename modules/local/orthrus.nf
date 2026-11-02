@@ -26,7 +26,7 @@ process ORTHRUS {
     path "orthrus_out/*_tokens.npy",            emit: token_embeddings, optional: true
 
     script:
-    def per_token_flag  = params.orthrus_per_token  ? '--per-token'                    : ''
+    def per_token_flag  = params.orthrus_per_token.toString().toBoolean() ? '--per-token' : ''
     def annotation_flag = params.orthrus_annotation ? "--annotation ${annotation_tsv}" : ''
     def gtf_flag        = params.orthrus_gtf        ? "--gtf ${gtf_file}"              : ''
     """

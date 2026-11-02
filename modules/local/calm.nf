@@ -23,7 +23,7 @@ process CALM {
     path "calm_out/*_tokens.npy",            emit: token_embeddings, optional: true
 
     script:
-    def per_token_flag = params.calm_per_token ? '--per-token' : ''
+    def per_token_flag = params.calm_per_token.toString().toBoolean() ? '--per-token' : ''
     """
     calm_predict.py \\
         -i ${input_fasta} \\

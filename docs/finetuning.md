@@ -90,10 +90,11 @@ Set with `--<prefix>_finetune_head_type`.
 | `mlp` | Linear layer to 64 units, ReLU, dropout 0.2, linear output layer | Path A or B |
 | `xgboost` | XGBoost, up to 200 trees of depth 6 | Path B only |
 
-The rows are split at random (seed 42) into 80% for training and 20% for validation. The linear
-and MLP heads train with Adam in batches of 32 and keep the weights with the lowest validation
-loss, stopping after 5 epochs without improvement. XGBoost stops after 10 rounds without
-improvement on the validation rows. For the linear and MLP heads, regression labels are
+The rows are split at random (seed 42) into 80% for training and 20% for validation; for
+classification the split is drawn per class, so every class with two or more rows is in both. The
+linear and MLP heads train with Adam in batches of 32 and keep the weights with the lowest
+validation loss, stopping after 5 epochs without improvement. XGBoost stops after 10 rounds
+without improvement on the validation rows. For the linear and MLP heads, regression labels are
 standardized on the training rows, and predictions are returned on the original scale.
 
 ## Outputs
@@ -104,7 +105,8 @@ In `results/<prefix>_finetune/<prefix>_finetune_out/`:
   classification adds a `prob_<class>` column per class.
 - `metrics.json`: metrics for all rows, the training rows and the validation rows. Regression:
   MSE, R², Pearson r and Spearman r. Classification: accuracy, macro and weighted F1, AUROC (two
-  classes only), the confusion matrix, and precision, recall and F1 per class.
+  classes only), the confusion matrix, and precision, recall and F1 per class. A metric that
+  cannot be computed is `null`.
 - `best_head.pt`: the linear or MLP head's weights and settings. An XGBoost head is saved as
   `best_head.ubj`, with its settings in `best_head_config.json`.
 
@@ -136,9 +138,7 @@ nextflow run main.nf -profile test_finetune_classify,docker,cpu
 
 Each covers eight of the nine models (all but HydraRNA) on 30 sequences whose labels follow GC
 content; under `cpu`, `test_finetune` skips Orthrus. Path B uses a random embedding file, so the
-tests check that every step runs and writes finite metrics, not how well the heads learn. The
-exception is `test_finetune_classify`: its six validation rows all have one label, so its validation
-AUROC is `NaN`.
+tests check that every step runs and writes finite metrics, not how well the heads learn.
 
 ## Limitations
 

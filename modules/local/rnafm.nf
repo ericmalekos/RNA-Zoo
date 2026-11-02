@@ -21,7 +21,7 @@ process RNAFM {
     path "rnafm_out/*_tokens.npy",            emit: token_embeddings, optional: true
 
     script:
-    def per_token_flag = params.rnafm_per_token ? '--per-token' : ''
+    def per_token_flag = params.rnafm_per_token.toString().toBoolean() ? '--per-token' : ''
     """
     rnafm_predict.py \
         -i ${input_fasta} \

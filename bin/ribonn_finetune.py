@@ -83,7 +83,7 @@ def main():
     )
     parser.add_argument(
         "--folds", type=int, default=5,
-        help="Number of cross-validation folds (default: 5)",
+        help="Number of cross-validation folds, at least 2 (default: 5)",
     )
     parser.add_argument(
         "--pretrained-dir",
@@ -91,6 +91,12 @@ def main():
         help="Directory with pretrained model checkpoints and runs.csv",
     )
     args = parser.parse_args()
+    if args.folds < 2:
+        parser.error("--folds must be at least 2: each fold is held out while the others train")
+
+    # Seed torch as well as numpy, so the new head's initialization, dropout and batch order
+    # repeat from run to run (the folds and splits below keep their own numpy seed)
+    pl.seed_everything(42, workers=True)
 
     os.makedirs(args.output, exist_ok=True)
 
@@ -180,8 +186,11 @@ def main():
         )
 
         # Phase 1: train head only
+        # accelerator="auto": Lightning 1.8 otherwise trains on the CPU even in the GPU image
         trainer = pl.Trainer(
             max_epochs=args.phase1_epochs,
+            accelerator="auto",
+            devices=1,
             gradient_clip_val=0.5,
             enable_progress_bar=True,
             logger=False,
@@ -196,6 +205,8 @@ def main():
 
         trainer = pl.Trainer(
             max_epochs=args.phase2_epochs,
+            accelerator="auto",
+            devices=1,
             gradient_clip_val=0.5,
             callbacks=[early_stopping, checkpoint],
             enable_progress_bar=True,
@@ -222,10 +233,11 @@ def main():
         # batches have no targets and validation_step fails ("too many values to
         # unpack").
         model.eval()
+        device = next(model.parameters()).device
         preds_list = []
         with torch.no_grad():
             for x, _ in dm.test_dataloader():
-                preds_list.append(model(x).cpu().reshape(-1))
+                preds_list.append(model(x.to(device)).cpu().reshape(-1))
         if preds_list:
             fold_preds = data_test[["tx_id"]].copy()
             fold_preds["fold"] = test_fold

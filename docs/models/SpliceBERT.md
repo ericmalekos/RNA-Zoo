@@ -74,7 +74,7 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/splicebert/s
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--splicebert_input` | `null` | FASTA file |
-| `--splicebert_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
+| `--splicebert_per_token` | `false` | Also write per-nucleotide embeddings |
 | `--splicebert_max_len` | `1024` | Truncate longer sequences to this many nt |
 | `--splicebert_batch_size` | `8` | Sequences per forward pass; lower it if GPU memory runs out |
 

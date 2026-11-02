@@ -22,7 +22,7 @@ process PLANTRNAFM {
     path "plantrnafm_out/*_tokens.npy",            emit: token_embeddings, optional: true
 
     script:
-    def per_token_flag = params.plantrnafm_per_token ? '--per-token' : ''
+    def per_token_flag = params.plantrnafm_per_token.toString().toBoolean() ? '--per-token' : ''
     """
     plantrnafm_predict.py \
         -i ${input_fasta} \

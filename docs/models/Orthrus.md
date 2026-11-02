@@ -116,7 +116,7 @@ Results go to `results/orthrus/orthrus_out/`.
 | `--orthrus_variant` | `large-4track` | Checkpoint (see [Variants](#variants)) |
 | `--orthrus_annotation` | `null` | Annotation TSV for 6-track variants |
 | `--orthrus_gtf` | `null` | GTF for 6-track variants |
-| `--orthrus_per_token` | `false` | Also write per-nucleotide embeddings (a command-line `false` also turns this on) |
+| `--orthrus_per_token` | `false` | Also write per-nucleotide embeddings |
 | `--orthrus_min_len` | `200` | Warn about sequences shorter than this many nt |
 
 ## Fine-tuning

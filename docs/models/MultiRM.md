@@ -82,7 +82,6 @@ Use `-profile docker,gpu` for the GPU image. Results go to `results/multirm/mult
 - Scores differ from those of upstream's `Scripts/main.py`, which transposes the 3-mer input so
   that each score depends only on the window's first 3-mer. The RNA Zoo wrapper passes the whole
   window.
-- Letters other than A, C, G, T and U can stop the run with a TypeError: MultiRM's vocabulary
-  holds the 64 3-mers of A, C, G and T, only 30 of the 61 3-mers with N and none with other
-  letters, and a window with any other 3-mer cannot be encoded. Replace or remove such sequences
-  first.
+- MultiRM's vocabulary holds the 64 3-mers of A, C, G and T, only 30 of the 61 3-mers with N and
+  none with other letters. A window with any other 3-mer cannot be encoded: its scores are `NA`,
+  it is never called as a site, and the run warns with the number of such windows per sequence.

@@ -69,8 +69,8 @@ Results go to `results/drfold2/drfold2_out/`.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--drfold2_input` | `null` | FASTA file |
-| `--drfold2_cluster` | `false` | Also write alternative models from a clustering pass (a command-line `false` also turns this on) |
-| `--drfold2_keep_intermediate` | `false` | Keep each sequence's working directory; it stays in the Nextflow task directory and is not published (a command-line `false` also turns this on) |
+| `--drfold2_cluster` | `false` | Also write alternative models from a clustering pass |
+| `--drfold2_keep_intermediate` | `false` | Keep each sequence's working directory; it stays in the Nextflow task directory and is not published |
 
 ## Limitations
 

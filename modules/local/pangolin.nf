@@ -29,6 +29,8 @@ process PANGOLIN {
     def basename = input_variants.getBaseName()
     def score_arg = params.pangolin_score_cutoff != null ? "-s ${params.pangolin_score_cutoff}" : ''
     def column_arg = params.pangolin_column_ids ? "-c ${params.pangolin_column_ids}" : ''
+    // upstream takes only True or False; accept true/false in any case, or a params-file boolean
+    def mask_arg = params.pangolin_mask.toString().toBoolean() ? 'True' : 'False'
     """
     mkdir -p pangolin_out
     pangolin_predict.py \
@@ -37,7 +39,7 @@ process PANGOLIN {
         -a ${annotation_db} \
         -o pangolin_out/${basename}.pangolin \
         -d ${params.pangolin_distance} \
-        -m ${params.pangolin_mask} \
+        -m ${mask_arg} \
         ${score_arg} \
         ${column_arg}
     """

@@ -96,6 +96,9 @@ Outputs in `results/ribonn_finetune/ribonn_finetune_out/`:
 - `predictions.tsv`: `tx_id`, `fold` and `predicted_<target>`, each transcript predicted while held out
 - `fold<k>/`: the checkpoint with the best validation R² in fold k
 
+The folds, the validation rows and the new head's initialization are seeded (42). Under
+`-profile gpu` the training runs on the GPU.
+
 To predict with one of these checkpoints, run the prediction with `--ribonn_checkpoint` (an
 absolute path, since the module runs from `/app`) and `--ribonn_finetune_target`. The output then
 holds `tx_id` and `predicted_<target>` only.

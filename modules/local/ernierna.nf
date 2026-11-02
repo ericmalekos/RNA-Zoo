@@ -21,7 +21,7 @@ process ERNIERNA {
     path "ernierna_out/*_tokens.npy",            emit: token_embeddings, optional: true
 
     script:
-    def per_token_flag = params.ernierna_per_token ? '--per-token' : ''
+    def per_token_flag = params.ernierna_per_token.toString().toBoolean() ? '--per-token' : ''
     """
     ernierna_predict.py \
         -i ${input_fasta} \
