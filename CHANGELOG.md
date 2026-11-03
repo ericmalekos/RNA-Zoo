@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- `conf/containers_v1.0.4.config` pins every image to its v1.0.4 registry digest; pass it with
+  `nextflow -c` and run the v1.0.4 code (`-r v1.0.4`) to run exactly the release images. The
+  installation page now names release 1.0.4.
+
 ## 1.0.4 (2026-11-02)
 
 ### Fixed

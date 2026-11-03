@@ -70,11 +70,11 @@ for img in ribonn-cpu riboformer-cpu tristan-cpu translationai-cpu saluki-cpu \
 done
 ```
 
-The `:latest` tags move with every change. To run the exact images of release 1.0.2, add its
+The `:latest` tags move with every change. To run the exact images of release 1.0.4, add its
 digest-pinned config and run that release's code, with either profile:
 
 ```bash
-nextflow -c conf/containers_v1.0.2.config run ericmalekos/RNA-Zoo -r v1.0.2 -profile docker,cpu --rnafm_input input.fa
+nextflow -c conf/containers_v1.0.4.config run ericmalekos/RNA-Zoo -r v1.0.4 -profile docker,cpu --rnafm_input input.fa
 ```
 
 To run the images without Nextflow, see [Direct Docker usage](../direct-docker.md).
